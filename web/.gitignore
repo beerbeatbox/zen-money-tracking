@@ -1,0 +1,48 @@
+# ================================
+# Web Platform .gitignore
+# ================================
+
+# ===================
+# Dart/Flutter Generated
+# ===================
+.dart_tool/
+
+# ===================
+# Build Outputs
+# ===================
+build/
+
+# ===================
+# Node.js (if using)
+# ===================
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ===================
+# Environment
+# ===================
+.env
+.env.local
+.env.*.local
+
+# ===================
+# Firebase
+# ===================
+firebase-debug.log
+.firebase/
+.firebaserc
+
+# ===================
+# Service Worker
+# ===================
+flutter_service_worker.js
+
+# ===================
+# Misc
+# ===================
+.DS_Store
+*.swp
+*~

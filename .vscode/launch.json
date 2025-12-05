@@ -1,0 +1,69 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Dev (Debug)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_dev.dart",
+            "flutterMode": "debug",
+            "preLaunchTask": "rps gen build"
+        },
+        {
+            "name": "Dev (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_dev.dart",
+            "flutterMode": "release",
+            "preLaunchTask": "rps gen build"
+        },
+        {
+            "name": "SIT (Debug)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_sit.dart",
+            "flutterMode": "debug",
+            "preLaunchTask": "rps gen build"
+        },
+        {
+            "name": "SIT (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_sit.dart",
+            "flutterMode": "release",
+            "preLaunchTask": "rps gen build"
+        },
+        {
+            "name": "UAT (Debug)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_uat.dart",
+            "flutterMode": "debug",
+            "preLaunchTask": "rps gen build"
+        },
+        {
+            "name": "UAT (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_uat.dart",
+            "flutterMode": "release",
+            "preLaunchTask": "rps gen build"
+        },
+        {
+            "name": "Prod (Debug)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_prod.dart",
+            "flutterMode": "debug",
+            "preLaunchTask": "rps gen build"
+        },
+        {
+            "name": "Prod (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_prod.dart",
+            "flutterMode": "release",
+            "preLaunchTask": "rps gen build"
+        }
+    ]
+}

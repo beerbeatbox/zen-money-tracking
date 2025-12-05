@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "rps gen build",
+            "type": "shell",
+            "command": "rps",
+            "args": ["gen", "build"],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
+        }
+    ]
+}
+

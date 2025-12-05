@@ -1,0 +1,113 @@
+# ================================
+# iOS Platform .gitignore
+# ================================
+
+# ===================
+# Xcode User Data
+# ===================
+**/dgph
+*.mode1v3
+*.mode2v3
+*.moved-aside
+*.pbxuser
+*.perspectivev3
+**/*sync/
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.xcworkspacedata
+
+# Exceptions to above rules
+!default.mode1v3
+!default.mode2v3
+!default.pbxuser
+!default.perspectivev3
+
+# ===================
+# Build & Derived Data
+# ===================
+**/DerivedData/
+build/
+*.build/
+*.dSYM.zip
+*.dSYM
+*.ipa
+*.xcarchive
+
+# ===================
+# CocoaPods
+# ===================
+**/Pods/
+Podfile.lock
+.cocoapods/
+
+# ===================
+# Flutter Generated
+# ===================
+**/.symlinks/
+**/.generated/
+Flutter/App.framework
+Flutter/Flutter.framework
+Flutter/Flutter.podspec
+Flutter/Generated.xcconfig
+Flutter/ephemeral/
+Flutter/app.flx
+Flutter/app.zip
+Flutter/flutter_assets/
+Flutter/flutter_export_environment.sh
+Runner/GeneratedPluginRegistrant.*
+
+# ===================
+# Service Definitions
+# ===================
+ServiceDefinitions.json
+
+# ===================
+# Firebase & Google Services
+# ===================
+# Contains sensitive API keys - add to repo if using CI/CD secrets
+GoogleService-Info.plist
+Runner/GoogleService-Info.plist
+firebase_app_id_file.json
+
+# ===================
+# Signing & Certificates
+# ===================
+*.mobileprovision
+*.p12
+*.cer
+*.pem
+AuthKey_*.p8
+ExportOptions.plist
+
+# ===================
+# Misc
+# ===================
+.sconsign.dblite
+.tags*
+**/.vagrant/
+Icon?
+.DS_Store
+*.swp
+*~
+
+# ===================
+# SPM (Swift Package Manager)
+# ===================
+.swiftpm/
+Package.resolved
+
+# ===================
+# Fastlane
+# ===================
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+fastlane/README.md
+
+# ===================
+# Testing
+# ===================
+*.xcresult
+coverage_data/

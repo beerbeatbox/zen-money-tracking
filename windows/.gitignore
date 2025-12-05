@@ -1,0 +1,116 @@
+# ================================
+# Windows Platform .gitignore
+# ================================
+
+# ===================
+# Flutter Generated
+# ===================
+flutter/ephemeral/
+
+# ===================
+# Visual Studio User Files
+# ===================
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# ===================
+# Visual Studio Build Files
+# ===================
+x64/
+x86/
+Debug/
+Release/
+[Bb]uild/
+[Bb]uild[Ll]og.*
+*.VC.db
+*.VC.opendb
+
+# ===================
+# Visual Studio Cache
+# ===================
+# Files ending in .cache can be ignored
+*.[Cc]ache
+# But keep track of directories ending in .cache
+!*.[Cc]ache/
+
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.cachefile
+
+# ===================
+# CMake
+# ===================
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+!flutter/CMakeLists.txt
+!runner/CMakeLists.txt
+!flutter/generated_plugins.cmake
+
+# ===================
+# Build Outputs
+# ===================
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.obj
+*.iobj
+*.ipdb
+*.idb
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.appxupload
+
+# ===================
+# NuGet
+# ===================
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# ===================
+# Generated Files
+# ===================
+generated_plugin_registrant.cc
+generated_plugin_registrant.h
+!flutter/generated_plugin_registrant.cc
+!flutter/generated_plugin_registrant.h
+
+# ===================
+# IDE Files
+# ===================
+.idea/
+*.swp
+*~
+.vs/
+*.vcxproj.user
+
+# ===================
+# Installer Output
+# ===================
+installer/Output/
+
+# ===================
+# Misc
+# ===================
+*.log
+*.tmp
+*.temp
+Thumbs.db
+ehthumbs.db
+Desktop.ini

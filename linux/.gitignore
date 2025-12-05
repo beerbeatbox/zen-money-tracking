@@ -1,0 +1,59 @@
+# ================================
+# Linux Platform .gitignore
+# ================================
+
+# ===================
+# Flutter Generated
+# ===================
+flutter/ephemeral/
+flutter/ephemeral
+
+# ===================
+# Build Outputs
+# ===================
+build/
+/bundle/
+*.snap
+*.flatpak
+*.deb
+*.rpm
+*.AppImage
+*.tar.gz
+*.tar.xz
+
+# ===================
+# CMake
+# ===================
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+!flutter/CMakeLists.txt
+!runner/CMakeLists.txt
+!flutter/generated_plugins.cmake
+
+# ===================
+# Generated Files
+# ===================
+generated_plugin_registrant.cc
+generated_plugin_registrant.h
+!flutter/generated_plugin_registrant.cc
+!flutter/generated_plugin_registrant.h
+
+# ===================
+# IDE Files
+# ===================
+.idea/
+*.swp
+*~
+.vscode/
+
+# ===================
+# Misc
+# ===================
+*.o
+*.so
+*.a
+.DS_Store

@@ -1,0 +1,93 @@
+# ================================
+# macOS Platform .gitignore
+# ================================
+
+# ===================
+# Flutter Generated
+# ===================
+**/Flutter/ephemeral/
+
+# ===================
+# CocoaPods
+# ===================
+**/Pods/
+Podfile.lock
+.cocoapods/
+
+# ===================
+# Xcode User Data
+# ===================
+**/dgph
+**/xcuserdata/
+*.mode1v3
+*.mode2v3
+*.moved-aside
+*.pbxuser
+*.perspectivev3
+**/*sync/
+*.xccheckout
+*.xcscmblueprint
+
+# ===================
+# Build & Derived Data
+# ===================
+**/DerivedData/
+build/
+*.build/
+*.dSYM.zip
+*.dSYM
+*.app
+*.pkg
+
+# ===================
+# Symlinks
+# ===================
+**/.symlinks/
+
+# ===================
+# Generated Files
+# ===================
+**/.generated/
+GeneratedPluginRegistrant.swift
+
+# ===================
+# Firebase & Google Services
+# ===================
+GoogleService-Info.plist
+
+# ===================
+# Signing
+# ===================
+*.p12
+*.cer
+*.pem
+*.mobileprovision
+ExportOptions.plist
+
+# ===================
+# SPM (Swift Package Manager)
+# ===================
+.swiftpm/
+Package.resolved
+
+# ===================
+# Misc
+# ===================
+.DS_Store
+*.swp
+*~
+Icon?
+
+# ===================
+# Fastlane
+# ===================
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# ===================
+# Testing
+# ===================
+*.xcresult
+coverage_data/
