@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
+import '../../features/home/domain/entities/expense_log.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
+import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
+import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -14,7 +16,8 @@ enum AppRouter {
   onboarding,
   dashboard,
   settings,
-  profile;
+  profile,
+  expenseLogDetail;
 
   String get path {
     switch (this) {
@@ -26,6 +29,8 @@ enum AppRouter {
         return '/settings';
       case AppRouter.profile:
         return '/profile';
+      case AppRouter.expenseLogDetail:
+        return '/logs/:id';
     }
   }
 }
@@ -62,6 +67,17 @@ GoRouter appRouter(Ref ref) {
                     const NoTransitionPage(child: SettingsScreen()),
           ),
         ],
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.expenseLogDetail.path,
+        name: AppRouter.expenseLogDetail.name,
+        builder: (context, state) {
+          final extra = state.extra;
+          final log = extra is ExpenseLog ? extra : null;
+          final logId = state.pathParameters['id'] ?? log?.id ?? '';
+          return ExpenseLogDetailScreen(logId: logId, log: log);
+        },
       ),
       ...profileRouter,
     ],
