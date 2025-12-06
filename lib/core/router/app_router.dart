@@ -65,28 +65,40 @@ GoRouter appRouter(Ref ref) {
             name: AppRouter.dashboard.name,
             pageBuilder:
                 (context, state) =>
-                    const NoTransitionPage(child: DashboardScreen()),
+                    NoTransitionPage(
+                      key: state.pageKey, // ensure unique page per tab
+                      child: const DashboardScreen(),
+                    ),
           ),
           GoRoute(
             path: AppRouter.report.path,
             name: AppRouter.report.name,
             pageBuilder:
                 (context, state) =>
-                    const NoTransitionPage(child: ReportScreen()),
+                    NoTransitionPage(
+                      key: state.pageKey,
+                      child: const ReportScreen(),
+                    ),
           ),
           GoRoute(
             path: AppRouter.budget.path,
             name: AppRouter.budget.name,
             pageBuilder:
                 (context, state) =>
-                    const NoTransitionPage(child: BudgetScreen()),
+                    NoTransitionPage(
+                      key: state.pageKey,
+                      child: const BudgetScreen(),
+                    ),
           ),
           GoRoute(
             path: AppRouter.settings.path,
             name: AppRouter.settings.name,
             pageBuilder:
                 (context, state) =>
-                    const NoTransitionPage(child: SettingsScreen()),
+                    NoTransitionPage(
+                      key: state.pageKey,
+                      child: const SettingsScreen(),
+                    ),
           ),
         ],
       ),

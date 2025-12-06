@@ -75,19 +75,23 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     _setAddPressed(false);
   }
 
-  void _handleSettingsTap(BuildContext context) {
+  void _handleSettingsTap(BuildContext context, {required bool isActive}) {
+    if (isActive) return; // avoid re-triggering same route on iOS
     context.go(AppRouter.settings.path);
   }
 
-  void _handleHomeTap(BuildContext context) {
+  void _handleHomeTap(BuildContext context, {required bool isActive}) {
+    if (isActive) return;
     context.go(AppRouter.dashboard.path);
   }
 
-  void _handleBudgetTap(BuildContext context) {
+  void _handleBudgetTap(BuildContext context, {required bool isActive}) {
+    if (isActive) return;
     context.go(AppRouter.budget.path);
   }
 
-  void _handleReportTap(BuildContext context) {
+  void _handleReportTap(BuildContext context, {required bool isActive}) {
+    if (isActive) return;
     context.go(AppRouter.report.path);
   }
 
@@ -133,7 +137,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
 
   Widget _buildSettingsButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleSettingsTap(context),
+      onTap: () => _handleSettingsTap(context, isActive: isActive),
       icon: HeroIcons.cog6Tooth,
       semanticLabel: 'Settings',
       label: 'Settings',
@@ -143,7 +147,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
 
   Widget _buildHomeButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleHomeTap(context),
+      onTap: () => _handleHomeTap(context, isActive: isActive),
       icon: HeroIcons.home,
       semanticLabel: 'Home',
       label: 'Home',
@@ -153,7 +157,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
 
   Widget _buildReportButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleReportTap(context),
+      onTap: () => _handleReportTap(context, isActive: isActive),
       icon: HeroIcons.chartBar,
       semanticLabel: 'Report',
       label: 'Report',
@@ -163,7 +167,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
 
   Widget _buildBudgetButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleBudgetTap(context),
+      onTap: () => _handleBudgetTap(context, isActive: isActive),
       icon: HeroIcons.wallet,
       semanticLabel: 'Budget',
       label: 'Budget',
