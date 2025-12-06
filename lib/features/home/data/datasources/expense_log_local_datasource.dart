@@ -71,6 +71,14 @@ class ExpenseLogLocalDatasource {
     final csv = const ListToCsvConverter(eol: _csvEol).convert(rows);
     await file.writeAsString(csv);
   }
+
+  Future<void> deleteFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$_fileName');
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
 }
 
 @riverpod

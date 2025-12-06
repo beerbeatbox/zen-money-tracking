@@ -16,6 +16,8 @@ class ExpenseLogService {
 
   Future<void> setExpenseLogs(List<ExpenseLog> logs) =>
       _repository.setExpenseLogs(logs);
+
+  Future<void> deleteExpenseLogFile() => _repository.deleteExpenseLogFile();
 }
 
 @riverpod

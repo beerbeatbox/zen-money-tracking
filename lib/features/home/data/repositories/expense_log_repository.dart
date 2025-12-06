@@ -25,6 +25,8 @@ class ExpenseLogRepository {
     final models = logs.map(ExpenseLogModel.fromEntity).toList();
     await _datasource.overwrite(models);
   }
+
+  Future<void> deleteExpenseLogFile() => _datasource.deleteFile();
 }
 
 @riverpod
