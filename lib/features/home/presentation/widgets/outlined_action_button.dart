@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'outlined_surface.dart';
 
-class OutlinedActionButton extends StatelessWidget {
+class OutlinedActionButton extends StatefulWidget {
   const OutlinedActionButton({
     super.key,
     required this.label,
@@ -19,28 +19,71 @@ class OutlinedActionButton extends StatelessWidget {
   final Color backgroundColor;
 
   @override
-  Widget build(BuildContext context) {
-    const radius = BorderRadius.all(Radius.circular(12));
+  State<OutlinedActionButton> createState() => _OutlinedActionButtonState();
+}
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: radius,
-        onTap: onPressed,
-        child: OutlinedSurface(
-          borderRadius: radius,
-          border: Border.all(color: borderColor, width: 2),
-          color: backgroundColor,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.2,
-              ),
+class _OutlinedActionButtonState extends State<OutlinedActionButton> {
+  static const _radius = BorderRadius.all(Radius.circular(12));
+  static const _releaseDelay = Duration(milliseconds: 90);
+
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  Future<void> _releaseWithPause() async {
+    await Future.delayed(_releaseDelay);
+    if (!mounted) return;
+    _setPressed(false);
+  }
+
+  void _handleTap() {
+    if (widget.onPressed == null) return;
+    widget.onPressed!();
+  }
+
+  void _handleTapDown(TapDownDetails _) {
+    if (widget.onPressed == null) return;
+    _setPressed(true);
+  }
+
+  void _handleTapUp(TapUpDetails _) {
+    if (widget.onPressed == null) return;
+    _releaseWithPause();
+  }
+
+  void _handleTapCancel() {
+    if (widget.onPressed == null) return;
+    _releaseWithPause();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _handleTap,
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      child: OutlinedSurface(
+        borderRadius: _radius,
+        border: Border.all(color: widget.borderColor, width: 2),
+        color: widget.backgroundColor,
+        pressedColor: widget.backgroundColor.withOpacity(0.8),
+        isPressed: _pressed,
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: Center(
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              color: widget.textColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
             ),
           ),
         ),
