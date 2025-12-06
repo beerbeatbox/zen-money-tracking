@@ -71,9 +71,9 @@ class _OutlinedActionButtonState extends State<OutlinedActionButton> {
         borderRadius: _radius,
         border: Border.all(color: widget.borderColor, width: 2),
         color: widget.backgroundColor,
-        pressedColor: widget.backgroundColor.withOpacity(0.8),
+        pressedColor: widget.backgroundColor,
         isPressed: _pressed,
-        duration: const Duration(milliseconds: 80),
+        duration: const Duration(milliseconds: 0),
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Center(

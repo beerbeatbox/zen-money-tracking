@@ -252,7 +252,7 @@ class _NumberPad extends StatelessWidget {
           rows
               .map(
                 (row) => Padding(
-                  padding: EdgeInsets.only(bottom: 0),
+                  padding: const EdgeInsets.only(top: 4, bottom: 4),
                   child: Row(
                     children: [
                       for (var i = 0; i < row.length; i++) ...[
@@ -356,7 +356,6 @@ class _KeyButtonState extends State<_KeyButton> {
         color: isBackspace ? const Color(0xFFFDEBEB) : Colors.white,
         pressedColor:
             isBackspace ? const Color(0xFFF5D9D9) : const Color(0xFFF7F7F7),
-        pressedShadowOffset: const Offset(1, 1),
         duration: const Duration(milliseconds: 80),
         curve: Curves.easeOut,
         child: Center(

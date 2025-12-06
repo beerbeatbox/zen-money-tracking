@@ -72,7 +72,8 @@ class OutlinedSurface extends StatelessWidget {
             width: width,
             height: height,
             decoration: BoxDecoration(
-              color: isPressed ? pressedColor : color,
+              color:
+                  isPressed ? pressedColor.withValues(alpha: 0.5) : color,
               border: border,
               shape: shape,
               borderRadius: isCircle ? null : borderRadius,

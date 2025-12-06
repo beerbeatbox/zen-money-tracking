@@ -115,22 +115,29 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     required String label,
     required bool isActive,
   }) {
+    const hitWidth = 48.0;
+    const hitHeight = 80.0;
+
     return GestureDetector(
       onTap: onTap,
-      behavior: HitTestBehavior.translucent,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HeroIcon(
-            icon,
-            style: isActive ? HeroIconStyle.solid : HeroIconStyle.outline,
-            color: Colors.black,
-            size: 24,
-            semanticLabel: semanticLabel,
-          ),
-          const SizedBox(height: 6),
-          _buildNavLabel(label, isActive: isActive),
-        ],
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: hitWidth,
+        height: hitHeight,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HeroIcon(
+              icon,
+              style: isActive ? HeroIconStyle.solid : HeroIconStyle.outline,
+              color: Colors.black,
+              size: 24,
+              semanticLabel: semanticLabel,
+            ),
+            const SizedBox(height: 6),
+            _buildNavLabel(label, isActive: isActive),
+          ],
+        ),
       ),
     );
   }
@@ -191,7 +198,6 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
             shape: BoxShape.circle,
             isPressed: _addPressed,
             pressedColor: const Color(0xFFF7F7F7),
-            pressedShadowOffset: const Offset(1, 1),
             duration: const Duration(milliseconds: 80),
             curve: Curves.easeOut,
             child: const Icon(Icons.add, color: Colors.black, size: 28),
@@ -224,19 +230,16 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
               child: CustomPaint(painter: _CurvedNavPainter()),
             ),
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 12, 0, 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    _buildHomeButton(context, isActive: isHomeActive),
-                    _buildReportButton(context, isActive: isReportActive),
-                    const SizedBox(width: buttonSpacing),
-                    _buildBudgetButton(context, isActive: isBudgetActive),
-                    _buildSettingsButton(context, isActive: isSettingsActive),
-                  ],
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildHomeButton(context, isActive: isHomeActive),
+                  _buildReportButton(context, isActive: isReportActive),
+                  const SizedBox(width: buttonSpacing),
+                  _buildBudgetButton(context, isActive: isBudgetActive),
+                  _buildSettingsButton(context, isActive: isSettingsActive),
+                ],
               ),
             ),
             Positioned(
