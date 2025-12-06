@@ -154,10 +154,12 @@ class _LogActionsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(
+        Expanded(
           child: OutlinedActionButton(
             label: 'Edit',
-            onPressed: null, // TODO: implement edit log
+            onPressed: () {
+              // TODO: implement edit log flow
+            },
             textColor: Colors.black,
             borderColor: Colors.black,
             backgroundColor: Colors.white,
