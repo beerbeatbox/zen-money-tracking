@@ -108,7 +108,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
         width: double.infinity,
         child: OutlinedSurface(
           padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(28)),
+          borderRadius: const BorderRadius.only(topLeft: Radius.circular(28) , topRight: Radius.circular(28)),
           child: SafeArea(
             top: false,
             child: Column(
