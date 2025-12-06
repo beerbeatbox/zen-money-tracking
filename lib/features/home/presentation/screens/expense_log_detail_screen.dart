@@ -8,11 +8,7 @@ import 'package:anti/features/home/presentation/controllers/expense_logs_control
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 class ExpenseLogDetailScreen extends ConsumerWidget {
-  const ExpenseLogDetailScreen({
-    super.key,
-    required this.logId,
-    this.log,
-  });
+  const ExpenseLogDetailScreen({super.key, required this.logId, this.log});
 
   final String logId;
   final ExpenseLog? log;
@@ -23,6 +19,32 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leadingWidth: 64,
+        titleSpacing: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            splashRadius: 20,
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back, size: 20, color: Colors.black),
+          ),
+        ),
+        title: const Text(
+          'Your activity',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+            color: Colors.black,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: logsAsync.when(
           data: (logs) {
@@ -38,15 +60,7 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _Header(onBack: () => context.pop()),
-                  const SizedBox(height: 24),
-                  _TitleSection(log: resolvedLog),
-                  const SizedBox(height: 16),
-                  _AmountCard(log: resolvedLog),
-                  const SizedBox(height: 16),
-                  _MetaCard(log: resolvedLog),
-                ],
+                children: [_LogDetailCard(log: resolvedLog)],
               ),
             );
           },
@@ -70,77 +84,8 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 44,
-          width: 44,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: IconButton(
-            onPressed: onBack,
-            icon: const Icon(Icons.arrow_back, size: 20, color: Colors.black),
-          ),
-        ),
-        const SizedBox(width: 12),
-        const Text(
-          'Your activity',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.2,
-            color: Colors.black,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TitleSection extends StatelessWidget {
-  const _TitleSection({required this.log});
-
-  final ExpenseLog log;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          log.title.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Logged on ${formatDateLabel(log.createdAt)}',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _AmountCard extends StatelessWidget {
-  const _AmountCard({required this.log});
+class _LogDetailCard extends StatelessWidget {
+  const _LogDetailCard({required this.log});
 
   final ExpenseLog log;
 
@@ -155,47 +100,40 @@ class _AmountCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Amount',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.3,
+          Text(
+            log.title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.4,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            amountLabel,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
-              color: amountColor ?? Colors.black,
-            ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  amountLabel,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                    color: amountColor ?? Colors.black,
+                  ),
+                ),
+              ),
+              _Tag(label: isIncome ? 'Income' : 'Spent'),
+            ],
           ),
-          const SizedBox(height: 10),
-          _Tag(label: isIncome ? 'Income' : 'Spent'),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetaCard extends StatelessWidget {
-  const _MetaCard({required this.log});
-
-  final ExpenseLog log;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
+          const SizedBox(height: 16),
           _MetaRow(label: 'Category', value: log.category.toUpperCase()),
           const SizedBox(height: 12),
-          _MetaRow(label: 'Time', value: log.timeLabel),
+          _MetaRow(
+            label: 'Time',
+            value: '${log.timeLabel} • ${formatDateLabel(log.createdAt)}',
+          ),
           const SizedBox(height: 12),
           _MetaRow(label: 'Log ID', value: log.id),
         ],
@@ -226,13 +164,17 @@ class _MetaRow extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-              color: Colors.black,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+                color: Colors.black,
+              ),
             ),
           ),
         ),
@@ -275,10 +217,7 @@ class _LoadingState extends StatelessWidget {
     return const Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 48),
-        child: CircularProgressIndicator(
-          color: Colors.black,
-          strokeWidth: 2.5,
-        ),
+        child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2.5),
       ),
     );
   }
@@ -392,4 +331,3 @@ class _MissingLogState extends StatelessWidget {
     );
   }
 }
-
