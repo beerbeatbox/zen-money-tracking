@@ -7,8 +7,15 @@ import 'package:anti/features/home/presentation/controllers/expense_logs_control
 
 import 'number_keyboard_bottom_sheet.dart';
 
-class CustomBottomBar extends ConsumerWidget {
+class CustomBottomBar extends ConsumerStatefulWidget {
   const CustomBottomBar({super.key});
+
+  @override
+  ConsumerState<CustomBottomBar> createState() => _CustomBottomBarState();
+}
+
+class _CustomBottomBarState extends ConsumerState<CustomBottomBar> {
+  bool _ctaPressed = false;
 
   String _formatTimeLabel(DateTime dateTime) {
     final hour = dateTime.hour.toString().padLeft(2, '0');
@@ -22,7 +29,7 @@ class CustomBottomBar extends ConsumerWidget {
     );
   }
 
-  Future<void> _openKeyboard(BuildContext context, WidgetRef ref) async {
+  Future<void> _openKeyboard(BuildContext context) async {
     final rawValue = await showNumberKeyboardBottomSheet(context);
     if (rawValue == null) return;
 
@@ -53,8 +60,19 @@ class CustomBottomBar extends ConsumerWidget {
     }
   }
 
+  void _setCtaPressed(bool value) {
+    if (_ctaPressed == value) return;
+    setState(() => _ctaPressed = value);
+  }
+
+  Future<void> _releaseCtaWithPause() async {
+    await Future.delayed(const Duration(milliseconds: 90));
+    if (!mounted) return;
+    _setCtaPressed(false);
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SafeArea(
       top: false,
       child: Container(
@@ -65,20 +83,35 @@ class CustomBottomBar extends ConsumerWidget {
         ),
         child: SizedBox(
           width: double.infinity,
-          height: 60,
-          child: ElevatedButton(
-            onPressed: () => _openKeyboard(context, ref),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+          height: 72,
+          child: Center(
+            child: GestureDetector(
+              onTapDown: (_) => _setCtaPressed(true),
+              onTapUp: (_) => _releaseCtaWithPause(),
+              onTapCancel: () => _releaseCtaWithPause(),
+              onTap: () => _openKeyboard(context),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 80),
+                curve: Curves.easeOut,
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _ctaPressed ? const Color(0xFFF7F7F7) : Colors.white,
+                  border: Border.all(color: Colors.black, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black,
+                      offset:
+                          _ctaPressed ? const Offset(1, 1) : const Offset(3, 3),
+                      blurRadius: 0,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.add, color: Colors.black, size: 28),
               ),
-              elevation: 0,
-            ),
-            child: const Text(
-              'Add amount',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ),
         ),
