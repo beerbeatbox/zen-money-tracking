@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 Future<String?> showNumberKeyboardBottomSheet(BuildContext context) {
@@ -167,14 +167,19 @@ class _AmountHeader extends StatelessWidget {
           borderRadius: const BorderRadius.all(Radius.circular(16)),
           child: Align(
             alignment: Alignment.centerRight,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-                letterSpacing: 0.4,
+            child: SizedBox(
+              height: 48,
+              child: AutoSizeText(
+                value,
+                maxLines: 1,
+                minFontSize: 18,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black,
+                  letterSpacing: 0.4,
+                ),
               ),
             ),
           ),
