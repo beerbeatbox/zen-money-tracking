@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:heroicons/heroicons.dart';
+
+import 'package:anti/core/router/app_router.dart';
+import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -10,57 +13,99 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _HeaderSection(),
-            const SizedBox(height: 32),
-            _ContentSection(),
-          ],
-        ).paddingAll(24.0),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              _TopBar(),
+              SizedBox(height: 16),
+              Divider(thickness: 2, color: Colors.black),
+              SizedBox(height: 24),
+              _SettingsList(),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _HeaderSection extends StatelessWidget {
-  const _HeaderSection();
+class _TopBar extends StatelessWidget {
+  const _TopBar();
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'Settings',
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: Colors.black,
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'SETTINGS',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Personalize your experience',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+        Container(
+          height: 46,
+          width: 46,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: IconButton(
+            splashRadius: 24,
+            onPressed: () => context.go(AppRouter.dashboard.path),
+            icon: const Icon(Icons.arrow_back, size: 20, color: Colors.black),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _ContentSection extends StatelessWidget {
-  const _ContentSection();
+class _SettingsList extends StatelessWidget {
+  const _SettingsList();
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _SettingsItem(
-          icon: Icons.account_balance_wallet,
+        _SettingsCard(
+          icon: HeroIcons.sparkles,
           title: 'Money Tracker with AI',
-          color: Colors.blue,
-          onTap: () {
-            // TODO: Navigate to Money Tracker with AI
-          },
+          onTap: () => context.go(AppRouter.dashboard.path),
         ),
-        const SizedBox(height: 16),
-        _SettingsItem(
-          icon: Icons.logout,
+        const SizedBox(height: 12),
+        _SettingsCard(
+          icon: HeroIcons.arrowRightOnRectangle,
           title: 'Log Out',
+          onTap: () => context.go(AppRouter.onboarding.path),
+        ),
+        const SizedBox(height: 12),
+        _SettingsCard(
+          icon: HeroIcons.trash,
+          title: 'Delete All Data',
           color: Colors.red,
           onTap: () {
-            context.go('/onboarding');
+            // TODO: Implement delete-all-data flow
           },
         ),
       ],
@@ -68,40 +113,60 @@ class _ContentSection extends StatelessWidget {
   }
 }
 
-class _SettingsItem extends StatelessWidget {
-  final IconData icon;
+class _SettingsCard extends StatelessWidget {
+  const _SettingsCard({
+    required this.icon,
+    required this.title,
+    this.color = Colors.black,
+    required this.onTap,
+  });
+
+  final HeroIcons icon;
   final String title;
   final Color color;
   final VoidCallback onTap;
 
-  const _SettingsItem({
-    required this.icon,
-    required this.title,
-    required this.color,
-    required this.onTap,
-  });
-
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: color),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: color == Colors.red ? Colors.red : Colors.black,
-        ),
-      ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      child: OutlinedSurface(
+        padding: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: HeroIcon(
+                icon,
+                style: HeroIconStyle.outline,
+                color: color,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
