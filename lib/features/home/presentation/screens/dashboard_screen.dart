@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
@@ -133,7 +134,7 @@ class _TopBar extends StatelessWidget {
           ),
           child: IconButton(
             splashRadius: 24,
-            onPressed: () => context.push('/profile'),
+            onPressed: () => context.pushNamed(AppRouter.profile.name),
             icon: const Icon(Icons.lock_outline, size: 22, color: Colors.black),
           ),
         ),
@@ -446,51 +447,63 @@ class _LogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final amountLabel = formatCurrencySigned(log.amount);
 
-    return OutlinedSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              border: Border.all(color: Colors.black, width: 2),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _openLogDetail(context),
+      child: OutlinedSurface(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              margin: const EdgeInsets.only(top: 4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                border: Border.all(color: Colors.black, width: 2),
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  log.title.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                    letterSpacing: 0.2,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    log.title.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      letterSpacing: 0.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                _LogMetaRow(log: log),
-              ],
+                  const SizedBox(height: 6),
+                  _LogMetaRow(log: log),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            amountLabel,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.3,
-              color: Colors.black,
+            const SizedBox(width: 12),
+            Text(
+              amountLabel,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+                color: Colors.black,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  void _openLogDetail(BuildContext context) {
+    context.pushNamed(
+      AppRouter.expenseLogDetail.name,
+      pathParameters: {'id': log.id},
+      extra: log,
     );
   }
 }
