@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
@@ -22,6 +24,7 @@ class NumberKeyboardBottomSheet extends StatefulWidget {
 class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   String _value = '';
   bool _ctaPressed = false;
+  Timer? _backspaceHoldTimer;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
 
@@ -50,6 +53,27 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     });
   }
 
+  void _startBackspaceHold() {
+    if (_value.isEmpty) return;
+
+    _backspaceHoldTimer?.cancel();
+
+    // Remove one immediately, then continue at a short interval.
+    _onBackspace();
+    _backspaceHoldTimer = Timer.periodic(const Duration(milliseconds: 90), (_) {
+      if (!mounted || _value.isEmpty) {
+        _stopBackspaceHold();
+        return;
+      }
+      _onBackspace();
+    });
+  }
+
+  void _stopBackspaceHold() {
+    _backspaceHoldTimer?.cancel();
+    _backspaceHoldTimer = null;
+  }
+
   void _submit() {
     Navigator.of(context).pop(_displayValue);
   }
@@ -65,6 +89,12 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     await Future.delayed(const Duration(milliseconds: 90));
     if (!mounted) return;
     _setCtaPressed(false);
+  }
+
+  @override
+  void dispose() {
+    _backspaceHoldTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -101,6 +131,8 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                           child: _NumberPad(
                             onKeyTap: _onKeyTap,
                             onBackspace: _onBackspace,
+                            onBackspaceHoldStart: _startBackspaceHold,
+                            onBackspaceHoldEnd: _stopBackspaceHold,
                           ),
                         ),
                       ),
@@ -190,10 +222,17 @@ class _AmountHeader extends StatelessWidget {
 }
 
 class _NumberPad extends StatelessWidget {
-  const _NumberPad({required this.onKeyTap, required this.onBackspace});
+  const _NumberPad({
+    required this.onKeyTap,
+    required this.onBackspace,
+    required this.onBackspaceHoldStart,
+    required this.onBackspaceHoldEnd,
+  });
 
   final Function(String) onKeyTap;
   final VoidCallback onBackspace;
+  final VoidCallback onBackspaceHoldStart;
+  final VoidCallback onBackspaceHoldEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +264,10 @@ class _NumberPad extends StatelessWidget {
                                 onKeyTap(row[i]);
                               }
                             },
+                            onLongPressStart:
+                                row[i] == 'back' ? onBackspaceHoldStart : null,
+                            onLongPressEnd:
+                                row[i] == 'back' ? onBackspaceHoldEnd : null,
                           ),
                         ),
                         if (i != row.length - 1) const SizedBox(width: 12),
@@ -242,11 +285,15 @@ class _KeyButton extends StatefulWidget {
   const _KeyButton({
     required this.label,
     required this.onTap,
+    this.onLongPressStart,
+    this.onLongPressEnd,
     this.isBackspace = false,
   });
 
   final String label;
   final VoidCallback onTap;
+  final VoidCallback? onLongPressStart;
+  final VoidCallback? onLongPressEnd;
   final bool isBackspace;
 
   @override
@@ -276,6 +323,27 @@ class _KeyButtonState extends State<_KeyButton> {
       onTapDown: (_) => _setPressed(true),
       onTapUp: (_) => _releaseWithPause(),
       onTapCancel: () => _releaseWithPause(),
+      onLongPressStart:
+          widget.isBackspace && widget.onLongPressStart != null
+              ? (_) {
+                _setPressed(true);
+                widget.onLongPressStart!();
+              }
+              : null,
+      onLongPressEnd:
+          widget.isBackspace && widget.onLongPressEnd != null
+              ? (_) {
+                widget.onLongPressEnd!();
+                _releaseWithPause();
+              }
+              : null,
+      onLongPressCancel:
+          widget.isBackspace && widget.onLongPressEnd != null
+              ? () {
+                widget.onLongPressEnd!();
+                _releaseWithPause();
+              }
+              : null,
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
