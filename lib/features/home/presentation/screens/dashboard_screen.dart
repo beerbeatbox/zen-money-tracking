@@ -1,45 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 
-const _mockLogs = [
-  _ExpenseLog(
-    title: 'Food',
-    timeLabel: '18:19',
-    category: 'General',
-    amount: -1266.00,
-  ),
-];
-
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget with DashboardEvents {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final dateLabel = formatDateLabel(DateTime.now());
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dateLabel = dashboardDateLabel(DateTime.now());
+    final logsAsync = watchExpenseLogs(ref);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _TopBar(dateLabel: dateLabel),
-              const SizedBox(height: 16),
-              const Divider(thickness: 2, color: Colors.black),
-              const SizedBox(height: 24),
-              const _NetBalanceSection(netBalance: -1266.00),
-              const SizedBox(height: 16),
-              const _IncomeSpentRow(income: 0, spent: -1266.00),
-              const SizedBox(height: 32),
-              _RecentLogsSection(logs: _mockLogs),
-              const SizedBox(height: 12),
-            ],
-          ),
+        child: logsAsync.when(
+          data: (logs) {
+            final netBalance = calculateNetBalance(logs);
+            final income = calculateIncome(logs);
+            final spent = calculateSpent(logs);
+            final itemsLabel = logsCountLabel(logs.length);
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _TopBar(dateLabel: dateLabel),
+                  const SizedBox(height: 16),
+                  const Divider(thickness: 2, color: Colors.black),
+                  const SizedBox(height: 24),
+                  _NetBalanceSection(netBalance: netBalance),
+                  const SizedBox(height: 16),
+                  _IncomeSpentRow(income: income, spent: spent),
+                  const SizedBox(height: 32),
+                  _RecentLogsSection(
+                    logs: logs,
+                    itemsLabel: itemsLabel,
+                    onRetry: () => refreshExpenseLogs(ref),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            );
+          },
+          loading:
+              () => _DashboardStateWrapper(
+                dateLabel: dateLabel,
+                child: const _LogsLoading(),
+              ),
+          error:
+              (_, __) => _DashboardStateWrapper(
+                dateLabel: dateLabel,
+                child: _LogsError(onRetry: () => refreshExpenseLogs(ref)),
+              ),
         ),
+      ),
+    );
+  }
+}
+
+class _DashboardStateWrapper extends StatelessWidget {
+  const _DashboardStateWrapper({required this.dateLabel, required this.child});
+
+  final String dateLabel;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _TopBar(dateLabel: dateLabel),
+          const SizedBox(height: 16),
+          const Divider(thickness: 2, color: Colors.black),
+          const SizedBox(height: 24),
+          child,
+        ],
       ),
     );
   }
@@ -223,9 +265,15 @@ class _SummaryCard extends StatelessWidget {
 }
 
 class _RecentLogsSection extends StatelessWidget {
-  const _RecentLogsSection({required this.logs});
+  const _RecentLogsSection({
+    required this.logs,
+    required this.itemsLabel,
+    required this.onRetry,
+  });
 
-  final List<_ExpenseLog> logs;
+  final List<ExpenseLog> logs;
+  final String itemsLabel;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +297,7 @@ class _RecentLogsSection extends StatelessWidget {
               ),
             ),
             Text(
-              '${logs.length} ITEMS',
+              itemsLabel,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -276,7 +324,7 @@ class _RecentLogsSection extends StatelessWidget {
 class _LogTile extends StatelessWidget {
   const _LogTile({required this.log});
 
-  final _ExpenseLog log;
+  final ExpenseLog log;
 
   @override
   Widget build(BuildContext context) {
@@ -338,7 +386,7 @@ class _LogTile extends StatelessWidget {
 class _LogMetaRow extends StatelessWidget {
   const _LogMetaRow({required this.log});
 
-  final _ExpenseLog log;
+  final ExpenseLog log;
 
   @override
   Widget build(BuildContext context) {
@@ -399,16 +447,43 @@ class _EmptyLogs extends StatelessWidget {
   }
 }
 
-class _ExpenseLog {
-  final String title;
-  final String timeLabel;
-  final String category;
-  final double amount;
+class _LogsLoading extends StatelessWidget {
+  const _LogsLoading();
 
-  const _ExpenseLog({
-    required this.title,
-    required this.timeLabel,
-    required this.category,
-    required this.amount,
-  });
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 24),
+      child: Center(
+        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.black),
+      ),
+    );
+  }
+}
+
+class _LogsError extends StatelessWidget {
+  const _LogsError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Text(
+          'Let\'s try that again.',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: onRetry,
+          child: const Text(
+            'Reload logs',
+            style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black),
+          ),
+        ),
+      ],
+    );
+  }
 }

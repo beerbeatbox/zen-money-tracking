@@ -19,6 +19,7 @@ class NumberKeyboardBottomSheet extends StatefulWidget {
 
 class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   String _value = '';
+  bool _ctaPressed = false;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
 
@@ -51,6 +52,19 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     Navigator.of(context).pop(_displayValue);
   }
 
+  void _setCtaPressed(bool value) {
+    if (_ctaPressed == value) return;
+    setState(() {
+      _ctaPressed = value;
+    });
+  }
+
+  Future<void> _releaseCtaWithPause() async {
+    await Future.delayed(const Duration(milliseconds: 90));
+    if (!mounted) return;
+    _setCtaPressed(false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -80,37 +94,48 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 48,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   _AmountHeader(value: _displayValue),
                   const SizedBox(height: 24),
                   _NumberPad(onKeyTap: _onKeyTap, onBackspace: _onBackspace),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
+                  GestureDetector(
+                    onTapDown: (_) => _setCtaPressed(true),
+                    onTapUp: (_) => _releaseCtaWithPause(),
+                    onTapCancel: () => _releaseCtaWithPause(),
+                    onTap: _submit,
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 80),
+                      curve: Curves.easeOut,
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color:
+                            _ctaPressed
+                                ? const Color(0xFFF7F7F7)
+                                : Colors.white,
+                        border: Border.all(color: Colors.black, width: 2),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black,
+                            offset:
+                                _ctaPressed
+                                    ? const Offset(1, 1)
+                                    : const Offset(3, 3),
+                            blurRadius: 0,
+                            spreadRadius: 0,
+                          ),
+                        ],
                       ),
-                      child: const Text(
-                        'Next step',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                      child: const Center(
+                        child: Text(
+                          'Next step',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -144,17 +169,35 @@ class _AmountHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Text(
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(3, 3),
+                blurRadius: 0,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
               value,
+              textAlign: TextAlign.right,
               style: const TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.w800,
                 color: Colors.black,
+                letterSpacing: 0.4,
               ),
             ),
-          ],
+          ),
         ),
       ],
     );
