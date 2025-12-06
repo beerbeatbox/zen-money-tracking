@@ -160,20 +160,7 @@ class _BackgroundSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF4FD1C5), // Teal/Cyan
-            Color(0xFFF6E05E), // Yellow
-            Color(0xFFFFFFFF), // White at very bottom
-          ],
-          stops: [0.0, 0.6, 1.0],
-        ),
-      ),
-    );
+    return Container(decoration: const BoxDecoration(color: Colors.white));
   }
 }
 
