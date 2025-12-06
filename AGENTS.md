@@ -173,6 +173,37 @@ See existing codebase for reference:
 - `lib/core/extensions/widget_extension.dart` - Widget extension methods
 - `lib/core/constants/app_sizes.dart` - Spacing constants
 
+## State & Data Flow (Controller → Service → Repository with Riverpod codegen)
+
+- Layers & responsibility
+  - Controller: UI-facing providers only (AsyncValue wiring, refresh). No I/O.
+  - Service: business orchestration; calls repositories.
+  - Repository: data access + mapping; calls datasources.
+  - Datasource: raw storage/API (CSV/local DB/remote).
+
+- File locations
+  - Controllers: `lib/features/{feature}/presentation/controllers/`
+  - Services: `lib/features/{feature}/domain/usecases/`
+  - Repos: `lib/features/{feature}/data/repositories/`
+  - Datasources: `lib/features/{feature}/data/datasources/`
+
+- Riverpod codegen pattern
+  - Add `part '<file>.g.dart';` and `@riverpod` providers using `Ref`.
+  - Provider chain: controller → service provider → repository provider → datasource provider.
+  - Run `dart run build_runner build --delete-conflicting-outputs` after changes.
+
+- Usage in UI
+  - Read data via controller providers (e.g., `ref.watch(expenseLogsProvider)`).
+  - For writes: use service provider, then `ref.invalidate(<queryProvider>)` and `await ref.read(<queryProvider>.future)` to refresh UI data.
+
+- Naming
+  - Providers: `<noun>Provider` (e.g., `expenseLogServiceProvider`).
+  - Services: `<Entity>Service`; Repos: `<Entity>Repository`; Datasources: `<Entity>LocalDatasource`.
+
+- Don’ts
+  - No business logic or I/O in controllers.
+  - Don’t bypass the service from UI; keep mutations/queries through service → repo.
+
 ## Resources
 
 - [Clean UI Code in Flutter](https://medium.com/@ximya/clean-your-ui-code-in-flutter-7c58bf3e267d) - Core principles
