@@ -6,6 +6,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/screens/settings_events.dart';
+import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget with SettingsEvents {
   const SettingsScreen({super.key});
@@ -26,7 +27,7 @@ class SettingsScreen extends ConsumerWidget with SettingsEvents {
               const SizedBox(height: 24),
               _SettingsList(
                 ref: ref,
-                onDeleteAll: () => deleteAllData(context, ref),
+                onDeleteAll: () => _confirmAndDeleteData(context, ref),
               ),
             ],
           ),
@@ -68,19 +69,6 @@ class _TopBar extends StatelessWidget {
             ),
           ],
         ),
-        Container(
-          height: 46,
-          width: 46,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: IconButton(
-            splashRadius: 24,
-            onPressed: () => context.go(AppRouter.dashboard.path),
-            icon: const Icon(Icons.arrow_back, size: 20, color: Colors.black),
-          ),
-        ),
       ],
     );
   }
@@ -115,6 +103,47 @@ class _SettingsList extends StatelessWidget {
           onTap: onDeleteAll,
         ),
       ],
+    );
+  }
+}
+
+Future<void> _confirmAndDeleteData(BuildContext context, WidgetRef ref) async {
+  final shouldDelete = await showDialog<bool>(
+    context: context,
+    barrierDismissible: true,
+    builder: (dialogContext) {
+      return OutlinedConfirmationDialog(
+        title: 'Clear all data?',
+        description:
+            'This removes every expense log from this device. You can start fresh anytime.',
+        primaryLabel: 'Clear everything',
+        onPrimaryPressed: () => Navigator.of(dialogContext).pop(true),
+        secondaryLabel: 'Keep my data',
+        onSecondaryPressed: () => Navigator.of(dialogContext).pop(false),
+      );
+    },
+  );
+
+  if (shouldDelete != true) return;
+
+  if (!context.mounted) return;
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    await SettingsScreen().deleteAllData(ref);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('All data cleared. Ready for a fresh start.'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  } catch (_) {
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Could not clear data. Please try again.'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 }
