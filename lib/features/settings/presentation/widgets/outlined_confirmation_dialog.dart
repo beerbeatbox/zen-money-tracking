@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 class OutlinedConfirmationDialog extends StatelessWidget {
@@ -56,37 +57,20 @@ class OutlinedConfirmationDialog extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                    child: OutlinedActionButton(
+                      label: secondaryLabel!,
                       onPressed: onSecondaryPressed,
-                      child: Text(
-                        secondaryLabel!,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.black, width: 2),
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                    child: OutlinedActionButton(
+                      label: primaryLabel,
                       onPressed: onPrimaryPressed,
-                      child: Text(
-                        primaryLabel,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.1,
-                        ),
-                      ),
+                      textColor: Colors.white,
+                      borderColor: Colors.black,
+                      backgroundColor: Colors.red,
                     ),
                   ),
                 ],
@@ -94,21 +78,12 @@ class OutlinedConfirmationDialog extends StatelessWidget {
             else
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.black, width: 2),
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
+                child: OutlinedActionButton(
+                  label: primaryLabel,
                   onPressed: onPrimaryPressed,
-                  child: Text(
-                    primaryLabel,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.1,
-                    ),
-                  ),
+                  textColor: Colors.white,
+                  borderColor: Colors.black,
+                  backgroundColor: Colors.red,
                 ),
               ),
           ],
@@ -117,4 +92,3 @@ class OutlinedConfirmationDialog extends StatelessWidget {
     );
   }
 }
-
