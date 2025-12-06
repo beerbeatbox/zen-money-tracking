@@ -8,6 +8,7 @@ class OutlinedSurface extends StatelessWidget {
     this.color = Colors.white,
     Color? pressedColor,
     this.isPressed = false,
+    this.shape = BoxShape.rectangle,
     this.borderRadius = const BorderRadius.all(Radius.circular(16)),
     this.border = const Border.fromBorderSide(
       BorderSide(color: Colors.black, width: 2),
@@ -25,6 +26,7 @@ class OutlinedSurface extends StatelessWidget {
   final Color color;
   final Color pressedColor;
   final bool isPressed;
+  final BoxShape shape;
   final BorderRadius borderRadius;
   final BoxBorder border;
   final Offset unpressedShadowOffset;
@@ -37,6 +39,7 @@ class OutlinedSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surfaceOffset = isPressed ? pressedShadowOffset : Offset.zero;
+    final isCircle = shape == BoxShape.circle;
 
     return SizedBox(
       width: width,
@@ -49,7 +52,8 @@ class OutlinedSurface extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: borderRadius,
+                shape: shape,
+                borderRadius: isCircle ? null : borderRadius,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black,
@@ -70,7 +74,8 @@ class OutlinedSurface extends StatelessWidget {
             decoration: BoxDecoration(
               color: isPressed ? pressedColor : color,
               border: border,
-              borderRadius: borderRadius,
+              shape: shape,
+              borderRadius: isCircle ? null : borderRadius,
             ),
             transform: Matrix4.translationValues(
               surfaceOffset.dx,

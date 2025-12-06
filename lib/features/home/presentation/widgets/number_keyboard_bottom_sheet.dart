@@ -108,7 +108,10 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
         width: double.infinity,
         child: OutlinedSurface(
           padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(28) , topRight: Radius.circular(28)),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
+          ),
           child: SafeArea(
             top: false,
             child: Column(
@@ -346,28 +349,16 @@ class _KeyButtonState extends State<_KeyButton> {
               : null,
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
+      child: OutlinedSurface(
+        height: 50,
+        shape: BoxShape.circle,
+        isPressed: _pressed,
+        color: isBackspace ? const Color(0xFFFDEBEB) : Colors.white,
+        pressedColor:
+            isBackspace ? const Color(0xFFF5D9D9) : const Color(0xFFF7F7F7),
+        pressedShadowOffset: const Offset(1, 1),
         duration: const Duration(milliseconds: 80),
         curve: Curves.easeOut,
-        height: 50,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color:
-              isBackspace
-                  ? (_pressed
-                      ? const Color(0xFFF5D9D9)
-                      : const Color(0xFFFDEBEB))
-                  : (_pressed ? const Color(0xFFF7F7F7) : Colors.white),
-          border: Border.all(color: Colors.black, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black,
-              offset: _pressed ? const Offset(1, 1) : const Offset(3, 3),
-              blurRadius: 0,
-              spreadRadius: 0,
-            ),
-          ],
-        ),
         child: Center(
           child:
               isBackspace

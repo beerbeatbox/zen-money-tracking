@@ -9,6 +9,7 @@ import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
 import 'package:anti/features/home/presentation/controllers/expense_logs_controller.dart';
 
 import 'number_keyboard_bottom_sheet.dart';
+import 'outlined_surface.dart';
 
 class CustomBottomNav extends ConsumerStatefulWidget {
   const CustomBottomNav({super.key});
@@ -130,22 +131,6 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     );
   }
 
-  BoxDecoration _circleDecoration(bool isPressed) {
-    return BoxDecoration(
-      shape: BoxShape.circle,
-      color: isPressed ? const Color(0xFFF7F7F7) : Colors.white,
-      border: Border.all(color: Colors.black, width: 2),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black,
-          offset: isPressed ? const Offset(1, 1) : const Offset(3, 3),
-          blurRadius: 0,
-          spreadRadius: 0,
-        ),
-      ],
-    );
-  }
-
   Widget _buildSettingsButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
       onTap: () => _handleSettingsTap(context),
@@ -196,12 +181,15 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 80),
-            curve: Curves.easeOut,
+          OutlinedSurface(
             width: 64,
             height: 64,
-            decoration: _circleDecoration(_addPressed),
+            shape: BoxShape.circle,
+            isPressed: _addPressed,
+            pressedColor: const Color(0xFFF7F7F7),
+            pressedShadowOffset: const Offset(1, 1),
+            duration: const Duration(milliseconds: 80),
+            curve: Curves.easeOut,
             child: const Icon(Icons.add, color: Colors.black, size: 28),
           ),
         ],
