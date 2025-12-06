@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+
 Future<String?> showNumberKeyboardBottomSheet(BuildContext context) {
   return showModalBottomSheet<String>(
     context: context,
@@ -104,30 +106,13 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                     onTapCancel: () => _releaseCtaWithPause(),
                     onTap: _submit,
                     behavior: HitTestBehavior.opaque,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 80),
-                      curve: Curves.easeOut,
+                    child: OutlinedSurface(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      decoration: BoxDecoration(
-                        color:
-                            _ctaPressed
-                                ? const Color(0xFFF7F7F7)
-                                : Colors.white,
-                        border: Border.all(color: Colors.black, width: 2),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black,
-                            offset:
-                                _ctaPressed
-                                    ? const Offset(1, 1)
-                                    : const Offset(3, 3),
-                            blurRadius: 0,
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      ),
+                      isPressed: _ctaPressed,
+                      pressedColor: const Color(0xFFF7F7F7),
+                      duration: const Duration(milliseconds: 80),
+                      curve: Curves.easeOut,
                       child: const Center(
                         child: Text(
                           'Next step',
