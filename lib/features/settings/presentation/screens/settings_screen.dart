@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/settings/presentation/screens/settings_events.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget with SettingsEvents {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -17,12 +19,15 @@ class SettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              _TopBar(),
-              SizedBox(height: 16),
-              Divider(thickness: 2, color: Colors.black),
-              SizedBox(height: 24),
-              _SettingsList(),
+            children: [
+              const _TopBar(),
+              const SizedBox(height: 16),
+              const Divider(thickness: 2, color: Colors.black),
+              const SizedBox(height: 24),
+              _SettingsList(
+                ref: ref,
+                onDeleteAll: () => deleteAllData(context, ref),
+              ),
             ],
           ),
         ),
@@ -82,7 +87,10 @@ class _TopBar extends StatelessWidget {
 }
 
 class _SettingsList extends StatelessWidget {
-  const _SettingsList();
+  const _SettingsList({required this.ref, required this.onDeleteAll});
+
+  final WidgetRef ref;
+  final Future<void> Function() onDeleteAll;
 
   @override
   Widget build(BuildContext context) {
@@ -104,9 +112,7 @@ class _SettingsList extends StatelessWidget {
           icon: HeroIcons.trash,
           title: 'Delete All Data',
           color: Colors.red,
-          onTap: () {
-            // TODO: Implement delete-all-data flow
-          },
+          onTap: onDeleteAll,
         ),
       ],
     );
