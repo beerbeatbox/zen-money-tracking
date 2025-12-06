@@ -82,6 +82,10 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     context.go(AppRouter.dashboard.path);
   }
 
+  void _handleBudgetTap(BuildContext context) {
+    context.go(AppRouter.budget.path);
+  }
+
   void _handleReportTap(BuildContext context) {
     context.go(AppRouter.report.path);
   }
@@ -172,6 +176,16 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     );
   }
 
+  Widget _buildBudgetButton(BuildContext context, {required bool isActive}) {
+    return _buildNavItem(
+      onTap: () => _handleBudgetTap(context),
+      icon: HeroIcons.wallet,
+      semanticLabel: 'Budget',
+      label: 'Budget',
+      isActive: isActive,
+    );
+  }
+
   Widget _buildAddButton(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => _setAddPressed(true),
@@ -199,10 +213,12 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
     final isHomeActive = location.startsWith(AppRouter.dashboard.path);
+    final isBudgetActive = location.startsWith(AppRouter.budget.path);
     final isReportActive = location.startsWith(AppRouter.report.path);
     final isSettingsActive = location.startsWith(AppRouter.settings.path);
 
     const addButtonSize = 64.0;
+    const buttonSpacing = 32.0;
 
     return SafeArea(
       top: false,
@@ -224,7 +240,8 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
                   children: [
                     _buildHomeButton(context, isActive: isHomeActive),
                     _buildReportButton(context, isActive: isReportActive),
-                    const SizedBox(width: addButtonSize + 24),
+                    const SizedBox(width: buttonSpacing),
+                    _buildBudgetButton(context, isActive: isBudgetActive),
                     _buildSettingsButton(context, isActive: isSettingsActive),
                   ],
                 ),
