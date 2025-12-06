@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/home/domain/entities/expense_log.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
+import '../../features/home/presentation/screens/report_screen.dart';
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
@@ -15,6 +16,7 @@ part 'app_router.g.dart';
 enum AppRouter {
   onboarding,
   dashboard,
+  report,
   settings,
   profile,
   expenseLogDetail;
@@ -25,6 +27,8 @@ enum AppRouter {
         return '/onboarding';
       case AppRouter.dashboard:
         return '/dashboard';
+      case AppRouter.report:
+        return '/report';
       case AppRouter.settings:
         return '/settings';
       case AppRouter.profile:
@@ -58,6 +62,13 @@ GoRouter appRouter(Ref ref) {
             pageBuilder:
                 (context, state) =>
                     const NoTransitionPage(child: DashboardScreen()),
+          ),
+          GoRoute(
+            path: AppRouter.report.path,
+            name: AppRouter.report.name,
+            pageBuilder:
+                (context, state) =>
+                    const NoTransitionPage(child: ReportScreen()),
           ),
           GoRoute(
             path: AppRouter.settings.path,

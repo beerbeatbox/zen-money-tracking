@@ -82,6 +82,50 @@ class _CustomBottomBarState extends ConsumerState<CustomBottomBar> {
     context.go(AppRouter.dashboard.path);
   }
 
+  void _handleReportTap(BuildContext context) {
+    context.go(AppRouter.report.path);
+  }
+
+  Text _buildNavLabel(String label, {required bool isActive}) {
+    return Text(
+      label,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+        color: Colors.black.withOpacity(isActive ? 1 : 0.6),
+        height: 1.1,
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required VoidCallback onTap,
+    required HeroIcons icon,
+    required String semanticLabel,
+    required String label,
+    required bool isActive,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.translucent,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HeroIcon(
+            icon,
+            style: isActive ? HeroIconStyle.solid : HeroIconStyle.outline,
+            color: Colors.black,
+            size: 24,
+            semanticLabel: semanticLabel,
+          ),
+          const SizedBox(height: 6),
+          _buildNavLabel(label, isActive: isActive),
+        ],
+      ),
+    );
+  }
+
   BoxDecoration _circleDecoration(bool isPressed) {
     return BoxDecoration(
       shape: BoxShape.circle,
@@ -99,44 +143,32 @@ class _CustomBottomBarState extends ConsumerState<CustomBottomBar> {
   }
 
   Widget _buildSettingsButton(BuildContext context, {required bool isActive}) {
-    return IconButton(
-      onPressed: () => _handleSettingsTap(context),
-      icon:
-          isActive
-              ? const HeroIcon(
-                HeroIcons.cog6Tooth,
-                style: HeroIconStyle.solid,
-                color: Colors.black,
-                size: 24,
-              )
-              : const HeroIcon(
-                HeroIcons.cog6Tooth,
-                style: HeroIconStyle.outline,
-                color: Colors.black,
-                size: 24,
-              ),
-      splashRadius: 26,
+    return _buildNavItem(
+      onTap: () => _handleSettingsTap(context),
+      icon: HeroIcons.cog6Tooth,
+      semanticLabel: 'Settings',
+      label: 'Settings',
+      isActive: isActive,
     );
   }
 
   Widget _buildHomeButton(BuildContext context, {required bool isActive}) {
-    return IconButton(
-      onPressed: () => _handleHomeTap(context),
-      icon:
-          isActive
-              ? const HeroIcon(
-                HeroIcons.home,
-                style: HeroIconStyle.solid,
-                color: Colors.black,
-                size: 24,
-              )
-              : const HeroIcon(
-                HeroIcons.home,
-                style: HeroIconStyle.outline,
-                color: Colors.black,
-                size: 24,
-              ),
-      splashRadius: 26,
+    return _buildNavItem(
+      onTap: () => _handleHomeTap(context),
+      icon: HeroIcons.home,
+      semanticLabel: 'Home',
+      label: 'Home',
+      isActive: isActive,
+    );
+  }
+
+  Widget _buildReportButton(BuildContext context, {required bool isActive}) {
+    return _buildNavItem(
+      onTap: () => _handleReportTap(context),
+      icon: HeroIcons.chartBar,
+      semanticLabel: 'Report',
+      label: 'Report',
+      isActive: isActive,
     );
   }
 
@@ -147,13 +179,18 @@ class _CustomBottomBarState extends ConsumerState<CustomBottomBar> {
       onTapCancel: () => _releaseAddWithPause(),
       onTap: () => _openKeyboard(context),
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        width: 64,
-        height: 64,
-        decoration: _circleDecoration(_addPressed),
-        child: const Icon(Icons.add, color: Colors.black, size: 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            curve: Curves.easeOut,
+            width: 64,
+            height: 64,
+            decoration: _circleDecoration(_addPressed),
+            child: const Icon(Icons.add, color: Colors.black, size: 28),
+          ),
+        ],
       ),
     );
   }
@@ -162,6 +199,7 @@ class _CustomBottomBarState extends ConsumerState<CustomBottomBar> {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
     final isHomeActive = location.startsWith(AppRouter.dashboard.path);
+    final isReportActive = location.startsWith(AppRouter.report.path);
     final isSettingsActive = location.startsWith(AppRouter.settings.path);
 
     const addButtonSize = 64.0;
@@ -179,12 +217,13 @@ class _CustomBottomBarState extends ConsumerState<CustomBottomBar> {
             ),
             Positioned.fill(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+                padding: const EdgeInsets.fromLTRB(0, 12, 0, 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     _buildHomeButton(context, isActive: isHomeActive),
+                    _buildReportButton(context, isActive: isReportActive),
                     const SizedBox(width: addButtonSize + 24),
                     _buildSettingsButton(context, isActive: isSettingsActive),
                   ],
