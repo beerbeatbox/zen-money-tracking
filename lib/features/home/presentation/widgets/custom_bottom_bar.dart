@@ -1,58 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'number_keyboard_bottom_sheet.dart';
 
 class CustomBottomBar extends StatelessWidget {
   const CustomBottomBar({super.key});
 
-  void _showNumberKeyboard(BuildContext context) {
-    showNumberKeyboardBottomSheet(context);
+  Future<void> _openKeyboard(BuildContext context) async {
+    await showNumberKeyboardBottomSheet(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final String location = GoRouterState.of(context).uri.toString();
-
-    Color getColor(String route) {
-      return location == route ? Colors.black : Colors.grey[400]!;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.transparent)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: Icon(
-              Icons.home_filled,
-              size: 30,
-              color: getColor('/dashboard'),
-            ),
-            onPressed: () => context.go('/dashboard'),
-          ),
-          Icon(Icons.access_time_filled, size: 30, color: Colors.grey[400]),
-          IconButton(
-            icon: Icon(Icons.settings, size: 30, color: getColor('/settings')),
-            onPressed: () => context.go('/settings'),
-          ),
-          GestureDetector(
-            onTap: () => _showNumberKeyboard(context),
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.transparent)),
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          height: 60,
+          child: ElevatedButton(
+            onPressed: () => _openKeyboard(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 30),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Add amount',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
