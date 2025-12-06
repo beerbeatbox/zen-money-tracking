@@ -13,8 +13,8 @@ class OutlinedSurface extends StatelessWidget {
       BorderSide(color: Colors.black, width: 2),
     ),
     this.unpressedShadowOffset = const Offset(3, 3),
-    this.pressedShadowOffset = const Offset(1, 1),
-    this.duration = Duration.zero,
+    this.pressedShadowOffset = const Offset(3, 3),
+    this.duration = const Duration(milliseconds: 70),
     this.curve = Curves.linear,
     this.width,
     this.height,
@@ -36,29 +36,52 @@ class OutlinedSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final decoration = BoxDecoration(
-      color: isPressed ? pressedColor : color,
-      border: border,
-      borderRadius: borderRadius,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black,
-          offset: isPressed ? pressedShadowOffset : unpressedShadowOffset,
-          blurRadius: 0,
-          spreadRadius: 0,
-        ),
-      ],
-    );
+    final surfaceOffset = isPressed ? pressedShadowOffset : Offset.zero;
 
-    return AnimatedContainer(
-      duration: duration,
-      curve: curve,
-      padding: padding,
+    return SizedBox(
       width: width,
       height: height,
-      decoration: decoration,
-      child: child,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topLeft,
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: borderRadius,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black,
+                    offset: unpressedShadowOffset,
+                    blurRadius: 0,
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedContainer(
+            duration: duration,
+            curve: curve,
+            padding: padding,
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+              color: isPressed ? pressedColor : color,
+              border: border,
+              borderRadius: borderRadius,
+            ),
+            transform: Matrix4.translationValues(
+              surfaceOffset.dx,
+              surfaceOffset.dy,
+              0,
+            ),
+            transformAlignment: Alignment.topLeft,
+            child: child,
+          ),
+        ],
+      ),
     );
   }
 }
-
