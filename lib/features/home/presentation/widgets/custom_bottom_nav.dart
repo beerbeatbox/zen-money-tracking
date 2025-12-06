@@ -10,14 +10,14 @@ import 'package:anti/features/home/presentation/controllers/expense_logs_control
 
 import 'number_keyboard_bottom_sheet.dart';
 
-class CustomBottomBar extends ConsumerStatefulWidget {
-  const CustomBottomBar({super.key});
+class CustomBottomNav extends ConsumerStatefulWidget {
+  const CustomBottomNav({super.key});
 
   @override
-  ConsumerState<CustomBottomBar> createState() => _CustomBottomBarState();
+  ConsumerState<CustomBottomNav> createState() => _CustomBottomNavState();
 }
 
-class _CustomBottomBarState extends ConsumerState<CustomBottomBar> {
+class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
   bool _addPressed = false;
 
   String _formatTimeLabel(DateTime dateTime) {

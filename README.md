@@ -180,7 +180,7 @@ lib/
 │   │   │   │   ├── dashboard_screen.dart
 │   │   │   │   └── profile_screen.dart
 │   │   │   └── widgets/
-│   │   │       ├── custom_bottom_bar.dart
+│   │   │       ├── custom_bottom_nav.dart
 │   │   │       ├── number_keyboard_bottom_sheet.dart
 │   │   │       └── scaffold_with_nav_bar.dart
 │   │   └── router/

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'custom_bottom_bar.dart';
+import 'custom_bottom_nav.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   const ScaffoldWithNavBar({required this.child, super.key});
@@ -12,7 +12,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: child,
-      bottomNavigationBar: const CustomBottomBar(),
+      bottomNavigationBar: const CustomBottomNav(),
     );
   }
 }
