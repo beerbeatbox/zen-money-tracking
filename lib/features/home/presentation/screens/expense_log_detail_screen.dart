@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_logs_controller.dart';
+import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 class ExpenseLogDetailScreen extends ConsumerWidget {
@@ -60,7 +61,11 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [_LogDetailCard(log: resolvedLog)],
+                children: [
+                  _LogDetailCard(log: resolvedLog),
+                  const SizedBox(height: 16),
+                  const _LogActionsRow(),
+                ],
               ),
             );
           },
@@ -138,6 +143,39 @@ class _LogDetailCard extends StatelessWidget {
           _MetaRow(label: 'Log ID', value: log.id),
         ],
       ),
+    );
+  }
+}
+
+class _LogActionsRow extends StatelessWidget {
+  const _LogActionsRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(
+          child: OutlinedActionButton(
+            label: 'Edit',
+            onPressed: null, // TODO: implement edit log
+            textColor: Colors.black,
+            borderColor: Colors.black,
+            backgroundColor: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedActionButton(
+            label: 'Delete log',
+            onPressed: () {
+              // TODO: implement delete log flow (confirm, then delete)
+            },
+            textColor: Colors.white,
+            borderColor: Colors.black,
+            backgroundColor: Colors.red,
+          ),
+        ),
+      ],
     );
   }
 }
