@@ -24,9 +24,6 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
 
   @override
   Future<FeatureFlags> getFeatureFlags() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 3));
-
     // TODO: Replace with actual API call when backend is ready
     // final response = await _dio.get('/api/v1/onboarding/feature-flags');
     // final data = FeatureFlagsResponse.fromJson(response.data);
