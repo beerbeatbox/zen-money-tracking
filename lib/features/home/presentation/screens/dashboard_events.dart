@@ -5,8 +5,11 @@ import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_logs_controller.dart';
 
 mixin DashboardEvents {
-  AsyncValue<List<ExpenseLog>> watchExpenseLogs(WidgetRef ref) =>
-      ref.watch(expenseLogsProvider);
+  AsyncValue<List<ExpenseLog>> watchExpenseLogs(WidgetRef ref) => ref
+      .watch(expenseLogsProvider)
+      .whenData(
+        (logs) => [...logs]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+      );
 
   void refreshExpenseLogs(WidgetRef ref) => ref.invalidate(expenseLogsProvider);
 
@@ -25,4 +28,3 @@ mixin DashboardEvents {
 
   String logsCountLabel(int count) => '$count ITEMS';
 }
-
