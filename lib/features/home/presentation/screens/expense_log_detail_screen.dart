@@ -7,6 +7,8 @@ import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_logs_controller.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
+import 'expense_log_detail_events.dart';
 
 class ExpenseLogDetailScreen extends ConsumerWidget {
   const ExpenseLogDetailScreen({super.key, required this.logId, this.log});
@@ -64,7 +66,7 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
                 children: [
                   _LogDetailCard(log: resolvedLog),
                   const SizedBox(height: 16),
-                  const _LogActionsRow(),
+                  _LogActionsRow(log: resolvedLog),
                 ],
               ),
             );
@@ -147,11 +149,52 @@ class _LogDetailCard extends StatelessWidget {
   }
 }
 
-class _LogActionsRow extends StatelessWidget {
-  const _LogActionsRow();
+class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
+  const _LogActionsRow({required this.log});
+
+  final ExpenseLog log;
+
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (ctx) => OutlinedConfirmationDialog(
+            title: 'Delete this log?',
+            description: 'This removes it from your activity.',
+            primaryLabel: 'Delete log',
+            onPrimaryPressed: () => Navigator.of(ctx).pop(true),
+            secondaryLabel: 'Keep this log',
+            onSecondaryPressed: () => Navigator.of(ctx).pop(false),
+          ),
+    );
+
+    if (shouldDelete != true) return;
+
+    try {
+      await deleteLog(ref, log.id);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Log removed from your activity.'),
+        ),
+      );
+      context.pop();
+    } catch (e) {
+      print(e);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text("Let's try that again. Please try once more."),
+        ),
+      );
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
@@ -169,9 +212,7 @@ class _LogActionsRow extends StatelessWidget {
         Expanded(
           child: OutlinedActionButton(
             label: 'Delete log',
-            onPressed: () {
-              // TODO: implement delete log flow (confirm, then delete)
-            },
+            onPressed: () => _handleDelete(context, ref),
             textColor: Colors.white,
             borderColor: Colors.black,
             backgroundColor: Colors.red,

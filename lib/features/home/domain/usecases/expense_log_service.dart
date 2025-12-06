@@ -17,6 +17,13 @@ class ExpenseLogService {
   Future<void> setExpenseLogs(List<ExpenseLog> logs) =>
       _repository.setExpenseLogs(logs);
 
+  Future<void> deleteExpenseLog(String id) async {
+    final logs = await getExpenseLogs();
+    final updatedLogs = logs.where((log) => log.id != id).toList();
+    if (updatedLogs.length == logs.length) return;
+    await setExpenseLogs(updatedLogs);
+  }
+
   Future<void> deleteExpenseLogFile() => _repository.deleteExpenseLogFile();
 }
 
