@@ -73,60 +73,67 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     final bottomPadding = mediaQuery.viewInsets.bottom;
 
     return Align(
-      alignment: Alignment.bottomRight,
-      child: FractionallySizedBox(
-        widthFactor: 0.5,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Container(
-            padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(28)),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x1F000000),
-                  offset: Offset(0, -2),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _AmountHeader(value: _displayValue),
-                  const SizedBox(height: 24),
-                  _NumberPad(onKeyTap: _onKeyTap, onBackspace: _onBackspace),
-                  const SizedBox(height: 24),
-                  GestureDetector(
-                    onTapDown: (_) => _setCtaPressed(true),
-                    onTapUp: (_) => _releaseCtaWithPause(),
-                    onTapCancel: () => _releaseCtaWithPause(),
-                    onTap: _submit,
-                    behavior: HitTestBehavior.opaque,
-                    child: OutlinedSurface(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      isPressed: _ctaPressed,
-                      pressedColor: const Color(0xFFF7F7F7),
-                      duration: const Duration(milliseconds: 80),
-                      curve: Curves.easeOut,
-                      child: const Center(
-                        child: Text(
-                          'Next step',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
+      alignment: Alignment.bottomCenter,
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedSurface(
+          padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
+          borderRadius: const BorderRadius.only(topLeft: Radius.circular(28)),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 320,
+                    maxWidth: 520,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _AmountHeader(value: _displayValue),
+                      const SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FractionallySizedBox(
+                          widthFactor: 0.5,
+                          child: _NumberPad(
+                            onKeyTap: _onKeyTap,
+                            onBackspace: _onBackspace,
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTapDown: (_) => _setCtaPressed(true),
+                  onTapUp: (_) => _releaseCtaWithPause(),
+                  onTapCancel: () => _releaseCtaWithPause(),
+                  onTap: _submit,
+                  behavior: HitTestBehavior.opaque,
+                  child: OutlinedSurface(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    isPressed: _ctaPressed,
+                    pressedColor: const Color(0xFFF7F7F7),
+                    duration: const Duration(milliseconds: 80),
+                    curve: Curves.easeOut,
+                    child: const Center(
+                      child: Text(
+                        'Next step',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -154,22 +161,10 @@ class _AmountHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
+        OutlinedSurface(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black,
-                offset: Offset(3, 3),
-                blurRadius: 0,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
           child: Align(
             alignment: Alignment.centerRight,
             child: Text(
@@ -210,7 +205,7 @@ class _NumberPad extends StatelessWidget {
           rows
               .map(
                 (row) => Padding(
-                  padding: EdgeInsets.only(bottom: row == rows.last ? 0 : 12),
+                  padding: EdgeInsets.only(bottom: 0),
                   child: Row(
                     children: [
                       for (var i = 0; i < row.length; i++) ...[
@@ -281,7 +276,7 @@ class _KeyButtonState extends State<_KeyButton> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 80),
         curve: Curves.easeOut,
-        height: 68,
+        height: 50,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color:
