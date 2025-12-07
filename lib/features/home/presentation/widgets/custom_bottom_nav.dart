@@ -7,6 +7,7 @@ import 'package:anti/core/router/app_router.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
 import 'package:anti/features/home/presentation/controllers/expense_logs_controller.dart';
+import 'package:anti/core/extensions/widget_extension.dart';
 
 import 'number_keyboard_bottom_sheet.dart';
 import 'outlined_surface.dart';
@@ -183,27 +184,26 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
   }
 
   Widget _buildAddButton(BuildContext context) {
-    return GestureDetector(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OutlinedSurface(
+          width: 64,
+          height: 64,
+          shape: BoxShape.circle,
+          isPressed: _addPressed,
+          pressedColor: const Color(0xFFF7F7F7),
+          duration: const Duration(milliseconds: 80),
+          curve: Curves.easeOut,
+          child: const Icon(Icons.add, color: Colors.black, size: 28),
+        ),
+      ],
+    ).onTap(
       onTapDown: (_) => _setAddPressed(true),
       onTapUp: (_) => _releaseAddWithPause(),
       onTapCancel: () => _releaseAddWithPause(),
       onTap: () => _openKeyboard(context),
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          OutlinedSurface(
-            width: 64,
-            height: 64,
-            shape: BoxShape.circle,
-            isPressed: _addPressed,
-            pressedColor: const Color(0xFFF7F7F7),
-            duration: const Duration(milliseconds: 80),
-            curve: Curves.easeOut,
-            child: const Icon(Icons.add, color: Colors.black, size: 28),
-          ),
-        ],
-      ),
+      hapticLight: true,
     );
   }
 
