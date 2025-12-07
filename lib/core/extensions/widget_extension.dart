@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../constants/app_sizes.dart';
 
 extension WidgetExtension on Widget {
@@ -36,19 +38,32 @@ extension WidgetExtension on Widget {
     GestureTapDownCallback? onTapDown,
     GestureTapUpCallback? onTapUp,
     GestureTapCancelCallback? onTapCancel,
+    GestureLongPressStartCallback? onLongPressStart,
+    GestureLongPressEndCallback? onLongPressEnd,
+    GestureLongPressCancelCallback? onLongPressCancel,
     HitTestBehavior behavior = HitTestBehavior.opaque,
-    bool hapticLight = false,
-  }) => GestureDetector(
-    behavior: behavior,
-    onTapDown: onTapDown,
-    onTapUp: onTapUp,
-    onTapCancel: onTapCancel,
-    onTap: () {
-      if (hapticLight) HapticFeedback.lightImpact();
-      onTap?.call();
-    },
-    child: this,
-  );
+    DragStartBehavior dragStartBehavior = DragStartBehavior.start,
+    bool hapticLight = true,
+  }) {
+    return GestureDetector(
+      behavior: behavior,
+      dragStartBehavior: dragStartBehavior,
+      onTapDown: onTapDown,
+      onTapUp: onTapUp,
+      onTap:
+          onTap == null
+              ? null
+              : () {
+                if (hapticLight) HapticFeedback.lightImpact();
+                onTap();
+              },
+      onTapCancel: onTapCancel,
+      onLongPressStart: onLongPressStart,
+      onLongPressEnd: onLongPressEnd,
+      onLongPressCancel: onLongPressCancel,
+      child: this,
+    );
+  }
 
   // Returns true to disable the back button, false to enable it.
   Widget withBackButtonListener(Future<bool> Function() onBackButtonPressed) =>
