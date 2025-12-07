@@ -167,7 +167,6 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   onTapCancel: () => _releaseCtaWithPause(),
                   onTap: _submit,
                   behavior: HitTestBehavior.opaque,
-                  hapticLight: true,
                 ),
               ],
             ),
@@ -372,7 +371,6 @@ class _KeyButtonState extends State<_KeyButton> {
               : null,
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
-      hapticLight: true,
     );
   }
 }

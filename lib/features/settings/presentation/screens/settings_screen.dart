@@ -199,6 +199,6 @@ class _SettingsCard extends StatelessWidget {
           ),
         ],
       ),
-    ).onTap(behavior: HitTestBehavior.opaque, onTap: onTap, hapticLight: true);
+    ).onTap(behavior: HitTestBehavior.opaque, onTap: onTap);
   }
 }

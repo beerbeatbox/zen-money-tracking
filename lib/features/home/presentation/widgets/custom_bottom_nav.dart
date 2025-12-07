@@ -136,7 +136,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
           _buildNavLabel(label, isActive: isActive),
         ],
       ),
-    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque, hapticLight: true);
+    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
   }
 
   Widget _buildSettingsButton(BuildContext context, {required bool isActive}) {
@@ -199,7 +199,6 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
       onTapUp: (_) => _releaseAddWithPause(),
       onTapCancel: () => _releaseAddWithPause(),
       onTap: () => _openKeyboard(context),
-      hapticLight: true,
     );
   }
 

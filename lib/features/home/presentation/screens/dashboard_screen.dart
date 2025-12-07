@@ -496,7 +496,6 @@ class _LogTile extends StatelessWidget {
     ).onTap(
       behavior: HitTestBehavior.opaque,
       onTap: () => _openLogDetail(context),
-      hapticLight: true,
     );
   }
 

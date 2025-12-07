@@ -89,7 +89,6 @@ class _OutlinedActionButtonState extends State<OutlinedActionButton> {
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
       onTapCancel: _handleTapCancel,
-      hapticLight: true,
     );
   }
 }
