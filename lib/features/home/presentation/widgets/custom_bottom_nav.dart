@@ -103,7 +103,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
       style: TextStyle(
         fontSize: 12,
         fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-        color: Colors.black.withOpacity(isActive ? 1 : 0.6),
+        color: Colors.black.withValues(alpha: isActive ? 1 : 0.6),
         height: 1.1,
       ),
     );
