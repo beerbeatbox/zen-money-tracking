@@ -119,28 +119,24 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     const hitWidth = 48.0;
     const hitHeight = 80.0;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: hitWidth,
-        height: hitHeight,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HeroIcon(
-              icon,
-              style: isActive ? HeroIconStyle.solid : HeroIconStyle.outline,
-              color: Colors.black,
-              size: 24,
-              semanticLabel: semanticLabel,
-            ),
-            const SizedBox(height: 6),
-            _buildNavLabel(label, isActive: isActive),
-          ],
-        ),
+    return SizedBox(
+      width: hitWidth,
+      height: hitHeight,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          HeroIcon(
+            icon,
+            style: isActive ? HeroIconStyle.solid : HeroIconStyle.outline,
+            color: Colors.black,
+            size: 24,
+            semanticLabel: semanticLabel,
+          ),
+          const SizedBox(height: 6),
+          _buildNavLabel(label, isActive: isActive),
+        ],
       ),
-    );
+    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque, hapticLight: true);
   }
 
   Widget _buildSettingsButton(BuildContext context, {required bool isActive}) {

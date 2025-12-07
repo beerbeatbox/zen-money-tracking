@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:anti/core/extensions/widget_extension.dart';
+
 import 'outlined_surface.dart';
 
 class OutlinedActionButton extends StatefulWidget {
@@ -61,33 +63,33 @@ class _OutlinedActionButtonState extends State<OutlinedActionButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return OutlinedSurface(
+      borderRadius: _radius,
+      border: Border.all(color: widget.borderColor, width: 2),
+      color: widget.backgroundColor,
+      pressedColor: widget.backgroundColor,
+      isPressed: _pressed,
+      duration: const Duration(milliseconds: 0),
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Center(
+        child: Text(
+          widget.label,
+          style: TextStyle(
+            color: widget.textColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+    ).onTap(
       behavior: HitTestBehavior.opaque,
       onTap: _handleTap,
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
       onTapCancel: _handleTapCancel,
-      child: OutlinedSurface(
-        borderRadius: _radius,
-        border: Border.all(color: widget.borderColor, width: 2),
-        color: widget.backgroundColor,
-        pressedColor: widget.backgroundColor,
-        isPressed: _pressed,
-        duration: const Duration(milliseconds: 0),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Center(
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              color: widget.textColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ),
-      ),
+      hapticLight: true,
     );
   }
 }

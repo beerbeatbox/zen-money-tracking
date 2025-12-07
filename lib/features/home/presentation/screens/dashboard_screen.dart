@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:anti/core/router/app_router.dart';
+import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
@@ -447,55 +448,55 @@ class _LogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final amountLabel = formatCurrencySigned(log.amount);
 
-    return GestureDetector(
+    return OutlinedSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              border: Border.all(color: Colors.black, width: 2),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  log.title.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                _LogMetaRow(log: log),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            amountLabel,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    ).onTap(
       behavior: HitTestBehavior.opaque,
       onTap: () => _openLogDetail(context),
-      child: OutlinedSurface(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              margin: const EdgeInsets.only(top: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(2),
-                border: Border.all(color: Colors.black, width: 2),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    log.title.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _LogMetaRow(log: log),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              amountLabel,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.3,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-      ),
+      hapticLight: true,
     );
   }
 

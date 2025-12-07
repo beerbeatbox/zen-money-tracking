@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
 import 'package:anti/core/router/app_router.dart';
+import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/screens/settings_events.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
@@ -163,45 +164,41 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: OutlinedSurface(
-        padding: const EdgeInsets.all(16),
-        borderRadius: BorderRadius.circular(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: HeroIcon(
-                icon,
-                style: HeroIconStyle.outline,
-                color: color,
-                size: 22,
-              ),
+    return OutlinedSurface(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: HeroIcon(
+              icon,
+              style: HeroIconStyle.outline,
+              color: color,
+              size: 22,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
-                      color: Colors.black,
-                    ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                    color: Colors.black,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
+    ).onTap(behavior: HitTestBehavior.opaque, onTap: onTap, hapticLight: true);
   }
 }

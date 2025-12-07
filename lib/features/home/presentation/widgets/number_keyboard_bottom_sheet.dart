@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 Future<String?> showNumberKeyboardBottomSheet(BuildContext context) {
@@ -143,30 +144,30 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                GestureDetector(
+                OutlinedSurface(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  isPressed: _ctaPressed,
+                  pressedColor: const Color(0xFFF7F7F7),
+                  duration: const Duration(milliseconds: 80),
+                  curve: Curves.easeOut,
+                  child: const Center(
+                    child: Text(
+                      'Next step',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ).onTap(
                   onTapDown: (_) => _setCtaPressed(true),
                   onTapUp: (_) => _releaseCtaWithPause(),
                   onTapCancel: () => _releaseCtaWithPause(),
                   onTap: _submit,
                   behavior: HitTestBehavior.opaque,
-                  child: OutlinedSurface(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    isPressed: _ctaPressed,
-                    pressedColor: const Color(0xFFF7F7F7),
-                    duration: const Duration(milliseconds: 80),
-                    curve: Curves.easeOut,
-                    child: const Center(
-                      child: Text(
-                        'Next step',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
+                  hapticLight: true,
                 ),
               ],
             ),
@@ -322,7 +323,29 @@ class _KeyButtonState extends State<_KeyButton> {
     final isBackspace = widget.isBackspace;
     final label = widget.label;
 
-    return GestureDetector(
+    return OutlinedSurface(
+      height: 50,
+      shape: BoxShape.circle,
+      isPressed: _pressed,
+      color: isBackspace ? const Color(0xFFFDEBEB) : Colors.white,
+      pressedColor:
+          isBackspace ? const Color(0xFFF5D9D9) : const Color(0xFFF7F7F7),
+      duration: const Duration(milliseconds: 80),
+      curve: Curves.easeOut,
+      child: Center(
+        child:
+            isBackspace
+                ? const Icon(Icons.backspace_outlined, color: Colors.black)
+                : Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: label == '.' ? 32 : 24,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+      ),
+    ).onTap(
       onTapDown: (_) => _setPressed(true),
       onTapUp: (_) => _releaseWithPause(),
       onTapCancel: () => _releaseWithPause(),
@@ -349,29 +372,7 @@ class _KeyButtonState extends State<_KeyButton> {
               : null,
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
-      child: OutlinedSurface(
-        height: 50,
-        shape: BoxShape.circle,
-        isPressed: _pressed,
-        color: isBackspace ? const Color(0xFFFDEBEB) : Colors.white,
-        pressedColor:
-            isBackspace ? const Color(0xFFF5D9D9) : const Color(0xFFF7F7F7),
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        child: Center(
-          child:
-              isBackspace
-                  ? const Icon(Icons.backspace_outlined, color: Colors.black)
-                  : Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: label == '.' ? 32 : 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-        ),
-      ),
+      hapticLight: true,
     );
   }
 }
