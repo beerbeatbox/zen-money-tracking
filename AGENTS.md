@@ -1,90 +1,95 @@
 # Flutter Widget Creation Guidelines
 
-This document provides instructions for creating Flutter widgets following clean UI code principles and project conventions.
+This doc consolidates all `.cursor/rules/*.mdc` guidance for widgets, screens, navigation, copy, and async patterns.
 
 ## Overview
+- Extract and compose widgets; keep build trees shallow (≤4 levels).
+- Follow consistent naming, styling, routing, and file layout.
+- Use encouraging, action-first UX copy.
+- Prefer reusable patterns: extensions, shared dialogs, enum routes, concurrent APIs.
 
-When creating Flutter widgets, follow these core principles:
-- **Extract widgets** to avoid deep nesting (max 4 levels)
-- **Use composition** over deep nesting
-- **Follow consistent styling** patterns
-- **Organize files** according to feature-based architecture
-- **Use proper naming** conventions
+## UX Writing (always on)
+- Use positive, action-led, personalized labels (“Your balance”, “Add expense”).
+- Empty states should invite action (“Start tracking your expenses”); avoid “No…/Empty”.
+- Keep copy short and clear; guide the next step.
+- Buttons use verbs; headers use concise title case; success and error copy stays friendly.
+- Checklist: positive, action-oriented, personalized when helpful, concise, avoids negative framing, gives guidance.
 
-## Quick Reference
+## Naming & File Organization
+- Class names: public widgets `PascalCase`; private widgets `_PascalCase`.
+- File names: snake_case matching class; screens end with `_screen.dart`.
+- Locations: screens in `lib/features/{feature}/presentation/screens/`; reusable widgets in `widgets/`; private/screen-only widgets can live with the screen (extract if large).
+- Extract to a separate file when reusable, ≥50 lines, complex state, or shared across screens.
+- Import order: Flutter → third-party → core utilities → project imports.
 
-### File Locations
-- **Reusable widgets**: `lib/features/{feature}/presentation/widgets/{name}.dart`
-- **Screen widgets**: `lib/features/{feature}/presentation/screens/{name}_screen.dart`
-- **Private widgets**: Same file as screen (if screen-specific)
+## Widget Extraction & Composition
+- Never exceed 4 levels of nesting in a `build()`; extract sections instead.
+- Extract when reused, visually distinct, >20 lines, or readability drops.
+- Patterns: private widgets for screen-specific pieces; public widgets in `widgets/` for reuse.
+- Prefer composition helpers (`_buildHeader()`, `_ContentSection()`) over deep inline trees.
+- Checklist: nesting ≤4, reusable parts extracted, clear visual intent, readability improved.
 
-### Naming
-- **Class**: PascalCase (`InfoCard`, `SettingsScreen`)
-- **File**: snake_case (`info_card.dart`, `settings_screen.dart`)
-- **Private**: Prefix with `_` (`_FloatingItem`, `_AIBadge`)
+## Styling & Spacing
+- Colors: `Colors.white` backgrounds; `Colors.black` primary text; `Colors.grey[400/500]` secondary; `Colors.blue`/`Colors.red` for accents; use `.withValues(alpha: 0.1)` for soft fills.
+- Typography: headers 24/bold; titles 16–18/w600; body 14–16/w500; subtitles 14 with grey.
+- Spacing: 4, 8, 16, 24, 32; prefer extension padding (`.paddingAll`, `.paddingSymmetric`, `.paddingOnly`) to reduce nesting; constants in `lib/core/constants/app_sizes.dart` (e.g., `Sizes.kP16`).
+- Shapes & shadow: cards radius 24, buttons radius 30, subtle shadows via low-opacity greys.
+- Patterns: use card/icon/button patterns from `.cursor/rules/widget-styling.mdc`; extract repeated decoration (≥3 uses) into helpers or reusable widgets.
 
-### Code Style
-- Always use `const` constructors when possible
-- Always include `super.key` in constructor
-- Use `required` for non-nullable required parameters
-- Use nullable types (`String?`) for optional parameters
-- Prefer widget extension methods for padding and gestures when it reduces nesting
+## Widget Extensions (padding + onTap)
+- Extensions live in `lib/core/extensions/widget_extension.dart` (`.padding*`, `.onTap`, `.withBackButtonListener`).
+- Use `.onTap` when ripple is not needed and you want light haptics; avoid when you need Material ripple/hover/focus or already trigger haptics.
+- Defaults: `GestureDetector` with `HitTestBehavior.opaque`, light haptic before callback; set `behavior: HitTestBehavior.translucent` for smaller tap targets.
+- Keep handlers short; avoid double haptics by not duplicating feedback in callbacks.
 
-## Detailed Rules
+## Screen Structure
+- Screens are `Scaffold` + `SafeArea`, white background, typical padding `24.0`.
+- Extract sections: `_HeaderSection`, `_ContentSection`, `_ActionButtons`, `_FooterSection`.
+- Common layouts: simple list (Column with spacing), scrollable (`CustomScrollView`/`SliverList`), stack-based onboarding with background/floating/content layers.
+- Navigation: use `go_router` (`context.go/push`) with enum paths; prefer extension padding to keep trees shallow.
+- Checklist: uses `Scaffold`, `SafeArea`, consistent padding, sections extracted, spacing clear, file named `{name}_screen.dart`.
 
-This project uses Cursor's rules system with focused sub-rules:
+## Dialog Usage
+- Use shared outlined confirmation dialog (e.g., `OutlinedConfirmationDialog`) for confirmations; keep UI in widgets and logic in controllers/mixins.
+- Supply title/description; primary action required, optional secondary for safe path; labels should follow UX writing (“Clear everything”, “Keep my data”).
+- Builder pattern: `showDialog<bool>(builder: (ctx) => OutlinedConfirmationDialog(...))`; pop with `true/false`, then handle result (snackbar/state refresh) in caller.
+- Styling: outlined surface; primary button red/white by default, secondary black/white.
+- Checklist: shared dialog used, title/description set, primary pops with result, secondary optional, caller handles outcomes.
 
-### Widget Extraction Rules
-See `.cursor/rules/widget-extraction.mdc` for:
-- When to extract widgets
-- Maximum nesting depth (4 levels)
-- Private vs public widget patterns
-- Composition guidelines
+## Mixins for Events
+- File ends with `_events.dart`; mixin ends with `Events`; live beside screens.
+- Purpose: orchestration only—call controllers/services, prepare labels. Do not build widgets, dialogs, snackbars, or navigation.
+- Accept `WidgetRef` (and simple data); avoid owning `BuildContext` unless for lookups.
+- Use mixins on screens (`with SettingsEvents`) and keep UI feedback in the widget layer.
+- Checklist: naming correct, logic-only, accepts `WidgetRef`, UI stays in widgets.
 
-### Styling Rules
-See `.cursor/rules/widget-styling.mdc` for:
-- Color system and usage
-- Typography scale
-- Spacing system
-- Common styling patterns
-- Border radius and shadows
+## Router Structure
+- Enum `AppRouter` defines routes with a `path` getter; values use camelCase, paths use kebab-case.
+- Main router in `lib/core/router/app_router.dart` with `@Riverpod(keepAlive: true) GoRouter appRouter(Ref ref)` and `part 'app_router.g.dart';`.
+- Use `NoTransitionPage` for bottom-nav tabs; shell routes share a navigator; avoid hardcoded paths—use enum `.path`/`.name`.
+- Handle extras, query params, and path params via `state.extra`, `state.uri.queryParameters`, and `state.pathParameters`.
+- Run codegen after router changes: `dart run build_runner build --delete-conflicting-outputs` (or watch).
+- Checklist: enum updated, path getter set, GoRoute added, screen import added, build_runner run.
 
-### Naming Rules
-See `.cursor/rules/widget-naming.mdc` for:
-- Naming conventions
-- File organization
-- Public vs private widgets
-- Import organization
-
-### Screen Structure Rules
-See `.cursor/rules/screen-structure.mdc` for:
-- Screen widget templates
-- Section extraction patterns
-- Common screen layouts
-- Navigation patterns
-
-### Widget Extensions
-The project includes `lib/core/extensions/widget_extension.dart` with convenient methods:
-- `.padding()`, `.paddingAll()`, `.paddingSymmetric()`, `.paddingOnly()` - For cleaner padding
-- `.onTap()` - For gesture handling
-- `.withBackButtonListener()` - For back button handling
-
-See `.cursor/rules/widget-styling.mdc` for usage examples.
+## API Concurrency
+- Use sequential `await` only when calls depend on prior results.
+- Use `Future.wait` (or Dart 3 records `.wait`) for independent calls to cut latency; cast or destructure results for type safety.
+- Error handling: default fails fast; set `eagerError: false` to collect errors; use `catchError` for graceful degradation per call.
+- Mixed patterns: fetch prerequisite, then run dependent batches concurrently.
+- Avoid `await` inside `Future.wait` arrays and avoid parallelizing dependent calls.
+- Checklist: independence confirmed, parallelized when safe, errors handled, types preserved.
 
 ## Widget Creation Checklist
-
-Before creating a widget:
-- [ ] File is in correct location (`widgets/` or `screens/`)
-- [ ] File name uses snake_case
-- [ ] Class name uses PascalCase
-- [ ] Uses `const` constructor
-- [ ] Has `super.key` in constructor
-- [ ] Required parameters marked with `required`
-- [ ] Optional parameters have defaults or are nullable
-- [ ] No widget tree exceeds 4 levels of nesting
-- [ ] Complex sections are extracted into separate widgets
-- [ ] Follows project styling patterns
-- [ ] Uses consistent spacing and typography
+- [ ] File in correct folder (`widgets/` or `screens/`), snake_case name; screens end `_screen.dart`.
+- [ ] Class uses PascalCase; private widgets prefixed with `_`.
+- [ ] `const` constructor where possible; includes `super.key`; required params marked.
+- [ ] Widget tree ≤4 levels; sections extracted; reusable pieces moved to `widgets/` when shared or large.
+- [ ] Styling follows color/typography/spacing rules; reuse patterns or extracted decorations.
+- [ ] Extensions used to reduce nesting; `.onTap` chosen appropriately (no duplicate haptics).
+- [ ] Copy follows UX writing (positive, action-led, personalized); labels and empty states guide users.
+- [ ] Screens use `Scaffold` + `SafeArea` + standard padding; navigation via `go_router` enum.
+- [ ] Dialogs use shared confirmation widget; results handled by caller.
+- [ ] Async code uses `Future.wait` for independent calls; types and errors handled.
 
 ## Common Patterns
 
@@ -114,6 +119,8 @@ class WidgetName extends StatelessWidget {
 ### Screen Widget Template
 ```dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // If navigation needed
+import 'package:anti/core/extensions/widget_extension.dart'; // Optional extensions
 
 class ScreenName extends StatelessWidget {
   const ScreenName({super.key});
@@ -123,89 +130,31 @@ class ScreenName extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _HeaderSection(),
-              const SizedBox(height: 32),
-              _ContentSection(),
-            ],
-          ),
-        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _HeaderSection().paddingOnly(bottom: 32),
+            _ContentSection(),
+            const Spacer(),
+            _ActionButtons(),
+          ],
+        ).paddingAll(24.0),
       ),
     );
   }
 }
 ```
 
-## Styling Quick Reference
-
-### Colors
-- Primary: `Colors.white`, `Colors.black`
-- Secondary: `Colors.grey[400]`, `Colors.grey[500]`
-- Accents: `Colors.blue`, `Colors.red`
-- Transparent: `Colors.blue.withValues(alpha: 0.1)`
-
-### Typography
-- Headers: `fontSize: 24`, `fontWeight: FontWeight.bold`
-- Titles: `fontSize: 16-18`, `fontWeight: FontWeight.w600`
-- Body: `fontSize: 14-16`, `fontWeight: FontWeight.w500`
-- Subtitles: `fontSize: 14`, `color: Colors.grey[500]`
-
-### Spacing
-- Common values: 4, 8, 16, 24, 32
-- Use `SizedBox(height: X)` or `SizedBox(width: X)`
-- Prefer widget extension methods: `.paddingAll(16)`, `.paddingSymmetric(horizontal: 16)`
-- Constants available in `lib/core/constants/app_sizes.dart` (e.g., `Sizes.kP16`)
-
-### Border Radius
-- Cards: `BorderRadius.circular(24)`
-- Buttons: `BorderRadius.circular(30)`
-
-## Examples
-
-See existing codebase for reference:
-- `lib/features/home/presentation/widgets/info_card.dart` - Reusable widget
-- `lib/features/settings/presentation/screens/settings_screen.dart` - Screen widget
-- `lib/features/onboarding/presentation/screens/money_tracker_onboard_screen.dart` - Screen with private widgets
-- `lib/core/extensions/widget_extension.dart` - Widget extension methods
-- `lib/core/constants/app_sizes.dart` - Spacing constants
-
 ## State & Data Flow (Controller → Service → Repository with Riverpod codegen)
-
-- Layers & responsibility
-  - Controller: UI-facing providers only (AsyncValue wiring, refresh). No I/O.
-  - Service: business orchestration; calls repositories.
-  - Repository: data access + mapping; calls datasources.
-  - Datasource: raw storage/API (CSV/local DB/remote).
-
-- File locations
-  - Controllers: `lib/features/{feature}/presentation/controllers/`
-  - Services: `lib/features/{feature}/domain/usecases/`
-  - Repos: `lib/features/{feature}/data/repositories/`
-  - Datasources: `lib/features/{feature}/data/datasources/`
-
-- Riverpod codegen pattern
-  - Add `part '<file>.g.dart';` and `@riverpod` providers using `Ref`.
-  - Provider chain: controller → service provider → repository provider → datasource provider.
-  - Run `dart run build_runner build --delete-conflicting-outputs` after changes.
-
-- Usage in UI
-  - Read data via controller providers (e.g., `ref.watch(expenseLogsProvider)`).
-  - For writes: use service provider, then `ref.invalidate(<queryProvider>)` and `await ref.read(<queryProvider>.future)` to refresh UI data.
-
-- Naming
-  - Providers: `<noun>Provider` (e.g., `expenseLogServiceProvider`).
-  - Services: `<Entity>Service`; Repos: `<Entity>Repository`; Datasources: `<Entity>LocalDatasource`.
-
-- Don’ts
-  - No business logic or I/O in controllers.
-  - Don’t bypass the service from UI; keep mutations/queries through service → repo.
+- Layers: controllers (UI-only, no I/O), services (orchestration), repositories (data access/mapping), datasources (raw storage/API).
+- File locations: controllers `presentation/controllers/`; services `domain/usecases/`; repositories `data/repositories/`; datasources `data/datasources/`.
+- Riverpod pattern: add `part '<file>.g.dart';`, use `@riverpod`; chain controller → service provider → repository provider → datasource provider.
+- Run `dart run build_runner build --delete-conflicting-outputs` after codegen changes.
+- UI usage: read via controller providers; for writes call service, then `ref.invalidate(<queryProvider>)` and `await ref.read(<queryProvider>.future)` to refresh.
+- Naming: providers `<noun>Provider`; services `<Entity>Service`; repos `<Entity>Repository`; datasources `<Entity>LocalDatasource`.
+- Don’ts: no business logic/I/O in controllers; do not bypass service layer from UI.
 
 ## Resources
-
 - [Clean UI Code in Flutter](https://medium.com/@ximya/clean-your-ui-code-in-flutter-7c58bf3e267d) - Core principles
 - [Cursor Rules Documentation](https://cursor.com/docs/context/rules) - Rules system
 - Project rules in `.cursor/rules/` directory
