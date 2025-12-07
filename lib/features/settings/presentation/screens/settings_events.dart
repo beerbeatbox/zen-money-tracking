@@ -1,12 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/features/home/presentation/controllers/expense_logs_controller.dart';
 
 mixin SettingsEvents {
   Future<void> deleteAllData(WidgetRef ref) async {
-    await ref.read(deleteExpenseLogsProvider.future);
-    ref.invalidate(expenseLogsProvider);
-    await ref.read(expenseLogsProvider.future);
+    await ref.read(deleteAllExpenseLogsProvider.future);
   }
 }

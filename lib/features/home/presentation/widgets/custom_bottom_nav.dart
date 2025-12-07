@@ -5,8 +5,7 @@ import 'package:heroicons/heroicons.dart';
 
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
-import 'package:anti/features/home/presentation/controllers/expense_logs_controller.dart';
+import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 
 import 'number_keyboard_bottom_sheet.dart';
@@ -43,6 +42,10 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
       _showSnack(context, 'Please enter a valid number.');
       return;
     }
+    if (parsed <= 0) {
+      _showSnack(context, 'Add an amount above zero to log your spending.');
+      return;
+    }
 
     final now = DateTime.now();
     final log = ExpenseLog(
@@ -55,12 +58,10 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     );
 
     try {
-      final service = ref.read(expenseLogServiceProvider);
-      await service.addExpenseLog(log);
-      ref.invalidate(expenseLogsProvider);
-      await ref.read(expenseLogsProvider.future);
+      await ref.read(addExpenseLogActionProvider(log).future);
       _showSnack(context, 'Great job! Expense saved.');
-    } catch (_) {
+    } catch (error) {
+      print(error);
       _showSnack(context, 'Something went wrong. Please try again.');
     }
   }
