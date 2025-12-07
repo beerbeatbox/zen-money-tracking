@@ -51,7 +51,7 @@ GoRouter appRouter(Ref ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     debugLogDiagnostics: true,
-    initialLocation: AppRouter.onboarding.path,
+    initialLocation: AppRouter.dashboard.path,
     routes: [
       ...onboardingRouter,
       ShellRoute(
@@ -64,41 +64,37 @@ GoRouter appRouter(Ref ref) {
             path: AppRouter.dashboard.path,
             name: AppRouter.dashboard.name,
             pageBuilder:
-                (context, state) =>
-                    NoTransitionPage(
-                      key: state.pageKey, // ensure unique page per tab
-                      child: const DashboardScreen(),
-                    ),
+                (context, state) => NoTransitionPage(
+                  key: state.pageKey, // ensure unique page per tab
+                  child: const DashboardScreen(),
+                ),
           ),
           GoRoute(
             path: AppRouter.report.path,
             name: AppRouter.report.name,
             pageBuilder:
-                (context, state) =>
-                    NoTransitionPage(
-                      key: state.pageKey,
-                      child: const ReportScreen(),
-                    ),
+                (context, state) => NoTransitionPage(
+                  key: state.pageKey,
+                  child: const ReportScreen(),
+                ),
           ),
           GoRoute(
             path: AppRouter.budget.path,
             name: AppRouter.budget.name,
             pageBuilder:
-                (context, state) =>
-                    NoTransitionPage(
-                      key: state.pageKey,
-                      child: const BudgetScreen(),
-                    ),
+                (context, state) => NoTransitionPage(
+                  key: state.pageKey,
+                  child: const BudgetScreen(),
+                ),
           ),
           GoRoute(
             path: AppRouter.settings.path,
             name: AppRouter.settings.name,
             pageBuilder:
-                (context, state) =>
-                    NoTransitionPage(
-                      key: state.pageKey,
-                      child: const SettingsScreen(),
-                    ),
+                (context, state) => NoTransitionPage(
+                  key: state.pageKey,
+                  child: const SettingsScreen(),
+                ),
           ),
         ],
       ),
