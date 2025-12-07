@@ -83,7 +83,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
   Future<void> _openKeyboard(BuildContext context) async {
     await showNumberKeyboardBottomSheet(
       context,
-      onSubmit: (sheetContext, rawValue) async {
+      onSubmit: (sheetContext, rawValue, isExpense) async {
         final parsed = double.tryParse(rawValue);
         if (parsed == null) {
           _showSnack(sheetContext, 'Please enter a valid number.');
@@ -98,12 +98,13 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
         }
 
         final now = DateTime.now();
+        final amount = isExpense ? -parsed.abs() : parsed.abs();
         final log = ExpenseLog(
           id: now.microsecondsSinceEpoch.toString(),
           title: 'Quick entry',
           timeLabel: _formatTimeLabel(now),
           category: 'General',
-          amount: -parsed.abs(),
+          amount: amount,
           createdAt: now,
         );
 

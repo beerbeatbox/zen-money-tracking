@@ -7,20 +7,40 @@ import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
-  required Future<bool> Function(BuildContext context, String value) onSubmit,
+  required Future<bool> Function(
+    BuildContext context,
+    String value,
+    bool isExpense,
+  )
+  onSubmit,
+  bool initialIsExpense = true,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => NumberKeyboardBottomSheet(onSubmit: onSubmit),
+    builder:
+        (context) => NumberKeyboardBottomSheet(
+          onSubmit: onSubmit,
+          initialIsExpense: initialIsExpense,
+        ),
   );
 }
 
 class NumberKeyboardBottomSheet extends StatefulWidget {
-  const NumberKeyboardBottomSheet({super.key, required this.onSubmit});
+  const NumberKeyboardBottomSheet({
+    super.key,
+    required this.onSubmit,
+    this.initialIsExpense = true,
+  });
 
-  final Future<bool> Function(BuildContext context, String value) onSubmit;
+  final Future<bool> Function(
+    BuildContext context,
+    String value,
+    bool isExpense,
+  )
+  onSubmit;
+  final bool initialIsExpense;
 
   @override
   State<NumberKeyboardBottomSheet> createState() =>
@@ -31,8 +51,15 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   String _value = '';
   bool _ctaPressed = false;
   Timer? _backspaceHoldTimer;
+  late bool _isExpense;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpense = widget.initialIsExpense;
+  }
 
   void _onKeyTap(String key) {
     setState(() {
@@ -81,7 +108,11 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   }
 
   Future<void> _submit() async {
-    final shouldClose = await widget.onSubmit(context, _displayValue);
+    final shouldClose = await widget.onSubmit(
+      context,
+      _displayValue,
+      _isExpense,
+    );
     if (!mounted || !shouldClose) return;
     Navigator.of(context).pop();
   }
@@ -97,6 +128,11 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     await Future.delayed(const Duration(milliseconds: 90));
     if (!mounted) return;
     _setCtaPressed(false);
+  }
+
+  void _updateExpenseType(bool isExpense) {
+    if (_isExpense == isExpense) return;
+    setState(() => _isExpense = isExpense);
   }
 
   @override
@@ -133,7 +169,11 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _AmountHeader(value: _displayValue),
+                      _AmountHeader(
+                        value: _displayValue,
+                        isExpense: _isExpense,
+                        onTypeChanged: _updateExpenseType,
+                      ),
                       const SizedBox(height: 24),
                       Align(
                         alignment: Alignment.centerRight,
@@ -185,9 +225,15 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
 }
 
 class _AmountHeader extends StatelessWidget {
-  const _AmountHeader({required this.value});
+  const _AmountHeader({
+    required this.value,
+    required this.isExpense,
+    required this.onTypeChanged,
+  });
 
   final String value;
+  final bool isExpense;
+  final ValueChanged<bool> onTypeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +248,9 @@ class _AmountHeader extends StatelessWidget {
             color: Colors.grey[600],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
+        _ExpenseTypeToggle(isExpense: isExpense, onChanged: onTypeChanged),
+        const SizedBox(height: 12),
         OutlinedSurface(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -227,6 +275,91 @@ class _AmountHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ExpenseTypeToggle extends StatelessWidget {
+  const _ExpenseTypeToggle({required this.isExpense, required this.onChanged});
+
+  final bool isExpense;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _TypeChip(
+          label: 'Expense',
+          selected: isExpense,
+          onTap: () => onChanged(true),
+        ),
+        const SizedBox(width: 8),
+        _TypeChip(
+          label: 'Income',
+          selected: !isExpense,
+          onTap: () => onChanged(false),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeChip extends StatefulWidget {
+  const _TypeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_TypeChip> createState() => _TypeChipState();
+}
+
+class _TypeChipState extends State<_TypeChip> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  Future<void> _releaseWithPause() async {
+    await Future.delayed(const Duration(milliseconds: 90));
+    if (!mounted) return;
+    _setPressed(false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = widget.selected;
+
+    return OutlinedSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      borderRadius: const BorderRadius.all(Radius.circular(18)),
+      isPressed: _pressed,
+      color: selected ? Colors.black : Colors.white,
+      pressedColor: selected ? Colors.black : const Color(0xFFF7F7F7),
+      child: Text(
+        widget.label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.6,
+          color: selected ? Colors.white : Colors.black,
+        ),
+      ),
+    ).onTap(
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _releaseWithPause(),
+      onTapCancel: () => _releaseWithPause(),
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
     );
   }
 }

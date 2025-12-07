@@ -182,7 +182,6 @@ class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
       );
       context.pop();
     } catch (e) {
-      print(e);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
