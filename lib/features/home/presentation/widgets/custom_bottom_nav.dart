@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +22,8 @@ class CustomBottomNav extends ConsumerStatefulWidget {
 
 class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
   bool _addPressed = false;
+  OverlayEntry? _snackEntry;
+  Timer? _snackTimer;
 
   String _formatTimeLabel(DateTime dateTime) {
     final hour = dateTime.hour.toString().padLeft(2, '0');
@@ -27,43 +31,98 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     return '$hour:$minute';
   }
 
+  void _removeSnack() {
+    _snackTimer?.cancel();
+    _snackTimer = null;
+    _snackEntry?.remove();
+    _snackEntry = null;
+  }
+
   void _showSnack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+    _removeSnack();
+
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
+
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    _snackEntry = OverlayEntry(
+      builder:
+          (_) => Positioned(
+            top: topPadding + 12,
+            left: 16,
+            right: 16,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
     );
+
+    overlay.insert(_snackEntry!);
+    _snackTimer = Timer(const Duration(seconds: 2), _removeSnack);
   }
 
   Future<void> _openKeyboard(BuildContext context) async {
-    final rawValue = await showNumberKeyboardBottomSheet(context);
-    if (rawValue == null) return;
+    await showNumberKeyboardBottomSheet(
+      context,
+      onSubmit: (sheetContext, rawValue) async {
+        final parsed = double.tryParse(rawValue);
+        if (parsed == null) {
+          _showSnack(sheetContext, 'Please enter a valid number.');
+          return false;
+        }
+        if (parsed <= 0) {
+          _showSnack(
+            sheetContext,
+            'Add an amount above zero to log your spending.',
+          );
+          return false;
+        }
 
-    final parsed = double.tryParse(rawValue);
-    if (parsed == null) {
-      _showSnack(context, 'Please enter a valid number.');
-      return;
-    }
-    if (parsed <= 0) {
-      _showSnack(context, 'Add an amount above zero to log your spending.');
-      return;
-    }
+        final now = DateTime.now();
+        final log = ExpenseLog(
+          id: now.microsecondsSinceEpoch.toString(),
+          title: 'Quick entry',
+          timeLabel: _formatTimeLabel(now),
+          category: 'General',
+          amount: -parsed.abs(),
+          createdAt: now,
+        );
 
-    final now = DateTime.now();
-    final log = ExpenseLog(
-      id: now.microsecondsSinceEpoch.toString(),
-      title: 'Quick entry',
-      timeLabel: _formatTimeLabel(now),
-      category: 'General',
-      amount: -parsed.abs(),
-      createdAt: now,
+        try {
+          await ref.read(addExpenseLogActionProvider(log).future);
+          return true;
+        } catch (error) {
+          print(error);
+          _showSnack(sheetContext, "Let's try that again.");
+          return false;
+        }
+      },
     );
+  }
 
-    try {
-      await ref.read(addExpenseLogActionProvider(log).future);
-      _showSnack(context, 'Great job! Expense saved.');
-    } catch (error) {
-      print(error);
-      _showSnack(context, 'Something went wrong. Please try again.');
-    }
+  @override
+  void dispose() {
+    _removeSnack();
+    super.dispose();
   }
 
   void _setAddPressed(bool value) {

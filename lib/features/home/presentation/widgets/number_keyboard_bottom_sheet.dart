@@ -5,17 +5,22 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
-Future<String?> showNumberKeyboardBottomSheet(BuildContext context) {
-  return showModalBottomSheet<String>(
+Future<void> showNumberKeyboardBottomSheet(
+  BuildContext context, {
+  required Future<bool> Function(BuildContext context, String value) onSubmit,
+}) {
+  return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => const NumberKeyboardBottomSheet(),
+    builder: (context) => NumberKeyboardBottomSheet(onSubmit: onSubmit),
   );
 }
 
 class NumberKeyboardBottomSheet extends StatefulWidget {
-  const NumberKeyboardBottomSheet({super.key});
+  const NumberKeyboardBottomSheet({super.key, required this.onSubmit});
+
+  final Future<bool> Function(BuildContext context, String value) onSubmit;
 
   @override
   State<NumberKeyboardBottomSheet> createState() =>
@@ -75,8 +80,10 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     _backspaceHoldTimer = null;
   }
 
-  void _submit() {
-    Navigator.of(context).pop(_displayValue);
+  Future<void> _submit() async {
+    final shouldClose = await widget.onSubmit(context, _displayValue);
+    if (!mounted || !shouldClose) return;
+    Navigator.of(context).pop();
   }
 
   void _setCtaPressed(bool value) {
