@@ -215,21 +215,31 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     final isReportActive = location.startsWith(AppRouter.report.path);
     final isSettingsActive = location.startsWith(AppRouter.settings.path);
 
+    const barHeight = 80.0;
     const addButtonSize = 64.0;
+    const extraTopSpace = addButtonSize / 2;
     const buttonSpacing = 32.0;
 
     return SafeArea(
       top: false,
       child: SizedBox(
-        height: 80,
+        height: barHeight + extraTopSpace,
         width: double.infinity,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            const Positioned.fill(
+            const Positioned(
+              top: extraTopSpace,
+              left: 0,
+              right: 0,
+              height: barHeight,
               child: CustomPaint(painter: _CurvedNavPainter()),
             ),
-            Positioned.fill(
+            Positioned(
+              top: extraTopSpace,
+              left: 0,
+              right: 0,
+              height: barHeight,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -243,7 +253,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
               ),
             ),
             Positioned(
-              top: -(addButtonSize / 2),
+              top: 0,
               left: 0,
               right: 0,
               child: Center(child: _buildAddButton(context)),
