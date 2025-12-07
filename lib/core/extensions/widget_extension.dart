@@ -43,7 +43,6 @@ extension WidgetExtension on Widget {
     GestureLongPressCancelCallback? onLongPressCancel,
     HitTestBehavior behavior = HitTestBehavior.opaque,
     DragStartBehavior dragStartBehavior = DragStartBehavior.start,
-    bool hapticLight = true,
   }) {
     return GestureDetector(
       behavior: behavior,
@@ -54,7 +53,7 @@ extension WidgetExtension on Widget {
           onTap == null
               ? null
               : () {
-                if (hapticLight) HapticFeedback.lightImpact();
+                HapticFeedback.lightImpact();
                 onTap();
               },
       onTapCancel: onTapCancel,
