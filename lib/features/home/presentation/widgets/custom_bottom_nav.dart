@@ -159,6 +159,8 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
     return Text(
       label,
       textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: 12,
         fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
