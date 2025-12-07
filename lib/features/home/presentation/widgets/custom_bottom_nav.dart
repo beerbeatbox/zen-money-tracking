@@ -111,7 +111,6 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
           await ref.read(addExpenseLogActionProvider(log).future);
           return true;
         } catch (error) {
-          print(error);
           _showSnack(sheetContext, "Let's try that again.");
           return false;
         }
