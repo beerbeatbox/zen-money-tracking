@@ -4,6 +4,7 @@ import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:heroicons/heroicons.dart';
 
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
@@ -238,6 +239,23 @@ class _AmountHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              icon: const HeroIcon(
+                HeroIcons.xMark,
+                style: HeroIconStyle.outline,
+                color: Colors.black,
+                size: 22,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              splashRadius: 20,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
         _ExpenseTypeToggle(isExpense: isExpense, onChanged: onTypeChanged),
         const SizedBox(height: 12),
         OutlinedSurface(
