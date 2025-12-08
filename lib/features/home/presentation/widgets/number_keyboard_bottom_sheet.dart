@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/material.dart';
 
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
@@ -175,8 +175,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                         onTypeChanged: _updateExpenseType,
                       ),
                       const SizedBox(height: 24),
-                      Align(
-                        alignment: Alignment.centerRight,
+                      Center(
                         child: FractionallySizedBox(
                           widthFactor: 0.5,
                           child: _NumberPad(
@@ -249,7 +248,13 @@ class _AmountHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        _ExpenseTypeToggle(isExpense: isExpense, onChanged: onTypeChanged),
+        Align(
+          alignment: Alignment.centerRight,
+          child: _ExpenseTypeToggle(
+            isExpense: isExpense,
+            onChanged: onTypeChanged,
+          ),
+        ),
         const SizedBox(height: 12),
         OutlinedSurface(
           width: double.infinity,
