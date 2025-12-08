@@ -261,17 +261,36 @@ class _AmountHeader extends StatelessWidget {
         SizedBox(
           height: 120,
           child: Center(
-            child: AutoSizeText(
-              value,
-              maxLines: 1,
-              minFontSize: 28,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 100,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-                letterSpacing: 0.4,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                const Text(
+                  '฿',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: AutoSizeText(
+                    value,
+                    maxLines: 1,
+                    minFontSize: 28,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 100,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
