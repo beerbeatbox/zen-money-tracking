@@ -258,19 +258,16 @@ class _AmountHeader extends StatelessWidget {
         ),
         _ExpenseTypeToggle(isExpense: isExpense, onChanged: onTypeChanged),
         const SizedBox(height: 12),
-        OutlinedSurface(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          borderRadius: const BorderRadius.all(Radius.circular(16)),
-          child: SizedBox(
-            height: 48,
+        SizedBox(
+          height: 120,
+          child: Center(
             child: AutoSizeText(
               value,
               maxLines: 1,
-              minFontSize: 18,
+              minFontSize: 28,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 36,
+                fontSize: 100,
                 fontWeight: FontWeight.w800,
                 color: Colors.black,
                 letterSpacing: 0.4,
@@ -278,40 +275,8 @@ class _AmountHeader extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 100),
-        const _DottedDivider(),
+        const SizedBox(height: 40),
       ],
-    );
-  }
-}
-
-class _DottedDivider extends StatelessWidget {
-  const _DottedDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 8,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final dotCount = (constraints.maxWidth / 8).floor();
-          final safeCount = dotCount.clamp(0, 200).toInt();
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(
-              safeCount,
-              (_) => Container(
-                width: 3,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: Colors.grey[700],
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }
