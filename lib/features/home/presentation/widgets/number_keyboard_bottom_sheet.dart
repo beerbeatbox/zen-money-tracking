@@ -145,12 +145,16 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final bottomPadding = mediaQuery.viewInsets.bottom;
+    final sheetHeight =
+        mediaQuery.size.height - kToolbarHeight - mediaQuery.padding.top;
 
     return Align(
       alignment: Alignment.bottomCenter,
       child: SizedBox(
+        height: sheetHeight,
         width: double.infinity,
         child: OutlinedSurface(
+          height: sheetHeight,
           padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(28),
@@ -159,34 +163,29 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
           child: SafeArea(
             top: false,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               children: [
                 ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: 320,
                     maxWidth: 520,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _AmountHeader(
-                        value: _displayValue,
-                        isExpense: _isExpense,
-                        onTypeChanged: _updateExpenseType,
-                      ),
-                      const SizedBox(height: 24),
-                      Center(
-                        child: FractionallySizedBox(
-                          widthFactor: 0.5,
-                          child: _NumberPad(
-                            onKeyTap: _onKeyTap,
-                            onBackspace: _onBackspace,
-                            onBackspaceHoldStart: _startBackspaceHold,
-                            onBackspaceHoldEnd: _stopBackspaceHold,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: _AmountHeader(
+                    value: _displayValue,
+                    isExpense: _isExpense,
+                    onTypeChanged: _updateExpenseType,
+                  ),
+                ),
+                const Spacer(),
+                Center(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.5,
+                    child: _NumberPad(
+                      onKeyTap: _onKeyTap,
+                      onBackspace: _onBackspace,
+                      onBackspaceHoldStart: _startBackspaceHold,
+                      onBackspaceHoldEnd: _stopBackspaceHold,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -237,49 +236,64 @@ class _AmountHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          'Enter amount',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[600],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Align(
-          alignment: Alignment.centerRight,
-          child: _ExpenseTypeToggle(
-            isExpense: isExpense,
-            onChanged: onTypeChanged,
-          ),
-        ),
+        _ExpenseTypeToggle(isExpense: isExpense, onChanged: onTypeChanged),
         const SizedBox(height: 12),
         OutlinedSurface(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           borderRadius: const BorderRadius.all(Radius.circular(16)),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: SizedBox(
-              height: 48,
-              child: AutoSizeText(
-                value,
-                maxLines: 1,
-                minFontSize: 18,
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black,
-                  letterSpacing: 0.4,
-                ),
+          child: SizedBox(
+            height: 48,
+            child: AutoSizeText(
+              value,
+              maxLines: 1,
+              minFontSize: 18,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.w800,
+                color: Colors.black,
+                letterSpacing: 0.4,
               ),
             ),
           ),
         ),
+        const SizedBox(height: 100),
+        const _DottedDivider(),
       ],
+    );
+  }
+}
+
+class _DottedDivider extends StatelessWidget {
+  const _DottedDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 8,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final dotCount = (constraints.maxWidth / 8).floor();
+          final safeCount = dotCount.clamp(0, 200).toInt();
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(
+              safeCount,
+              (_) => Container(
+                width: 3,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: Colors.grey[700],
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
