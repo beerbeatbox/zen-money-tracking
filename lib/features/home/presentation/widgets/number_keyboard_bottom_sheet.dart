@@ -287,26 +287,34 @@ class _ExpenseTypeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _TypeChip(
-          label: 'Expense',
-          selected: isExpense,
-          onTap: () => onChanged(true),
-        ),
-        const SizedBox(width: 8),
-        _TypeChip(
-          label: 'Income',
-          selected: !isExpense,
-          onTap: () => onChanged(false),
-        ),
-      ],
+    return OutlinedSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      borderRadius: const BorderRadius.all(Radius.circular(18)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _TypeChip(
+            label: 'Expense',
+            selected: isExpense,
+            onTap: () => onChanged(true),
+          ),
+          Container(
+            width: 1,
+            height: 20,
+            color: Colors.black,
+          ).paddingSymmetric(horizontal: 10),
+          _TypeChip(
+            label: 'Income',
+            selected: !isExpense,
+            onTap: () => onChanged(false),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _TypeChip extends StatefulWidget {
+class _TypeChip extends StatelessWidget {
   const _TypeChip({
     required this.label,
     required this.selected,
@@ -318,49 +326,40 @@ class _TypeChip extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_TypeChip> createState() => _TypeChipState();
-}
-
-class _TypeChipState extends State<_TypeChip> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
-  }
-
-  Future<void> _releaseWithPause() async {
-    await Future.delayed(const Duration(milliseconds: 90));
-    if (!mounted) return;
-    _setPressed(false);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final selected = widget.selected;
-
     return OutlinedSurface(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       borderRadius: const BorderRadius.all(Radius.circular(18)),
-      isPressed: _pressed,
-      color: selected ? Colors.black : Colors.white,
-      pressedColor: selected ? Colors.black : const Color(0xFFF7F7F7),
-      child: Text(
-        widget.label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.6,
-          color: selected ? Colors.white : Colors.black,
-        ),
+      isPressed: false,
+      color: Colors.white,
+      pressedColor: Colors.white,
+      border: const Border.fromBorderSide(
+        BorderSide(color: Colors.transparent, width: 0),
       ),
-    ).onTap(
-      onTapDown: (_) => _setPressed(true),
-      onTapUp: (_) => _releaseWithPause(),
-      onTapCancel: () => _releaseWithPause(),
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-    );
+      unpressedShadowOffset: Offset.zero,
+      pressedShadowOffset: Offset.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+              letterSpacing: 0.6,
+              color: selected ? Colors.black : Colors.grey[600],
+              decoration: TextDecoration.none,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Container(
+            height: 2,
+            width: 34,
+            color: selected ? Colors.black : Colors.transparent,
+          ),
+        ],
+      ),
+    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
   }
 }
 
