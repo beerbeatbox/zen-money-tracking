@@ -465,10 +465,16 @@ class _KeyButton extends StatefulWidget {
 
 class _KeyButtonState extends State<_KeyButton> {
   bool _pressed = false;
+  bool _showBubble = false;
 
   void _setPressed(bool value) {
     if (_pressed == value) return;
     setState(() => _pressed = value);
+  }
+
+  void _setBubble(bool value) {
+    if (_showBubble == value) return;
+    setState(() => _showBubble = value);
   }
 
   Future<void> _releaseWithPause() async {
@@ -477,60 +483,175 @@ class _KeyButtonState extends State<_KeyButton> {
     _setPressed(false);
   }
 
+  Future<void> _hideBubbleWithPause() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+    _setBubble(false);
+  }
+
+  Widget _buildBubble({required bool isBackspace, required String label}) {
+    return Positioned(
+      top: -64,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: PhysicalShape(
+          color: const Color(0xFFE8F2FF),
+          shadowColor: Colors.black.withOpacity(0.18),
+          elevation: 8,
+          clipper: _BubbleDropClipper(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+            alignment: Alignment.center,
+            child: Transform.translate(
+              offset: const Offset(0, -7),
+              child:
+                  isBackspace
+                      ? const Icon(
+                        Icons.backspace_outlined,
+                        color: Color(0xFF0D47A1),
+                        size: 24,
+                      )
+                      : Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0D47A1),
+                        ),
+                      ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isBackspace = widget.isBackspace;
     final label = widget.label;
 
-    return OutlinedSurface(
-      height: 50,
-      shape: BoxShape.circle,
-      isPressed: _pressed,
-      color: isBackspace ? const Color(0xFFFDEBEB) : Colors.white,
-      pressedColor:
-          isBackspace ? const Color(0xFFF5D9D9) : const Color(0xFFF7F7F7),
-      duration: const Duration(milliseconds: 80),
-      curve: Curves.easeOut,
-      child: Center(
-        child:
-            isBackspace
-                ? const Icon(Icons.backspace_outlined, color: Colors.black)
-                : Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: label == '.' ? 32 : 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                ),
+    return AspectRatio(
+      aspectRatio: 1.5,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          if (_showBubble) _buildBubble(isBackspace: isBackspace, label: label),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              color:
+                  _pressed
+                      ? (isBackspace
+                          ? const Color(0xFFF5D9D9)
+                          : const Color(0xFFF7F7F7))
+                      : (isBackspace ? const Color(0xFFFDEBEB) : Colors.white),
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+            ),
+            child: Center(
+              child:
+                  isBackspace
+                      ? const Icon(
+                        Icons.backspace_outlined,
+                        color: Colors.black,
+                      )
+                      : AutoSizeText(
+                        label,
+                        maxLines: 1,
+                        minFontSize: 18,
+                        maxFontSize: label == '.' ? 30 : 24,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                      ),
+            ),
+          ).onTap(
+            onTapDown: (_) {
+              _setPressed(true);
+              _setBubble(true);
+            },
+            onTapUp: (_) {
+              _releaseWithPause();
+              _hideBubbleWithPause();
+            },
+            onTapCancel: () {
+              _releaseWithPause();
+              _hideBubbleWithPause();
+            },
+            onLongPressStart:
+                widget.isBackspace && widget.onLongPressStart != null
+                    ? (_) {
+                      _setPressed(true);
+                      _setBubble(true);
+                      widget.onLongPressStart!();
+                    }
+                    : null,
+            onLongPressEnd:
+                widget.isBackspace && widget.onLongPressEnd != null
+                    ? (_) {
+                      widget.onLongPressEnd!();
+                      _releaseWithPause();
+                      _hideBubbleWithPause();
+                    }
+                    : null,
+            onLongPressCancel:
+                widget.isBackspace && widget.onLongPressEnd != null
+                    ? () {
+                      widget.onLongPressEnd!();
+                      _releaseWithPause();
+                      _hideBubbleWithPause();
+                    }
+                    : null,
+            onTap: widget.onTap,
+            behavior: HitTestBehavior.opaque,
+          ),
+        ],
       ),
-    ).onTap(
-      onTapDown: (_) => _setPressed(true),
-      onTapUp: (_) => _releaseWithPause(),
-      onTapCancel: () => _releaseWithPause(),
-      onLongPressStart:
-          widget.isBackspace && widget.onLongPressStart != null
-              ? (_) {
-                _setPressed(true);
-                widget.onLongPressStart!();
-              }
-              : null,
-      onLongPressEnd:
-          widget.isBackspace && widget.onLongPressEnd != null
-              ? (_) {
-                widget.onLongPressEnd!();
-                _releaseWithPause();
-              }
-              : null,
-      onLongPressCancel:
-          widget.isBackspace && widget.onLongPressEnd != null
-              ? () {
-                widget.onLongPressEnd!();
-                _releaseWithPause();
-              }
-              : null,
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
     );
   }
+}
+
+class _BubbleDropClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    const tailHeight = 14.0;
+    const tailWidth = 20.0;
+    const radius = 18.0;
+
+    final bodyHeight = size.height - tailHeight;
+    final tailCenterX = size.width / 2;
+    final tailLeftX = tailCenterX - tailWidth / 2;
+    final tailRightX = tailCenterX + tailWidth / 2;
+
+    final path =
+        Path()
+          ..moveTo(radius, 0)
+          ..lineTo(size.width - radius, 0)
+          ..quadraticBezierTo(size.width, 0, size.width, radius)
+          ..lineTo(size.width, bodyHeight - radius)
+          ..quadraticBezierTo(
+            size.width,
+            bodyHeight,
+            size.width - radius,
+            bodyHeight,
+          )
+          ..lineTo(tailRightX, bodyHeight)
+          ..lineTo(tailCenterX, bodyHeight + tailHeight)
+          ..lineTo(tailLeftX, bodyHeight)
+          ..lineTo(radius, bodyHeight)
+          ..quadraticBezierTo(0, bodyHeight, 0, bodyHeight - radius)
+          ..lineTo(0, radius)
+          ..quadraticBezierTo(0, 0, radius, 0)
+          ..close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
