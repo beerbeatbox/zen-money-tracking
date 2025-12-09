@@ -1,15 +1,12 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class DashboardScreen extends ConsumerWidget with DashboardEvents {
   const DashboardScreen({super.key});
@@ -308,7 +305,7 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _RecentLogsSection extends StatefulWidget {
+class _RecentLogsSection extends StatelessWidget {
   const _RecentLogsSection({
     required this.logs,
     required this.itemsLabel,
@@ -320,53 +317,7 @@ class _RecentLogsSection extends StatefulWidget {
   final VoidCallback onRetry;
 
   @override
-  State<_RecentLogsSection> createState() => _RecentLogsSectionState();
-}
-
-class _RecentLogsSectionState extends State<_RecentLogsSection> {
-  Timer? _animationTimer;
-  String? _lastTopId;
-  bool _showFirst = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _lastTopId = widget.logs.isNotEmpty ? widget.logs.first.id : null;
-  }
-
-  @override
-  void didUpdateWidget(covariant _RecentLogsSection oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _maybeAnimateNewTop();
-  }
-
-  @override
-  void dispose() {
-    _animationTimer?.cancel();
-    super.dispose();
-  }
-
-  void _maybeAnimateNewTop() {
-    if (widget.logs.isEmpty) return;
-    final newTopId = widget.logs.first.id;
-    if (newTopId == _lastTopId) return;
-    _lastTopId = newTopId;
-    _animationTimer?.cancel();
-    setState(() {
-      _showFirst = false;
-    });
-    _animationTimer = Timer(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      setState(() {
-        _showFirst = true;
-      });
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final logs = widget.logs;
-
     if (logs.isEmpty) {
       return const _EmptyLogs();
     }
@@ -387,7 +338,7 @@ class _RecentLogsSectionState extends State<_RecentLogsSection> {
               ),
             ),
             Text(
-              widget.itemsLabel,
+              itemsLabel,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -402,39 +353,13 @@ class _RecentLogsSectionState extends State<_RecentLogsSection> {
         const SizedBox(height: 12),
         ...List.generate(logs.length, (index) {
           final log = logs[index];
-          final tile =
-              index == 0
-                  ? _AnimatedLogTile(log: log, isVisible: _showFirst)
-                  : _LogTile(log: log);
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: tile,
+            child: _LogTile(log: log),
           );
         }),
       ],
-    );
-  }
-}
-
-class _AnimatedLogTile extends StatelessWidget {
-  const _AnimatedLogTile({required this.log, required this.isVisible});
-
-  final ExpenseLog log;
-  final bool isVisible;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: isVisible ? 1 : 0,
-      duration: const Duration(milliseconds: 550),
-      curve: Curves.easeOut,
-      child: AnimatedSlide(
-        offset: isVisible ? Offset.zero : const Offset(0, -0.04),
-        duration: const Duration(milliseconds: 550),
-        curve: Curves.easeOut,
-        child: _LogTile(log: log),
-      ),
     );
   }
 }
