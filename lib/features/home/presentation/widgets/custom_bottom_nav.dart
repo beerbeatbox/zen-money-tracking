@@ -291,6 +291,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
               child: CustomPaint(painter: _CurvedNavPainter()),
             ),
             Positioned(
+              top: 0,
               left: 0,
               right: 0,
               height: barHeight,
