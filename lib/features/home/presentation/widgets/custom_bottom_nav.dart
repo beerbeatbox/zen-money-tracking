@@ -1,14 +1,13 @@
 import 'dart:async';
 
+import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/router/app_router.dart';
+import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
-
-import 'package:anti/core/router/app_router.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/core/extensions/widget_extension.dart';
 
 import 'number_keyboard_bottom_sheet.dart';
 import 'outlined_surface.dart';
@@ -274,26 +273,24 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
 
     const barHeight = 80.0;
     const addButtonSize = 64.0;
-    const extraTopSpace = addButtonSize / 2;
     const buttonSpacing = 32.0;
 
     return SafeArea(
       top: false,
       child: SizedBox(
-        height: barHeight + extraTopSpace,
+        height: barHeight,
         width: double.infinity,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             const Positioned(
-              top: extraTopSpace,
+              top: 0,
               left: 0,
               right: 0,
               height: barHeight,
               child: CustomPaint(painter: _CurvedNavPainter()),
             ),
             Positioned(
-              top: extraTopSpace,
               left: 0,
               right: 0,
               height: barHeight,
@@ -310,7 +307,7 @@ class _CustomBottomNavState extends ConsumerState<CustomBottomNav> {
               ),
             ),
             Positioned(
-              top: 0,
+              top: -(addButtonSize / 2),
               left: 0,
               right: 0,
               child: Center(child: _buildAddButton(context)),
