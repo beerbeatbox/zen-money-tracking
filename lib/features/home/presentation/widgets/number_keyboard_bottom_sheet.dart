@@ -180,7 +180,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                 const Spacer(),
                 Center(
                   child: FractionallySizedBox(
-                    widthFactor: 0.5,
+                    widthFactor: 0.65,
                     child: _NumberPad(
                       onKeyTap: _onKeyTap,
                       onBackspace: _onBackspace,
@@ -412,7 +412,7 @@ class _NumberPad extends StatelessWidget {
           rows
               .map(
                 (row) => Padding(
-                  padding: const EdgeInsets.only(top: 4, bottom: 4),
+                  padding: EdgeInsets.zero,
                   child: Row(
                     children: [
                       for (var i = 0; i < row.length; i++) ...[
