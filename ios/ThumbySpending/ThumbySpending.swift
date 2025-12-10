@@ -69,14 +69,22 @@ struct TodaySpendingEntry: TimelineEntry {
 }
 
 struct ThumbySpendingEntryView: View {
+    @Environment(\.widgetFamily) private var family
     var entry: TodaySpendingEntry
 
+    private var isSmall: Bool {
+        family == .systemSmall
+    }
+
     private var formattedAmount: String {
+        let hasFraction = abs(entry.amount.truncatingRemainder(dividingBy: 1)) > 0.0001
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.maximumFractionDigits = 2
-        formatter.minimumFractionDigits = 2
-        return formatter.string(from: NSNumber(value: entry.amount)) ?? "$0.00"
+        formatter.currencyCode = "THB"
+        formatter.currencySymbol = "฿"
+        formatter.maximumFractionDigits = hasFraction ? 2 : 0
+        formatter.minimumFractionDigits = hasFraction ? 2 : 0
+        return formatter.string(from: NSNumber(value: entry.amount)) ?? "฿0"
     }
 
     private var updatedLabel: String? {
@@ -87,25 +95,44 @@ struct ThumbySpendingEntryView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Your spending today")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: isSmall ? 10 : 12) {
+            Text("Today")
+                .font(isSmall ? .subheadline.weight(.semibold) : .title3.weight(.semibold))
                 .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
 
-            Text(formattedAmount)
-                .font(.system(size: 32, weight: .bold))
-                .foregroundStyle(.primary)
+            HStack(alignment: .lastTextBaseline, spacing: isSmall ? 6 : 8) {
+                Text("Spending")
+                    .font(isSmall ? .caption.weight(.semibold) : .body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-            if let updatedLabel {
+                Text(formattedAmount)
+                    .font(.system(size: isSmall ? 14 : 18, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.4)
+                    .allowsTightening(true)
+                    .layoutPriority(1)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if !isSmall, let updatedLabel {
                 Text(updatedLabel)
-                    .font(.footnote)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
 
             Spacer()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 
