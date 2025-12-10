@@ -33,10 +33,10 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedDate = DateTime(now.year, now.month, now.day);
-    _selectedHour = now.hour;
-    _selectedMinute = now.minute;
+    final initial = widget.initialDateTime;
+    _selectedDate = DateTime(initial.year, initial.month, initial.day);
+    _selectedHour = initial.hour;
+    _selectedMinute = initial.minute;
     _hourController = FixedExtentScrollController(initialItem: _selectedHour);
     _minuteController = FixedExtentScrollController(
       initialItem: _selectedMinute,
@@ -70,26 +70,9 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
     final today = DateTime.now();
     final firstDate = DateTime(today.year - 2, today.month, today.day);
     final lastDate = DateTime(today.year + 2, today.month, today.day);
-    final baseTheme = Theme.of(context);
-    final datePickerTheme = baseTheme.datePickerTheme.copyWith(
-      dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) {
-          return Colors.black;
-        }
-        if (states.contains(WidgetState.pressed)) {
-          return Colors.black.withValues(alpha: 0.08);
-        }
-        return Colors.transparent;
-      }),
-      dayForegroundColor: WidgetStateProperty.resolveWith(
-        (states) =>
-            states.contains(WidgetState.selected) ? Colors.white : Colors.black,
-      ),
-      dayOverlayColor: const WidgetStatePropertyAll(Colors.transparent),
-    );
 
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.red,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       child: OutlinedSurface(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -110,12 +93,57 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 330),
               child: Theme(
-                data: baseTheme.copyWith(datePickerTheme: datePickerTheme),
-                child: CalendarDatePicker(
-                  initialDate: _selectedDate,
-                  firstDate: firstDate,
-                  lastDate: lastDate,
-                  onDateChanged: (date) => setState(() => _selectedDate = date),
+                data: ThemeData(
+                  useMaterial3: true,
+                  fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                  colorScheme: const ColorScheme.light(
+                    primary: Colors.black,
+                    onPrimary: Colors.white,
+                    primaryContainer: Colors.black,
+                    onPrimaryContainer: Colors.white,
+                    surface: Colors.white,
+                    onSurface: Colors.black,
+                    surfaceTint: Colors.transparent,
+                  ),
+                  datePickerTheme: DatePickerThemeData(
+                    dayForegroundColor: WidgetStateProperty.resolveWith((
+                      states,
+                    ) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Colors.white;
+                      }
+                      return Colors.black;
+                    }),
+                    dayBackgroundColor: WidgetStateProperty.resolveWith((
+                      states,
+                    ) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Colors.black;
+                      }
+                      return Colors.transparent;
+                    }),
+                  ),
+                  textTheme: const TextTheme(
+                    bodyLarge: TextStyle(color: Colors.black),
+                    labelLarge: TextStyle(color: Colors.black),
+                  ),
+                ),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: CalendarDatePicker(
+                    initialCalendarMode: DatePickerMode.day,
+                    initialDate: _selectedDate,
+                    firstDate: firstDate,
+                    lastDate: lastDate,
+                    onDateChanged:
+                        (date) => setState(() {
+                          _selectedDate = DateTime(
+                            date.year,
+                            date.month,
+                            date.day,
+                          );
+                        }),
+                  ),
                 ),
               ),
             ),
