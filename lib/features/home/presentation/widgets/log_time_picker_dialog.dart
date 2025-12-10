@@ -72,7 +72,7 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
     final lastDate = DateTime(today.year + 2, today.month, today.day);
 
     return Dialog(
-      backgroundColor: Colors.red,
+      backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       child: OutlinedSurface(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
