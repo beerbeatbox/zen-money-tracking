@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -54,13 +55,31 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   bool _ctaPressed = false;
   Timer? _backspaceHoldTimer;
   late bool _isExpense;
+  late DateTime _logDateTime;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
+  String get _logTimeLabel {
+    final now = DateTime.now();
+    final timeText = _formatTime(_logDateTime);
+    if (_isSameDay(_logDateTime, now)) return 'Today • $timeText';
+    return '${formatDateLabel(_logDateTime)} • $timeText';
+  }
+
+  String _formatTime(DateTime value) {
+    final hours = value.hour.toString().padLeft(2, '0');
+    final minutes = value.minute.toString().padLeft(2, '0');
+    return '$hours:$minutes';
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 
   @override
   void initState() {
     super.initState();
     _isExpense = widget.initialIsExpense;
+    _logDateTime = DateTime.now();
   }
 
   void _onKeyTap(String key) {
@@ -137,8 +156,14 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     setState(() => _isExpense = isExpense);
   }
 
-  void _onLogTimeTap() {
-    // TODO(woraprot.de): wire up log time picker
+  Future<void> _onLogTimeTap() async {
+    final picked = await showLogTimePickerDialog(
+      context,
+      initialDateTime: _logDateTime,
+    );
+    if (picked == null) return;
+    if (!mounted) return;
+    setState(() => _logDateTime = picked);
   }
 
   @override
@@ -186,7 +211,10 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                 Center(
                   child: FractionallySizedBox(
                     widthFactor: 0.65,
-                    child: _LogTimeSection(onTap: _onLogTimeTap),
+                    child: _LogTimeSection(
+                      label: _logTimeLabel,
+                      onTap: _onLogTimeTap,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -414,8 +442,9 @@ class _TypeChip extends StatelessWidget {
 }
 
 class _LogTimeSection extends StatelessWidget {
-  const _LogTimeSection({required this.onTap});
+  const _LogTimeSection({required this.label, required this.onTap});
 
+  final String label;
   final VoidCallback onTap;
 
   @override
