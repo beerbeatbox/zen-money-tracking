@@ -1,18 +1,3 @@
-const _monthLabels = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
-];
-
 String formatAmountWithComma(num amount, {int decimalDigits = 0}) {
   final fixed = amount.abs().toStringAsFixed(decimalDigits);
   final parts = fixed.split('.');
@@ -22,13 +7,6 @@ String formatAmountWithComma(num amount, {int decimalDigits = 0}) {
   final result = '$integerWithComma$fraction';
 
   return amount < 0 ? '-$result' : result;
-}
-
-String formatDateLabel(DateTime date) {
-  final month = _monthLabels[date.month - 1];
-  final day = date.day.toString().padLeft(2, '0');
-  final year = date.year.toString();
-  return '$month $day, $year';
 }
 
 String formatCurrencySigned(double amount) {

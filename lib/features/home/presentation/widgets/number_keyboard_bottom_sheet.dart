@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
@@ -59,20 +60,15 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
   String get _logTimeLabel {
-    final now = DateTime.now();
-    final timeText = _formatTime(_logDateTime);
-    if (_isSameDay(_logDateTime, now)) return 'Today • $timeText';
-    return '${formatDateLabel(_logDateTime)} • $timeText';
-  }
-
-  String _formatTime(DateTime value) {
-    final hours = value.hour.toString().padLeft(2, '0');
-    final minutes = value.minute.toString().padLeft(2, '0');
-    return '$hours:$minutes';
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+    final dateLabel = formatWithPattern(
+      _logDateTime,
+      SystemDateFormat.weekdayDayMonthYear,
+    );
+    final timeLabel = formatTimeWithPattern(
+      _logDateTime,
+      SystemTimeFormat.hm24,
+    );
+    return '$dateLabel • $timeLabel';
   }
 
   @override
@@ -209,12 +205,9 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                 ),
                 const Spacer(),
                 Center(
-                  child: FractionallySizedBox(
-                    widthFactor: 0.65,
-                    child: _LogTimeSection(
-                      label: _logTimeLabel,
-                      onTap: _onLogTimeTap,
-                    ),
+                  child: _LogTimeSection(
+                    label: _logTimeLabel,
+                    onTap: _onLogTimeTap,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -449,38 +442,31 @@ class _LogTimeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Log time',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+    return IntrinsicWidth(
+      child: OutlinedSurface(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              size: 22,
               color: Colors.black,
             ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text(
-                'Today',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(width: 6),
-              Icon(Icons.keyboard_arrow_down, size: 22, color: Colors.black),
-            ],
-          ),
-        ],
-      ),
-    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
+          ],
+        ),
+      ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque),
+    );
   }
 }
 
