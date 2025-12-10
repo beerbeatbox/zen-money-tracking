@@ -1,7 +1,9 @@
+import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:heroicons/heroicons.dart';
 
 Future<DateTime?> showLogTimePickerDialog(
   BuildContext context, {
@@ -50,6 +52,25 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
     super.dispose();
   }
 
+  void _handleToday() {
+    final now = DateTime.now();
+    setState(() {
+      _selectedDate = DateTime(now.year, now.month, now.day);
+      _selectedHour = now.hour;
+      _selectedMinute = now.minute;
+    });
+    _hourController.animateToItem(
+      _selectedHour,
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOut,
+    );
+    _minuteController.animateToItem(
+      _selectedMinute,
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOut,
+    );
+  }
+
   void _handleOk() {
     final result = DateTime(
       _selectedDate.year,
@@ -81,13 +102,45 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Pick log time',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-              ),
+            Row(
+              children: [
+                const Text(
+                  'Pick log time',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
+                  ),
+                ),
+                const Spacer(),
+                OutlinedSurface(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      HeroIcon(
+                        HeroIcons.clock,
+                        style: HeroIconStyle.outline,
+                        color: Colors.black,
+                        size: 18,
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        'Today',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ).onTap(onTap: _handleToday),
+              ],
             ),
             const SizedBox(height: 12),
             ConstrainedBox(
@@ -131,6 +184,7 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
                 child: Material(
                   type: MaterialType.transparency,
                   child: CalendarDatePicker(
+                    key: ValueKey(_selectedDate.toIso8601String()),
                     initialCalendarMode: DatePickerMode.day,
                     initialDate: _selectedDate,
                     firstDate: firstDate,
