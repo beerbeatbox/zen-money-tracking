@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -236,6 +237,8 @@ class _AmountHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final formattedValue = _formatInputValue(value);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -278,7 +281,7 @@ class _AmountHeader extends StatelessWidget {
                 const SizedBox(width: 6),
                 Flexible(
                   child: AutoSizeText(
-                    value,
+                    formattedValue,
                     maxLines: 1,
                     minFontSize: 28,
                     textAlign: TextAlign.center,
@@ -297,6 +300,21 @@ class _AmountHeader extends StatelessWidget {
         const SizedBox(height: 40),
       ],
     );
+  }
+
+  String _formatInputValue(String raw) {
+    if (raw.isEmpty) return '0';
+
+    final parts = raw.split('.');
+    final integerPart = int.tryParse(parts.first) ?? 0;
+    final formattedInteger = formatAmountWithComma(integerPart);
+
+    if (parts.length == 1) return formattedInteger;
+
+    final fraction = parts[1];
+    return fraction.isEmpty
+        ? '$formattedInteger.'
+        : '$formattedInteger.$fraction';
   }
 }
 
@@ -497,7 +515,7 @@ class _KeyButtonState extends State<_KeyButton> {
       child: Center(
         child: PhysicalShape(
           color: const Color(0xFFE8F2FF),
-          shadowColor: Colors.black.withOpacity(0.18),
+          shadowColor: Colors.black.withValues(alpha: 0.18),
           elevation: 8,
           clipper: _BubbleDropClipper(),
           child: Container(

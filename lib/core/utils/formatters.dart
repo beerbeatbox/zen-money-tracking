@@ -13,6 +13,17 @@ const _monthLabels = [
   'DEC',
 ];
 
+String formatAmountWithComma(num amount, {int decimalDigits = 0}) {
+  final fixed = amount.abs().toStringAsFixed(decimalDigits);
+  final parts = fixed.split('.');
+  final integerWithComma = _addThousandsSeparator(parts.first);
+  final fraction =
+      parts.length > 1 && parts[1].isNotEmpty ? '.${parts[1]}' : '';
+  final result = '$integerWithComma$fraction';
+
+  return amount < 0 ? '-$result' : result;
+}
+
 String formatDateLabel(DateTime date) {
   final month = _monthLabels[date.month - 1];
   final day = date.day.toString().padLeft(2, '0');
@@ -21,12 +32,19 @@ String formatDateLabel(DateTime date) {
 }
 
 String formatCurrencySigned(double amount) {
-  final formatted = amount.abs().toStringAsFixed(2);
+  final formatted = formatAmountWithComma(amount.abs(), decimalDigits: 2);
   final prefix = amount < 0 ? '-\$' : '+\$';
   return '$prefix$formatted';
 }
 
 String formatNetBalance(double amount) {
-  final formatted = amount.abs().toStringAsFixed(2);
+  final formatted = formatAmountWithComma(amount.abs(), decimalDigits: 2);
   return amount < 0 ? '-\$$formatted' : '\$$formatted';
+}
+
+String _addThousandsSeparator(String value) {
+  return value.replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+    (match) => '${match[1]},',
+  );
 }
