@@ -1,16 +1,19 @@
 import 'dart:async';
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'expense_log_actions_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<List<ExpenseLog>> expenseLogs(Ref ref) async {
   final service = ref.watch(expenseLogServiceProvider);
-  return service.getExpenseLogs();
+  final logs = await service.getExpenseLogs();
+  await _syncTodaySpendingWithWidget(logs);
+  return logs;
 }
 
 @Riverpod(keepAlive: true)
@@ -63,3 +66,37 @@ Future<void> deleteExpenseLogAction(Ref ref, String logId) async {
   final controller = ref.read(expenseLogActionsControllerProvider.notifier);
   await controller.deleteExpenseLog(logId);
 }
+
+const _widgetChannel = MethodChannel('com.beerlab.thumby/widget');
+
+Future<void> _syncTodaySpendingWithWidget(List<ExpenseLog> logs) async {
+  if (!_isRunningOnIOS()) return;
+
+  final now = DateTime.now();
+  final spentToday =
+      logs
+          .where(
+            (log) =>
+                log.amount < 0 &&
+                _isSameDay(log.createdAt.toLocal(), now.toLocal()),
+          )
+          .fold<double>(0, (total, log) => total + log.amount)
+          .abs();
+
+  try {
+    await _widgetChannel.invokeMethod<void>(
+      'updateTodaySpending',
+      <String, dynamic>{'amount': spentToday},
+    );
+  } on PlatformException {
+    // Widget bridge not available (e.g., running on non-iOS simulator target).
+  } on MissingPluginException {
+    // Widget bridge not available (e.g., running on non-iOS simulator target).
+  }
+}
+
+bool _isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+bool _isRunningOnIOS() =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
