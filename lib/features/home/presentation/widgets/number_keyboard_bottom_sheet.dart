@@ -137,6 +137,10 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     setState(() => _isExpense = isExpense);
   }
 
+  void _onLogTimeTap() {
+    // TODO(woraprot.de): wire up log time picker
+  }
+
   @override
   void dispose() {
     _backspaceHoldTimer?.cancel();
@@ -179,6 +183,13 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   ),
                 ),
                 const Spacer(),
+                Center(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.65,
+                    child: _LogTimeSection(onTap: _onLogTimeTap),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Center(
                   child: FractionallySizedBox(
                     widthFactor: 0.65,
@@ -395,6 +406,48 @@ class _TypeChip extends StatelessWidget {
             height: 2,
             width: 34,
             color: selected ? Colors.black : Colors.transparent,
+          ),
+        ],
+      ),
+    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
+  }
+}
+
+class _LogTimeSection extends StatelessWidget {
+  const _LogTimeSection({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      borderRadius: const BorderRadius.all(Radius.circular(18)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Log time',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                'Today',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(width: 6),
+              Icon(Icons.keyboard_arrow_down, size: 22, color: Colors.black),
+            ],
           ),
         ],
       ),
