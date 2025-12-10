@@ -70,9 +70,12 @@ class ScaffoldWithNavBar extends ConsumerWidget {
       body: child,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openKeyboard(context, ref),
-        shape: const CircleBorder(),
+        backgroundColor: Colors.white,
+        shape: const CircleBorder(
+          side: BorderSide(color: Colors.black, width: 2),
+        ),
         clipBehavior: Clip.antiAlias,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.black),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: const CustomBottomNav(),
