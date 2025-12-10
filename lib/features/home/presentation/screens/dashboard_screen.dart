@@ -1,5 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
+import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
@@ -351,17 +352,88 @@ class _RecentLogsSection extends StatelessWidget {
         const SizedBox(height: 8),
         const Divider(thickness: 2, color: Colors.black),
         const SizedBox(height: 12),
-        ...List.generate(logs.length, (index) {
-          final log = logs[index];
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _LogTile(log: log),
-          );
-        }),
+        _DatedLogsList(logs: logs),
       ],
     );
   }
+}
+
+class _DatedLogsList extends StatelessWidget {
+  const _DatedLogsList({required this.logs});
+
+  final List<ExpenseLog> logs;
+
+  @override
+  Widget build(BuildContext context) {
+    final groupedLogs = _groupLogsByDate(logs);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(groupedLogs.length, (groupIndex) {
+        final group = groupedLogs[groupIndex];
+        final isLastGroup = groupIndex == groupedLogs.length - 1;
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: isLastGroup ? 0 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _dateLabel(group.date),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 10),
+              ...List.generate(group.logs.length, (logIndex) {
+                final log = group.logs[logIndex];
+                final isLastLog = logIndex == group.logs.length - 1;
+
+                return Padding(
+                  padding: EdgeInsets.only(bottom: isLastLog ? 0 : 10),
+                  child: _LogTile(log: log),
+                );
+              }),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  List<_LogGroup> _groupLogsByDate(List<ExpenseLog> logs) {
+    final map = <DateTime, List<ExpenseLog>>{};
+
+    for (final log in logs) {
+      final dateKey = DateUtils.dateOnly(log.createdAt);
+      map.putIfAbsent(dateKey, () => []).add(log);
+    }
+
+    final groups =
+        map.entries
+            .map((entry) => _LogGroup(date: entry.key, logs: entry.value))
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
+
+    return groups;
+  }
+
+  String _dateLabel(DateTime date) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final baseLabel = formatDateWithWeekday(date);
+    final isToday = date.isAtSameMomentAs(today);
+    return isToday ? 'Today $baseLabel' : baseLabel;
+  }
+}
+
+class _LogGroup {
+  const _LogGroup({required this.date, required this.logs});
+
+  final DateTime date;
+  final List<ExpenseLog> logs;
 }
 
 class _LogTile extends StatelessWidget {
