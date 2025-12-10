@@ -76,6 +76,13 @@ struct ThumbySpendingEntryView: View {
         family == .systemSmall
     }
 
+    private var dateLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateFormat = "EEE d MMM yyyy"
+        return formatter.string(from: entry.date)
+    }
+
     private var formattedAmount: String {
         let hasFraction = abs(entry.amount.truncatingRemainder(dividingBy: 1)) > 0.0001
         let formatter = NumberFormatter()
@@ -96,9 +103,9 @@ struct ThumbySpendingEntryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: isSmall ? 10 : 12) {
-            Text("Today")
+            Text(dateLabel)
                 .font(isSmall ? .subheadline.weight(.semibold) : .title3.weight(.semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -106,7 +113,7 @@ struct ThumbySpendingEntryView: View {
             HStack(alignment: .lastTextBaseline, spacing: isSmall ? 6 : 8) {
                 Text("Spending")
                     .font(isSmall ? .caption.weight(.semibold) : .body.weight(.semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .frame(maxWidth: .infinity, alignment: .leading)
