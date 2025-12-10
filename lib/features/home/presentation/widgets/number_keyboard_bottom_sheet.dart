@@ -561,7 +561,7 @@ class _KeyButtonState extends State<_KeyButton> {
                       : AutoSizeText(
                         label,
                         maxLines: 1,
-                        minFontSize: 18,
+                        minFontSize: 24,
                         maxFontSize: label == '.' ? 30 : 24,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
