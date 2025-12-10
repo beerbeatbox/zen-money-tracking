@@ -33,10 +33,10 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
   @override
   void initState() {
     super.initState();
-    final initial = widget.initialDateTime;
-    _selectedDate = DateTime(initial.year, initial.month, initial.day);
-    _selectedHour = initial.hour;
-    _selectedMinute = initial.minute;
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
+    _selectedHour = now.hour;
+    _selectedMinute = now.minute;
     _hourController = FixedExtentScrollController(initialItem: _selectedHour);
     _minuteController = FixedExtentScrollController(
       initialItem: _selectedMinute,
