@@ -180,7 +180,7 @@ app.*.map.json
 # ===================
 # FVM (Flutter Version Management)
 # ===================
-.fvm/version
+.fvm/versions
 
 # ===================
 # Environment & Secrets
