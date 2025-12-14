@@ -8,6 +8,17 @@ import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+const _kExpenseCategories = <String>[
+  'Food',
+  'Bill',
+  'Shopping',
+  'Subscription',
+  'Investment',
+  'Family',
+  'Essential',
+  'Others',
+];
+
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
   required Future<bool> Function(
@@ -59,6 +70,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   Timer? _backspaceHoldTimer;
   late bool _isExpense;
   late DateTime _logDateTime;
+  String _selectedCategory = _kExpenseCategories.first;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
   String get _logTimeLabel {
@@ -163,6 +175,11 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     _setClosePressed(false);
   }
 
+  void _setCategory(String category) {
+    if (_selectedCategory == category) return;
+    setState(() => _selectedCategory = category);
+  }
+
   void _updateExpenseType(bool isExpense) {
     if (_isExpense == isExpense) return;
     setState(() => _isExpense = isExpense);
@@ -216,6 +233,11 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _CategorySection(
+                  selected: _selectedCategory,
+                  onChanged: _setCategory,
+                ),
+                const SizedBox(height: 28),
                 Center(
                   child: _AmountHeader(
                     value: _displayValue,
@@ -452,6 +474,79 @@ class _TypeChip extends StatelessWidget {
             color: selected ? Colors.black : Colors.transparent,
           ),
         ],
+      ),
+    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
+  }
+}
+
+class _CategorySection extends StatelessWidget {
+  const _CategorySection({required this.selected, required this.onChanged});
+
+  final String selected;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Category',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final category in _kExpenseCategories) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _CategoryChip(
+                    label: category,
+                    selected: category == selected,
+                    onTap: () => onChanged(category),
+                  ),
+                ),
+                if (category != _kExpenseCategories.last)
+                  const SizedBox(width: 10),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      borderRadius: const BorderRadius.all(Radius.circular(18)),
+      color: selected ? Colors.black : Colors.white,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: selected ? Colors.white : Colors.black,
+        ),
       ),
     ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
   }
