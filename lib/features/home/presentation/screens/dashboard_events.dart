@@ -25,5 +25,5 @@ mixin DashboardEvents {
       .where((log) => log.amount < 0)
       .fold<double>(0, (total, log) => total + log.amount);
 
-  String logsCountLabel(int count) => '$count ITEMS';
+  String logsCountLabel(int count) => '$count Items';
 }

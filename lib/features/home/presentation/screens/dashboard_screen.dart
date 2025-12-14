@@ -142,7 +142,7 @@ class _NetBalanceSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'NET_BALANCE',
+          'Balance',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -291,7 +291,7 @@ class _RecentLogsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'RECENT_LOGS',
+              'History',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,

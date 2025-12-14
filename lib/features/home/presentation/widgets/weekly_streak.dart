@@ -38,7 +38,7 @@ class WeeklyStreak extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'STREAK',
+                'Streak',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
