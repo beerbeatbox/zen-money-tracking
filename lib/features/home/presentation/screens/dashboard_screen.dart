@@ -124,19 +124,6 @@ class _TopBar extends StatelessWidget {
             ),
           ],
         ),
-        Container(
-          height: 46,
-          width: 46,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: IconButton(
-            splashRadius: 24,
-            onPressed: () => context.pushNamed(AppRouter.profile.name),
-            icon: const Icon(Icons.lock_outline, size: 22, color: Colors.black),
-          ),
-        ),
       ],
     );
   }
