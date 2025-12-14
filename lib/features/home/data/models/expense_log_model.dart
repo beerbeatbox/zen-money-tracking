@@ -20,7 +20,7 @@ class ExpenseLogModel {
   factory ExpenseLogModel.fromEntity(ExpenseLog entity) {
     return ExpenseLogModel(
       id: entity.id,
-      title: entity.title,
+      title: entity.category,
       timeLabel: entity.timeLabel,
       category: entity.category,
       amount: entity.amount,
@@ -31,9 +31,8 @@ class ExpenseLogModel {
   ExpenseLog toEntity() {
     return ExpenseLog(
       id: id,
-      title: title,
       timeLabel: timeLabel,
-      category: category,
+      category: category.isEmpty ? title : category,
       amount: amount,
       createdAt: createdAt,
     );

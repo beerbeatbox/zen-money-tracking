@@ -1,6 +1,5 @@
 class ExpenseLog {
   final String id;
-  final String title;
   final String timeLabel;
   final String category;
   final double amount;
@@ -8,7 +7,6 @@ class ExpenseLog {
 
   const ExpenseLog({
     required this.id,
-    required this.title,
     required this.timeLabel,
     required this.category,
     required this.amount,

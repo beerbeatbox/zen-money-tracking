@@ -26,6 +26,7 @@ Future<void> showNumberKeyboardBottomSheet(
     String value,
     bool isExpense,
     DateTime logDateTime,
+    String category,
   )
   onSubmit,
   bool initialIsExpense = true,
@@ -54,6 +55,7 @@ class NumberKeyboardBottomSheet extends StatefulWidget {
     String value,
     bool isExpense,
     DateTime logDateTime,
+    String category,
   )
   onSubmit;
   final bool initialIsExpense;
@@ -144,6 +146,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
       _displayValue,
       _isExpense,
       _logDateTime,
+      _selectedCategory,
     );
     if (!mounted || !shouldClose) return;
     Navigator.of(context).pop();

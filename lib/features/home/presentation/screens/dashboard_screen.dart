@@ -465,7 +465,7 @@ class _LogTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  log.title.toUpperCase(),
+                  log.category.toUpperCase(),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -512,37 +512,13 @@ class _LogMetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          log.timeLabel,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[600],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Container(
-            width: 4,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[500],
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        Text(
-          log.category.toUpperCase(),
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.4,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
+    return Text(
+      log.timeLabel,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Colors.grey[600],
+      ),
     );
   }
 }

@@ -27,7 +27,13 @@ class ScaffoldWithNavBar extends ConsumerWidget {
   Future<void> _openKeyboard(BuildContext context, WidgetRef ref) async {
     await showNumberKeyboardBottomSheet(
       context,
-      onSubmit: (sheetContext, rawValue, isExpense, logDateTime) async {
+      onSubmit: (
+        sheetContext,
+        rawValue,
+        isExpense,
+        logDateTime,
+        category,
+      ) async {
         final parsed = double.tryParse(rawValue);
         if (parsed == null) {
           _showSnack(sheetContext, 'Please enter a valid number.');
@@ -46,9 +52,8 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         final entryDateTime = logDateTime;
         final log = ExpenseLog(
           id: now.microsecondsSinceEpoch.toString(),
-          title: 'Quick entry',
           timeLabel: _formatTimeLabel(entryDateTime),
-          category: 'General',
+          category: category,
           amount: amount,
           createdAt: entryDateTime,
         );
@@ -57,6 +62,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           await ref.read(addExpenseLogActionProvider(log).future);
           return true;
         } catch (_) {
+          if (!sheetContext.mounted) return false;
           _showSnack(sheetContext, "Let's try that again.");
           return false;
         }

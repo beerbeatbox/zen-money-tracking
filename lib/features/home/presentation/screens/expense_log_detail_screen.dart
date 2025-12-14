@@ -109,7 +109,7 @@ class _LogDetailCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            log.title.toUpperCase(),
+            log.category.toUpperCase(),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
