@@ -271,7 +271,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                         curve: Curves.easeOut,
                         child: const Center(
                           child: Text(
-                            'Category',
+                            'Save',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
