@@ -211,7 +211,7 @@ class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
         const SizedBox(width: 12),
         Expanded(
           child: OutlinedActionButton(
-            label: 'Delete log',
+            label: 'Delete',
             onPressed: () => _handleDelete(context, ref),
             textColor: Colors.white,
             borderColor: Colors.black,
