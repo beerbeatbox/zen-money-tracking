@@ -230,6 +230,13 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
               children: [
                 const Spacer(),
                 Center(
+                  child: _ExpenseTypeToggle(
+                    isExpense: _isExpense,
+                    onChanged: _updateExpenseType,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Center(
                   child: _LogTimeSection(
                     label: _logTimeLabel,
                     onTap: _onLogTimeTap,
@@ -241,13 +248,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   onChanged: _setCategory,
                 ),
                 const SizedBox(height: 28),
-                Center(
-                  child: _AmountHeader(
-                    value: _displayValue,
-                    isExpense: _isExpense,
-                    onTypeChanged: _updateExpenseType,
-                  ),
-                ),
+                Center(child: _AmountHeader(value: _displayValue)),
                 Center(
                   child: FractionallySizedBox(
                     widthFactor: 0.65,
@@ -324,15 +325,9 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
 }
 
 class _AmountHeader extends StatelessWidget {
-  const _AmountHeader({
-    required this.value,
-    required this.isExpense,
-    required this.onTypeChanged,
-  });
+  const _AmountHeader({required this.value});
 
   final String value;
-  final bool isExpense;
-  final ValueChanged<bool> onTypeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -341,8 +336,6 @@ class _AmountHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _ExpenseTypeToggle(isExpense: isExpense, onChanged: onTypeChanged),
-        const SizedBox(height: 12),
         SizedBox(
           child: Center(
             child: Row(
