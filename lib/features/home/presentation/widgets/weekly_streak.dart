@@ -143,11 +143,14 @@ class _StreakDayItem extends StatelessWidget {
     final circleSize = 24.0;
 
     final showCheck = isPast && isUnderLimit;
+    final isIncomplete = !isUnderLimit && !isFuture; // today or past only
+    final isComplete = isPast && isUnderLimit;
+    final borderColor = isComplete ? Colors.black : Colors.grey[300]!;
 
     final fillColor = () {
-      if (isFuture) return Colors.white;
-      if (isToday) return isUnderLimit ? Colors.white : Colors.grey[400]!;
-      return isUnderLimit ? const Color(0xFFF4C44E) : Colors.grey[400]!;
+      if (isIncomplete) return Colors.grey[300]!;
+      if (isPast && isUnderLimit) return const Color(0xFFF4C44E);
+      return Colors.grey[300]!;
     }();
 
     final icon =
@@ -173,6 +176,7 @@ class _StreakDayItem extends StatelessWidget {
               width: circleSize,
               height: circleSize,
               shape: BoxShape.circle,
+              border: Border.all(color: borderColor, width: 2),
               unpressedShadowOffset: const Offset(0, 0),
               pressedShadowOffset: const Offset(0, 0),
               color: fillColor,
