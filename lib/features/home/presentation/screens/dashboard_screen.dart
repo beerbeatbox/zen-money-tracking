@@ -15,6 +15,7 @@ class DashboardScreen extends ConsumerWidget with DashboardEvents {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateLabel = dashboardDateLabel(DateTime.now());
+    final monthYearLabel = formatMonthYearLabel(DateTime.now());
     final logsAsync = watchExpenseLogs(ref);
 
     return Scaffold(
@@ -32,7 +33,7 @@ class DashboardScreen extends ConsumerWidget with DashboardEvents {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _TopBar(dateLabel: dateLabel),
+                  _TopBar(monthYearLabel: monthYearLabel, dateLabel: dateLabel),
                   const SizedBox(height: 16),
                   const Divider(thickness: 2, color: Colors.black),
                   const SizedBox(height: 24),
@@ -52,11 +53,13 @@ class DashboardScreen extends ConsumerWidget with DashboardEvents {
           },
           loading:
               () => _DashboardStateWrapper(
+                monthYearLabel: monthYearLabel,
                 dateLabel: dateLabel,
                 child: const _LogsLoading(),
               ),
           error:
               (_, __) => _DashboardStateWrapper(
+                monthYearLabel: monthYearLabel,
                 dateLabel: dateLabel,
                 child: _LogsError(onRetry: () => refreshExpenseLogs(ref)),
               ),
@@ -67,8 +70,13 @@ class DashboardScreen extends ConsumerWidget with DashboardEvents {
 }
 
 class _DashboardStateWrapper extends StatelessWidget {
-  const _DashboardStateWrapper({required this.dateLabel, required this.child});
+  const _DashboardStateWrapper({
+    required this.monthYearLabel,
+    required this.dateLabel,
+    required this.child,
+  });
 
+  final String monthYearLabel;
   final String dateLabel;
   final Widget child;
 
@@ -79,7 +87,7 @@ class _DashboardStateWrapper extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _TopBar(dateLabel: dateLabel),
+          _TopBar(monthYearLabel: monthYearLabel, dateLabel: dateLabel),
           const SizedBox(height: 16),
           const Divider(thickness: 2, color: Colors.black),
           const SizedBox(height: 24),
@@ -91,8 +99,9 @@ class _DashboardStateWrapper extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.dateLabel});
+  const _TopBar({required this.monthYearLabel, required this.dateLabel});
 
+  final String monthYearLabel;
   final String dateLabel;
 
   @override
@@ -103,23 +112,13 @@ class _TopBar extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'EXPENSE_LOG',
+            Text(
+              monthYearLabel,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.4,
                 color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              dateLabel,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8,
-                color: Colors.grey[600],
               ),
             ),
           ],
