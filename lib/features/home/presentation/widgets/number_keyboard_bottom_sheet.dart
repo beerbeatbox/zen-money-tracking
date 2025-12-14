@@ -7,7 +7,6 @@ import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.d
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:heroicons/heroicons.dart';
 
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
@@ -56,6 +55,7 @@ class NumberKeyboardBottomSheet extends StatefulWidget {
 class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   String _value = '';
   bool _ctaPressed = false;
+  bool _closePressed = false;
   Timer? _backspaceHoldTimer;
   late bool _isExpense;
   late DateTime _logDateTime;
@@ -150,6 +150,19 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     _setCtaPressed(false);
   }
 
+  void _setClosePressed(bool value) {
+    if (_closePressed == value) return;
+    setState(() {
+      _closePressed = value;
+    });
+  }
+
+  Future<void> _releaseCloseWithPause() async {
+    await Future.delayed(const Duration(milliseconds: 90));
+    if (!mounted) return;
+    _setClosePressed(false);
+  }
+
   void _updateExpenseType(bool isExpense) {
     if (_isExpense == isExpense) return;
     setState(() => _isExpense = isExpense);
@@ -195,17 +208,6 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minWidth: 320,
-                    maxWidth: 520,
-                  ),
-                  child: _AmountHeader(
-                    value: _displayValue,
-                    isExpense: _isExpense,
-                    onTypeChanged: _updateExpenseType,
-                  ),
-                ),
                 const Spacer(),
                 Center(
                   child: _LogTimeSection(
@@ -214,6 +216,13 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                Center(
+                  child: _AmountHeader(
+                    value: _displayValue,
+                    isExpense: _isExpense,
+                    onTypeChanged: _updateExpenseType,
+                  ),
+                ),
                 Center(
                   child: FractionallySizedBox(
                     widthFactor: 0.65,
@@ -226,29 +235,59 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                OutlinedSurface(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  isPressed: _ctaPressed,
-                  pressedColor: const Color(0xFFF7F7F7),
-                  duration: const Duration(milliseconds: 80),
-                  curve: Curves.easeOut,
-                  child: const Center(
-                    child: Text(
-                      'Next step',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedSurface(
+                        height: 56,
+                        isPressed: _closePressed,
+                        duration: const Duration(milliseconds: 80),
+                        curve: Curves.easeOut,
+                        child: const Center(
+                          child: Text(
+                            'Close',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ).onTap(
+                        onTapDown: (_) => _setClosePressed(true),
+                        onTapUp: (_) => _releaseCloseWithPause(),
+                        onTapCancel: () => _releaseCloseWithPause(),
+                        onTap: () => Navigator.of(context).pop(),
+                        behavior: HitTestBehavior.opaque,
                       ),
                     ),
-                  ),
-                ).onTap(
-                  onTapDown: (_) => _setCtaPressed(true),
-                  onTapUp: (_) => _releaseCtaWithPause(),
-                  onTapCancel: () => _releaseCtaWithPause(),
-                  onTap: _submit,
-                  behavior: HitTestBehavior.opaque,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedSurface(
+                        height: 56,
+                        isPressed: _ctaPressed,
+                        duration: const Duration(milliseconds: 80),
+                        color: Colors.black,
+                        curve: Curves.easeOut,
+                        child: const Center(
+                          child: Text(
+                            'Category',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ).onTap(
+                        onTapDown: (_) => _setCtaPressed(true),
+                        onTapUp: (_) => _releaseCtaWithPause(),
+                        onTapCancel: () => _releaseCtaWithPause(),
+                        onTap: _submit,
+                        behavior: HitTestBehavior.opaque,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -277,27 +316,9 @@ class _AmountHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            IconButton(
-              icon: const HeroIcon(
-                HeroIcons.xMark,
-                style: HeroIconStyle.outline,
-                color: Colors.black,
-                size: 22,
-              ),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              splashRadius: 20,
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
         _ExpenseTypeToggle(isExpense: isExpense, onChanged: onTypeChanged),
         const SizedBox(height: 12),
         SizedBox(
-          height: 120,
           child: Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -321,7 +342,7 @@ class _AmountHeader extends StatelessWidget {
                     minFontSize: 28,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 100,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                       letterSpacing: 0.4,
@@ -332,7 +353,6 @@ class _AmountHeader extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 40),
       ],
     );
   }
