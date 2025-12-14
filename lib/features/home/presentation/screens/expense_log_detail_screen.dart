@@ -2,6 +2,7 @@ import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
@@ -84,11 +85,10 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
   }
 
   ExpenseLog? _resolveLog(List<ExpenseLog> logs) {
-    if (log != null) return log;
     for (final item in logs) {
       if (item.id == logId) return item;
     }
-    return null;
+    return log;
   }
 }
 
@@ -99,7 +99,6 @@ class _LogDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amountLabel = formatCurrencySigned(log.amount);
     final isIncome = log.amount >= 0;
     final amountColor = isIncome ? Colors.green[700] : Colors.red[700];
 
@@ -122,9 +121,9 @@ class _LogDetailCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Text(
-                  amountLabel,
-                  style: TextStyle(
+                child: _AnimatedLogAmountText(
+                  value: log.amount,
+                  textStyle: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
@@ -150,10 +149,69 @@ class _LogDetailCard extends StatelessWidget {
   }
 }
 
+class _AnimatedLogAmountText extends ImplicitlyAnimatedWidget {
+  const _AnimatedLogAmountText({
+    required this.value,
+    required this.textStyle,
+    super.duration = const Duration(milliseconds: 600),
+  });
+
+  final double value;
+  final TextStyle textStyle;
+
+  @override
+  AnimatedWidgetBaseState<_AnimatedLogAmountText> createState() =>
+      _AnimatedLogAmountTextState();
+}
+
+class _AnimatedLogAmountTextState
+    extends AnimatedWidgetBaseState<_AnimatedLogAmountText> {
+  Tween<double>? _valueTween;
+
+  @override
+  void forEachTween(TweenVisitor<dynamic> visitor) {
+    _valueTween =
+        visitor(
+              _valueTween,
+              widget.value,
+              (dynamic value) =>
+                  Tween<double>(begin: value as double, end: widget.value),
+            )
+            as Tween<double>?;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final animatedValue = _valueTween?.evaluate(animation) ?? widget.value;
+    return Text(formatCurrencySigned(animatedValue), style: widget.textStyle);
+  }
+}
+
 class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
   const _LogActionsRow({required this.log});
 
   final ExpenseLog log;
+
+  String _formatTimeLabel(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  String _formatInitialAmount(double value) {
+    final rounded = value.roundToDouble();
+    if ((value - rounded).abs() < 0.000001) {
+      return rounded.toStringAsFixed(0);
+    }
+    return value.toString();
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+    );
+  }
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
     final shouldDelete = await showDialog<bool>(
@@ -200,8 +258,51 @@ class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
         Expanded(
           child: OutlinedActionButton(
             label: 'Edit',
-            onPressed: () {
-              // TODO: implement edit log flow
+            onPressed: () async {
+              await showNumberKeyboardBottomSheet(
+                context,
+                initialIsExpense: log.amount < 0,
+                initialValue: _formatInitialAmount(log.amount.abs()),
+                initialLogDateTime: log.createdAt,
+                initialCategory: log.category,
+                onSubmit: (
+                  sheetContext,
+                  rawValue,
+                  isExpense,
+                  logDateTime,
+                  category,
+                ) async {
+                  final parsed = double.tryParse(rawValue);
+                  if (parsed == null) {
+                    _showSnack(sheetContext, 'Please enter a valid number.');
+                    return false;
+                  }
+                  if (parsed <= 0) {
+                    _showSnack(
+                      sheetContext,
+                      'Add an amount above zero to save changes.',
+                    );
+                    return false;
+                  }
+
+                  final updated = ExpenseLog(
+                    id: log.id,
+                    timeLabel: _formatTimeLabel(logDateTime),
+                    category: category,
+                    amount: isExpense ? -parsed.abs() : parsed.abs(),
+                    createdAt: logDateTime,
+                  );
+
+                  try {
+                    await updateLog(ref, updated);
+                    return true;
+                  } catch (_) {
+                    if (!sheetContext.mounted) return false;
+                    _showSnack(sheetContext, "Let's try that again.");
+                    return false;
+                  }
+                },
+              );
             },
             textColor: Colors.black,
             borderColor: Colors.black,

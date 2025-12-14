@@ -39,6 +39,15 @@ class ExpenseLogActionsController extends _$ExpenseLogActionsController {
     await ref.read(expenseLogsProvider.future);
   }
 
+  Future<void> updateExpenseLog(ExpenseLog updatedLog) async {
+    final service = ref.read(expenseLogServiceProvider);
+    await service.updateExpenseLog(updatedLog);
+
+    if (!ref.mounted) return;
+    ref.invalidate(expenseLogsProvider);
+    await ref.read(expenseLogsProvider.future);
+  }
+
   Future<void> deleteExpenseLogs() async {
     final service = ref.read(expenseLogServiceProvider);
     await service.deleteExpenseLogFile();
@@ -65,6 +74,12 @@ Future<void> addExpenseLogAction(Ref ref, ExpenseLog log) async {
 Future<void> deleteExpenseLogAction(Ref ref, String logId) async {
   final controller = ref.read(expenseLogActionsControllerProvider.notifier);
   await controller.deleteExpenseLog(logId);
+}
+
+@riverpod
+Future<void> updateExpenseLogAction(Ref ref, ExpenseLog log) async {
+  final controller = ref.read(expenseLogActionsControllerProvider.notifier);
+  await controller.updateExpenseLog(log);
 }
 
 const _widgetChannel = MethodChannel('com.beerlab.thumby/widget');

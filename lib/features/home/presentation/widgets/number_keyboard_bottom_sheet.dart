@@ -30,6 +30,9 @@ Future<void> showNumberKeyboardBottomSheet(
   )
   onSubmit,
   bool initialIsExpense = true,
+  String? initialValue,
+  DateTime? initialLogDateTime,
+  String? initialCategory,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -39,6 +42,9 @@ Future<void> showNumberKeyboardBottomSheet(
         (context) => NumberKeyboardBottomSheet(
           onSubmit: onSubmit,
           initialIsExpense: initialIsExpense,
+          initialValue: initialValue,
+          initialLogDateTime: initialLogDateTime,
+          initialCategory: initialCategory,
         ),
   );
 }
@@ -48,6 +54,9 @@ class NumberKeyboardBottomSheet extends StatefulWidget {
     super.key,
     required this.onSubmit,
     this.initialIsExpense = true,
+    this.initialValue,
+    this.initialLogDateTime,
+    this.initialCategory,
   });
 
   final Future<bool> Function(
@@ -59,6 +68,9 @@ class NumberKeyboardBottomSheet extends StatefulWidget {
   )
   onSubmit;
   final bool initialIsExpense;
+  final String? initialValue;
+  final DateTime? initialLogDateTime;
+  final String? initialCategory;
 
   @override
   State<NumberKeyboardBottomSheet> createState() =>
@@ -91,7 +103,20 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   void initState() {
     super.initState();
     _isExpense = widget.initialIsExpense;
-    _logDateTime = DateTime.now();
+    _value = widget.initialValue ?? '';
+    _logDateTime = widget.initialLogDateTime ?? DateTime.now();
+    _selectedCategory = _resolveInitialCategory(widget.initialCategory);
+  }
+
+  String _resolveInitialCategory(String? initialCategory) {
+    if (initialCategory == null || initialCategory.isEmpty) {
+      return _kExpenseCategories.first;
+    }
+    final matched =
+        _kExpenseCategories.contains(initialCategory)
+            ? initialCategory
+            : _kExpenseCategories.first;
+    return matched;
   }
 
   void _onKeyTap(String key) {
