@@ -38,7 +38,7 @@ class WeeklyStreak extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'YOUR WEEKLY STREAK',
+                'STREAK',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -82,14 +82,6 @@ class WeeklyStreak extends StatelessWidget {
             }),
           ),
           const SizedBox(height: 12),
-          Text(
-            'Stay under ${formatNetBalance(dailyBudgetLimit)} per day to keep your streak.',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
         ],
       ),
     );
