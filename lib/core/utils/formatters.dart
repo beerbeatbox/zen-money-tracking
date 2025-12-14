@@ -11,7 +11,7 @@ String formatAmountWithComma(num amount, {int decimalDigits = 0}) {
 
 String formatCurrencySigned(double amount) {
   final formatted = formatAmountWithComma(amount.abs(), decimalDigits: 2);
-  final prefix = amount < 0 ? '-฿' : '+฿';
+  final prefix = amount < 0 ? '฿' : '฿';
   return '$prefix$formatted';
 }
 
