@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/categories/presentation/screens/category_management_screen.dart';
 import '../../features/home/domain/entities/expense_log.dart';
 import '../../features/home/domain/entities/scheduled_transaction.dart';
-import '../../features/home/presentation/screens/dashboard_screen.dart';
-import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
 import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
-import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/budget_screen.dart';
+import '../../features/home/presentation/screens/dashboard_screen.dart';
+import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/report_screen.dart';
+import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/categories/presentation/screens/category_management_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -76,51 +76,69 @@ GoRouter appRouter(Ref ref) {
         redirect: (context, state) {
           final qp = <String, String>{...state.uri.queryParameters};
           qp['quickAdd'] = '1';
-          return Uri(path: AppRouter.dashboard.path, queryParameters: qp)
-              .toString();
+          return Uri(
+            path: AppRouter.dashboard.path,
+            queryParameters: qp,
+          ).toString();
         },
       ),
-      ShellRoute(
-        navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) {
-          return ScaffoldWithNavBar(child: child);
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return ScaffoldWithNavBar(navigationShell: navigationShell);
         },
-        routes: [
-          GoRoute(
-            path: AppRouter.dashboard.path,
-            name: AppRouter.dashboard.name,
-            pageBuilder:
-                (context, state) => NoTransitionPage(
-                  key: state.pageKey, // ensure unique page per tab
-                  child: const DashboardScreen(),
-                ),
+        branches: [
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRouter.dashboard.path,
+                name: AppRouter.dashboard.name,
+                pageBuilder:
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey, // keep unique per branch root
+                      child: const DashboardScreen(),
+                    ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRouter.report.path,
-            name: AppRouter.report.name,
-            pageBuilder:
-                (context, state) => NoTransitionPage(
-                  key: state.pageKey,
-                  child: const ReportScreen(),
-                ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRouter.report.path,
+                name: AppRouter.report.name,
+                pageBuilder:
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const ReportScreen(),
+                    ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRouter.budget.path,
-            name: AppRouter.budget.name,
-            pageBuilder:
-                (context, state) => NoTransitionPage(
-                  key: state.pageKey,
-                  child: const BudgetScreen(),
-                ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRouter.budget.path,
+                name: AppRouter.budget.name,
+                pageBuilder:
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const BudgetScreen(),
+                    ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRouter.settings.path,
-            name: AppRouter.settings.name,
-            pageBuilder:
-                (context, state) => NoTransitionPage(
-                  key: state.pageKey,
-                  child: const SettingsScreen(),
-                ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRouter.settings.path,
+                name: AppRouter.settings.name,
+                pageBuilder:
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const SettingsScreen(),
+                    ),
+              ),
+            ],
           ),
         ],
       ),

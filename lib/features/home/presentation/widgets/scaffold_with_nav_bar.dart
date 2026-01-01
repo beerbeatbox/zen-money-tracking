@@ -2,14 +2,15 @@ import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'custom_bottom_nav.dart';
 import 'number_keyboard_bottom_sheet.dart';
 
 class ScaffoldWithNavBar extends ConsumerWidget {
-  const ScaffoldWithNavBar({required this.child, super.key});
+  const ScaffoldWithNavBar({required this.navigationShell, super.key});
 
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
 
   String _formatTimeLabel(DateTime dateTime) {
     final hour = dateTime.hour.toString().padLeft(2, '0');
@@ -74,7 +75,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: child,
+      body: navigationShell,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openKeyboard(context, ref),
         backgroundColor: Colors.white,
@@ -85,7 +86,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         child: const Icon(Icons.add, color: Colors.black),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: const CustomBottomNav(),
+      bottomNavigationBar: CustomBottomNav(navigationShell: navigationShell),
     );
   }
 }

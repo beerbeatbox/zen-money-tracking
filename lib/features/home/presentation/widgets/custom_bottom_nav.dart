@@ -1,30 +1,15 @@
-import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
 class CustomBottomNav extends StatelessWidget {
-  const CustomBottomNav({super.key});
+  const CustomBottomNav({required this.navigationShell, super.key});
 
-  void _handleSettingsTap(BuildContext context, {required bool isActive}) {
-    if (isActive) return; // avoid re-triggering same route on iOS
-    context.go(AppRouter.settings.path);
-  }
+  final StatefulNavigationShell navigationShell;
 
-  void _handleHomeTap(BuildContext context, {required bool isActive}) {
+  void _handleTabTap(int index, {required bool isActive}) {
     if (isActive) return;
-    context.go(AppRouter.dashboard.path);
-  }
-
-  void _handleBudgetTap(BuildContext context, {required bool isActive}) {
-    if (isActive) return;
-    context.go(AppRouter.budget.path);
-  }
-
-  void _handleReportTap(BuildContext context, {required bool isActive}) {
-    if (isActive) return;
-    context.go(AppRouter.report.path);
+    navigationShell.goBranch(index);
   }
 
   Text _buildNavLabel(String label, {required bool isActive}) {
@@ -69,12 +54,12 @@ class CustomBottomNav extends StatelessWidget {
           _buildNavLabel(label, isActive: isActive),
         ],
       ),
-    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
+    );
   }
 
   Widget _buildSettingsButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleSettingsTap(context, isActive: isActive),
+      onTap: () => _handleTabTap(3, isActive: isActive),
       icon: HeroIcons.cog6Tooth,
       semanticLabel: 'Settings',
       label: 'Settings',
@@ -84,7 +69,7 @@ class CustomBottomNav extends StatelessWidget {
 
   Widget _buildHomeButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleHomeTap(context, isActive: isActive),
+      onTap: () => _handleTabTap(0, isActive: isActive),
       icon: HeroIcons.home,
       semanticLabel: 'Home',
       label: 'Home',
@@ -94,7 +79,7 @@ class CustomBottomNav extends StatelessWidget {
 
   Widget _buildReportButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleReportTap(context, isActive: isActive),
+      onTap: () => _handleTabTap(1, isActive: isActive),
       icon: HeroIcons.chartBar,
       semanticLabel: 'Report',
       label: 'Report',
@@ -104,7 +89,7 @@ class CustomBottomNav extends StatelessWidget {
 
   Widget _buildBudgetButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
-      onTap: () => _handleBudgetTap(context, isActive: isActive),
+      onTap: () => _handleTabTap(2, isActive: isActive),
       icon: HeroIcons.wallet,
       semanticLabel: 'Budget',
       label: 'Budget',
@@ -114,11 +99,11 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).uri.toString();
-    final isHomeActive = location.startsWith(AppRouter.dashboard.path);
-    final isBudgetActive = location.startsWith(AppRouter.budget.path);
-    final isReportActive = location.startsWith(AppRouter.report.path);
-    final isSettingsActive = location.startsWith(AppRouter.settings.path);
+    final currentIndex = navigationShell.currentIndex;
+    final isHomeActive = currentIndex == 0;
+    final isReportActive = currentIndex == 1;
+    final isBudgetActive = currentIndex == 2;
+    final isSettingsActive = currentIndex == 3;
 
     return SafeArea(
       top: false,
@@ -143,11 +128,30 @@ class CustomBottomNav extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildHomeButton(context, isActive: isHomeActive),
-              _buildReportButton(context, isActive: isReportActive),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _handleTabTap(0, isActive: isHomeActive),
+                child: _buildHomeButton(context, isActive: isHomeActive),
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _handleTabTap(1, isActive: isReportActive),
+                child: _buildReportButton(context, isActive: isReportActive),
+              ),
               const SizedBox(width: 32), // gap for the FAB notch
-              _buildBudgetButton(context, isActive: isBudgetActive),
-              _buildSettingsButton(context, isActive: isSettingsActive),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _handleTabTap(2, isActive: isBudgetActive),
+                child: _buildBudgetButton(context, isActive: isBudgetActive),
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _handleTabTap(3, isActive: isSettingsActive),
+                child: _buildSettingsButton(
+                  context,
+                  isActive: isSettingsActive,
+                ),
+              ),
             ],
           ),
         ),
