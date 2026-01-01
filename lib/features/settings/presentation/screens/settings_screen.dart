@@ -150,12 +150,6 @@ class _SettingsList extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _SettingsCard(
-          icon: HeroIcons.sparkles,
-          title: 'Money Tracker with AI',
-          onTap: () => context.go(AppRouter.dashboard.path),
-        ),
-        const SizedBox(height: 12),
-        _SettingsCard(
           icon: HeroIcons.calendarDays,
           title: 'Scheduled Payments',
           onTap: () => context.pushNamed(AppRouter.scheduledTransactions.name),
