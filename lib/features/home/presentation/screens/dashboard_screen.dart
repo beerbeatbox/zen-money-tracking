@@ -7,6 +7,7 @@ import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
+import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:flutter/material.dart';
@@ -179,7 +180,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         const SizedBox(height: 16),
         _IncomeSpentRow(income: income, spent: spent),
         const SizedBox(height: 16),
-        // WeeklyStreak(logs: scopedLogs, dailyBudgetLimit: 500),
+        MonthlyIncomeSpentLineChart(
+          selectedMonth: selectedMonth,
+          logs: scopedLogs,
+        ),
         const SizedBox(height: 32),
         _RecentLogsSection(
           logs: scopedLogs,
