@@ -4,6 +4,7 @@ import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:anti/features/categories/domain/usecases/category_service.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
@@ -11,28 +12,6 @@ import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-const _kExpenseCategories = <String>[
-  'Food',
-  'Bill',
-  'Shopping',
-  'Subscription',
-  'Investment',
-  'Family',
-  'Essential',
-  'Others',
-];
-
-const _kIncomeCategories = <String>[
-  'Salary',
-  'Bonus',
-  'Business',
-  'Gift',
-  'Interest',
-  'Refund',
-  'Investment Return',
-  'Others',
-];
 
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
@@ -101,6 +80,7 @@ class _NumberKeyboardBottomSheetState
   late bool _isExpense;
   late DateTime _logDateTime;
   late String _selectedCategory;
+  late bool _shouldDefaultToFirstCategory;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
   List<String> get _availableCategories {
@@ -112,7 +92,9 @@ class _NumberKeyboardBottomSheetState
     if (categories == null) {
       // While loading (or before codegen runs), fall back to defaults so the UI
       // stays usable. Once loaded, we reflect the persisted list exactly.
-      return _isExpense ? _kExpenseCategories : _kIncomeCategories;
+      return _isExpense
+          ? CategoryService.defaultExpenseLabels
+          : CategoryService.defaultIncomeLabels;
     }
 
     final type = _isExpense ? CategoryType.expense : CategoryType.income;
@@ -145,7 +127,11 @@ class _NumberKeyboardBottomSheetState
         (widget.initialCategory ?? '').trim().isEmpty
             ? null
             : widget.initialCategory!.trim();
-    final fallback = _isExpense ? _kExpenseCategories : _kIncomeCategories;
+    final fallback =
+        _isExpense
+            ? CategoryService.defaultExpenseLabels
+            : CategoryService.defaultIncomeLabels;
+    _shouldDefaultToFirstCategory = initial == null;
     _selectedCategory = initial ?? fallback.first;
   }
 
@@ -245,13 +231,18 @@ class _NumberKeyboardBottomSheetState
 
   void _setCategory(String category) {
     if (_selectedCategory == category) return;
-    setState(() => _selectedCategory = category);
+    setState(() {
+      _shouldDefaultToFirstCategory = false;
+      _selectedCategory = category;
+    });
   }
 
   void _updateExpenseType(bool isExpense) {
     if (_isExpense == isExpense) return;
     setState(() {
       _isExpense = isExpense;
+      // Switching type should pick the first option if we haven't locked in a
+      // user choice yet.
       final categories = _availableCategories;
       if (categories.isEmpty) {
         _selectedCategory = '';
@@ -300,6 +291,14 @@ class _NumberKeyboardBottomSheetState
         if (_selectedCategory.isNotEmpty) {
           setState(() => _selectedCategory = '');
         }
+        return;
+      }
+
+      if (_shouldDefaultToFirstCategory &&
+          _selectedCategory != available.first) {
+        setState(() {
+          _selectedCategory = available.first;
+        });
         return;
       }
 
