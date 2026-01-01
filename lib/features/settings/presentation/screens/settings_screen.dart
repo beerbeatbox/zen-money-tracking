@@ -1,14 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heroicons/heroicons.dart';
-
-import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/router/app_router.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:anti/features/settings/presentation/screens/settings_events.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heroicons/heroicons.dart';
 
 class SettingsScreen extends ConsumerWidget with SettingsEvents {
   const SettingsScreen({super.key});
@@ -142,7 +141,7 @@ class _SettingsList extends StatelessWidget {
                             )
                             .setEnabled(value)
                         : null,
-                activeColor: Colors.black,
+                activeThumbColor: Colors.green,
                 inactiveThumbColor: Colors.black,
                 inactiveTrackColor: Colors.grey[300],
               ),
