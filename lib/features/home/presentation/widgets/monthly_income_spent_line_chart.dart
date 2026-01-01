@@ -26,11 +26,8 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
       );
     }
 
-    final daysInMonth = DateTime(
-      selectedMonth.year,
-      selectedMonth.month + 1,
-      0,
-    ).day;
+    final daysInMonth =
+        DateTime(selectedMonth.year, selectedMonth.month + 1, 0).day;
 
     final (incomeByDay, spentByDay) = _aggregateDailyTotals(
       logs: logs,
@@ -55,7 +52,7 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
           _Legend(),
           const SizedBox(height: 16),
           SizedBox(
-            height: 220,
+            height: 100,
             child: LineChart(
               _buildChartData(
                 incomeSpots: incomeSpots,
@@ -130,22 +127,27 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
         touchSpotThreshold: 24,
         handleBuiltInTouches: true,
         getTouchedSpotIndicator: (barData, spotIndexes) {
-          return spotIndexes.map((_) {
-            return TouchedSpotIndicatorData(
-              FlLine(color: Colors.black.withValues(alpha: 0.15), strokeWidth: 2),
-              FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, bar, index) {
-                  return FlDotCirclePainter(
-                    radius: 5,
-                    color: bar.color ?? Colors.black,
+          return spotIndexes
+              .map((_) {
+                return TouchedSpotIndicatorData(
+                  FlLine(
+                    color: Colors.black.withValues(alpha: 0.15),
                     strokeWidth: 2,
-                    strokeColor: Colors.white,
-                  );
-                },
-              ),
-            );
-          }).toList(growable: false);
+                  ),
+                  FlDotData(
+                    show: true,
+                    getDotPainter: (spot, percent, bar, index) {
+                      return FlDotCirclePainter(
+                        radius: 5,
+                        color: bar.color ?? Colors.black,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      );
+                    },
+                  ),
+                );
+              })
+              .toList(growable: false);
         },
         touchTooltipData: LineTouchTooltipData(
           tooltipBorderRadius: const BorderRadius.all(Radius.circular(12)),
@@ -159,27 +161,31 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
             final date = DateTime(selectedMonth.year, selectedMonth.month, day);
             final dateLabel = formatDateLabel(date);
 
-            return touchedSpots.map((spot) {
-              final isIncome = spot.bar.color == incomeColor;
-              final seriesLabel = isIncome ? 'Income' : 'Spent';
-              final valueLabel = formatNetBalance(spot.y);
+            return touchedSpots
+                .map((spot) {
+                  final isIncome = spot.bar.color == incomeColor;
+                  final seriesLabel = isIncome ? 'Income' : 'Spent';
+                  final valueLabel = formatNetBalance(spot.y);
 
-              return LineTooltipItem(
-                '$dateLabel\n$seriesLabel: $valueLabel',
-                const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  height: 1.3,
-                  color: Colors.black,
-                ),
-              );
-            }).toList(growable: false);
+                  return LineTooltipItem(
+                    '$dateLabel\n$seriesLabel: $valueLabel',
+                    const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                      color: Colors.black,
+                    ),
+                  );
+                })
+                .toList(growable: false);
           },
         ),
       ),
       titlesData: FlTitlesData(
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
@@ -363,5 +369,3 @@ class _EmptyChart extends StatelessWidget {
     );
   }
 }
-
-
