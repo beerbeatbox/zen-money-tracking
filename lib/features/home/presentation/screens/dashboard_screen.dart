@@ -3,6 +3,7 @@ import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/home/presentation/widgets/weekly_streak.dart';
@@ -10,13 +11,184 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardScreen extends ConsumerWidget with DashboardEvents {
+class DashboardScreen extends ConsumerStatefulWidget with DashboardEvents {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final dateLabel = dashboardDateLabel(DateTime.now());
-    final monthYearLabel = formatMonthYearLabel(DateTime.now());
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen>
+    with DashboardEvents, SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  double _dragOffset = 0.0;
+  int _lastSwipeDirection = 0; // -1 = next, 1 = previous
+  Animation<double>? _currentAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+  }
+
+  @override
+  void dispose() {
+    if (_currentAnimation != null) {
+      _currentAnimation!.removeListener(_animationListener);
+      _currentAnimation = null;
+    }
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    // Cancel any ongoing animation and remove listener to prevent interference
+    if (_currentAnimation != null) {
+      _currentAnimation!.removeListener(_animationListener);
+      _currentAnimation = null;
+    }
+    _animationController.stop();
+    _animationController.reset();
+
+    setState(() {
+      final delta = details.primaryDelta ?? 0;
+      _dragOffset += delta;
+      // Clamp to screen width
+      final screenWidth = MediaQuery.of(context).size.width;
+      _dragOffset = _dragOffset.clamp(-screenWidth, screenWidth);
+    });
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final threshold = screenWidth * 0.25;
+    final velocity = details.primaryVelocity ?? 0;
+
+    if (_dragOffset.abs() > threshold || velocity.abs() > 500) {
+      // Capture direction before animation
+      final isSwipeLeft = _dragOffset < 0 || velocity < 0;
+
+      // Animate current content fully off-screen first, then change month
+      final targetOffset =
+          isSwipeLeft
+              ? -screenWidth // Swipe left = animate to left (off-screen)
+              : screenWidth; // Swipe right = animate to right (off-screen)
+
+      _animateToOffset(targetOffset, () {
+        // After animation completes, change month
+        if (mounted) {
+          if (isSwipeLeft) {
+            setState(() {
+              _lastSwipeDirection = -1; // Next month (slide from right)
+            });
+            ref.read(dashboardSelectedMonthProvider.notifier).goToNextMonth();
+          } else {
+            setState(() {
+              _lastSwipeDirection = 1; // Previous month (slide from left)
+            });
+            ref
+                .read(dashboardSelectedMonthProvider.notifier)
+                .goToPreviousMonth();
+          }
+          // Reset drag offset - new content will animate in via AnimatedSwitcher
+          setState(() {
+            _dragOffset = 0.0;
+          });
+        }
+      });
+    } else {
+      // Animate back to center
+      _animateBackToCenter();
+    }
+  }
+
+  void _onHorizontalDragCancel() {
+    _animateBackToCenter();
+  }
+
+  void _animateBackToCenter() {
+    _animateToOffset(0.0, () {
+      if (mounted) {
+        _animationController.reset();
+      }
+    });
+  }
+
+  void _animationListener() {
+    if (mounted && _currentAnimation != null) {
+      setState(() {
+        _dragOffset = _currentAnimation!.value;
+      });
+    }
+  }
+
+  void _animateToOffset(double targetOffset, VoidCallback? onComplete) {
+    final startOffset = _dragOffset;
+
+    // Remove previous animation listener if exists
+    if (_currentAnimation != null) {
+      _currentAnimation!.removeListener(_animationListener);
+    }
+
+    _currentAnimation = Tween<double>(
+      begin: startOffset,
+      end: targetOffset,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+
+    _currentAnimation!.addListener(_animationListener);
+
+    _animationController.forward(from: 0.0).then((_) {
+      if (mounted) {
+        if (_currentAnimation != null) {
+          _currentAnimation!.removeListener(_animationListener);
+          _currentAnimation = null;
+        }
+        _animationController.reset();
+        onComplete?.call();
+      }
+    });
+  }
+
+  Widget _buildMonthContent({
+    required double netBalance,
+    required double income,
+    required double spent,
+    required List<ExpenseLog> scopedLogs,
+    required String itemsLabel,
+    required String monthYearLabel,
+    required DateTime selectedMonth,
+  }) {
+    return Column(
+      key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _NetBalanceSection(netBalance: netBalance),
+        const SizedBox(height: 16),
+        _IncomeSpentRow(income: income, spent: spent),
+        const SizedBox(height: 16),
+        WeeklyStreak(logs: scopedLogs, dailyBudgetLimit: 500),
+        const SizedBox(height: 32),
+        _RecentLogsSection(
+          logs: scopedLogs,
+          itemsLabel: itemsLabel,
+          monthYearLabel: monthYearLabel,
+          onRetry: () => refreshExpenseLogs(ref),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
+    final monthYearLabel = formatMonthYearLabel(selectedMonth);
+    final dateLabel = 'Swipe left or right to change month';
     final logsAsync = watchExpenseLogs(ref);
 
     return Scaffold(
@@ -24,46 +196,126 @@ class DashboardScreen extends ConsumerWidget with DashboardEvents {
       body: SafeArea(
         child: logsAsync.when(
           data: (logs) {
-            final netBalance = calculateNetBalance(logs);
-            final income = calculateIncome(logs);
-            final spent = calculateSpent(logs);
-            final itemsLabel = logsCountLabel(logs.length);
+            final scopedLogs = _filterLogsByMonth(logs, selectedMonth);
+            final netBalance = calculateNetBalance(scopedLogs);
+            final income = calculateIncome(scopedLogs);
+            final spent = calculateSpent(scopedLogs);
+            final itemsLabel = logsCountLabel(scopedLogs.length);
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _TopBar(monthYearLabel: monthYearLabel, dateLabel: dateLabel),
-                  const SizedBox(height: 16),
-                  const Divider(thickness: 2, color: Colors.black),
-                  const SizedBox(height: 24),
-                  _NetBalanceSection(netBalance: netBalance),
-                  const SizedBox(height: 16),
-                  _IncomeSpentRow(income: income, spent: spent),
-                  const SizedBox(height: 16),
-                  WeeklyStreak(logs: logs, dailyBudgetLimit: 500),
-                  const SizedBox(height: 32),
-                  _RecentLogsSection(
-                    logs: logs,
-                    itemsLabel: itemsLabel,
-                    onRetry: () => refreshExpenseLogs(ref),
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                  onHorizontalDragEnd: _onHorizontalDragEnd,
+                  onHorizontalDragCancel: _onHorizontalDragCancel,
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _TopBar(
+                            monthYearLabel: monthYearLabel,
+                            dateLabel: dateLabel,
+                            onPreviousMonth:
+                                () =>
+                                    ref
+                                        .read(
+                                          dashboardSelectedMonthProvider
+                                              .notifier,
+                                        )
+                                        .goToPreviousMonth(),
+                            onNextMonth:
+                                () =>
+                                    ref
+                                        .read(
+                                          dashboardSelectedMonthProvider
+                                              .notifier,
+                                        )
+                                        .goToNextMonth(),
+                          ),
+                          const SizedBox(height: 16),
+                          const Divider(thickness: 2, color: Colors.black),
+                          const SizedBox(height: 24),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: (child, animation) {
+                              // Use PageRoute-style transition
+                              final slideOffset =
+                                  _lastSwipeDirection == 0
+                                      ? const Offset(0.2, 0)
+                                      : Offset(_lastSwipeDirection * 0.2, 0);
+
+                              final tween = Tween<Offset>(
+                                begin: slideOffset,
+                                end: Offset.zero,
+                              ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+                              final offsetAnimation = animation.drive(tween);
+
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Transform.translate(
+                              offset: Offset(_dragOffset, 0),
+                              child: _buildMonthContent(
+                                netBalance: netBalance,
+                                income: income,
+                                spent: spent,
+                                scopedLogs: scopedLogs,
+                                itemsLabel: itemsLabel,
+                                monthYearLabel: monthYearLabel,
+                                selectedMonth: selectedMonth,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                ],
-              ),
+                );
+              },
             );
           },
           loading:
               () => _DashboardStateWrapper(
                 monthYearLabel: monthYearLabel,
                 dateLabel: dateLabel,
+                onPreviousMonth:
+                    () =>
+                        ref
+                            .read(dashboardSelectedMonthProvider.notifier)
+                            .goToPreviousMonth(),
+                onNextMonth:
+                    () =>
+                        ref
+                            .read(dashboardSelectedMonthProvider.notifier)
+                            .goToNextMonth(),
                 child: const _LogsLoading(),
               ),
           error:
               (_, __) => _DashboardStateWrapper(
                 monthYearLabel: monthYearLabel,
                 dateLabel: dateLabel,
+                onPreviousMonth:
+                    () =>
+                        ref
+                            .read(dashboardSelectedMonthProvider.notifier)
+                            .goToPreviousMonth(),
+                onNextMonth:
+                    () =>
+                        ref
+                            .read(dashboardSelectedMonthProvider.notifier)
+                            .goToNextMonth(),
                 child: _LogsError(onRetry: () => refreshExpenseLogs(ref)),
               ),
         ),
@@ -72,15 +324,29 @@ class DashboardScreen extends ConsumerWidget with DashboardEvents {
   }
 }
 
+List<ExpenseLog> _filterLogsByMonth(List<ExpenseLog> logs, DateTime month) {
+  return logs
+      .where(
+        (log) =>
+            log.createdAt.year == month.year &&
+            log.createdAt.month == month.month,
+      )
+      .toList();
+}
+
 class _DashboardStateWrapper extends StatelessWidget {
   const _DashboardStateWrapper({
     required this.monthYearLabel,
     required this.dateLabel,
+    required this.onPreviousMonth,
+    required this.onNextMonth,
     required this.child,
   });
 
   final String monthYearLabel;
   final String dateLabel;
+  final VoidCallback onPreviousMonth;
+  final VoidCallback onNextMonth;
   final Widget child;
 
   @override
@@ -90,7 +356,12 @@ class _DashboardStateWrapper extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _TopBar(monthYearLabel: monthYearLabel, dateLabel: dateLabel),
+          _TopBar(
+            monthYearLabel: monthYearLabel,
+            dateLabel: dateLabel,
+            onPreviousMonth: onPreviousMonth,
+            onNextMonth: onNextMonth,
+          ),
           const SizedBox(height: 16),
           const Divider(thickness: 2, color: Colors.black),
           const SizedBox(height: 24),
@@ -102,16 +373,28 @@ class _DashboardStateWrapper extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.monthYearLabel, required this.dateLabel});
+  const _TopBar({
+    required this.monthYearLabel,
+    required this.dateLabel,
+    required this.onPreviousMonth,
+    required this.onNextMonth,
+  });
 
   final String monthYearLabel;
   final String dateLabel;
+  final VoidCallback onPreviousMonth;
+  final VoidCallback onNextMonth;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        IconButton(
+          onPressed: onPreviousMonth,
+          icon: const Icon(Icons.chevron_left, color: Colors.black),
+          tooltip: 'Previous month',
+        ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -124,7 +407,21 @@ class _TopBar extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              dateLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
           ],
+        ),
+        IconButton(
+          onPressed: onNextMonth,
+          icon: const Icon(Icons.chevron_right, color: Colors.black),
+          tooltip: 'Next month',
         ),
       ],
     );
@@ -271,17 +568,19 @@ class _RecentLogsSection extends StatelessWidget {
   const _RecentLogsSection({
     required this.logs,
     required this.itemsLabel,
+    required this.monthYearLabel,
     required this.onRetry,
   });
 
   final List<ExpenseLog> logs;
   final String itemsLabel;
+  final String monthYearLabel;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     if (logs.isEmpty) {
-      return const _EmptyLogs();
+      return _EmptyLogs(monthYearLabel: monthYearLabel);
     }
 
     return Column(
@@ -291,7 +590,7 @@ class _RecentLogsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'History',
+              'Recent Activity',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -504,7 +803,9 @@ class _LogMetaRow extends StatelessWidget {
 }
 
 class _EmptyLogs extends StatelessWidget {
-  const _EmptyLogs();
+  const _EmptyLogs({required this.monthYearLabel});
+
+  final String monthYearLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -512,7 +813,7 @@ class _EmptyLogs extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 32),
         child: Text(
-          'Ready to track your spending? Add your first log.',
+          'Add your first log for $monthYearLabel.',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
