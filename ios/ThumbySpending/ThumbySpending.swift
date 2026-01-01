@@ -8,7 +8,7 @@
 import WidgetKit
 import SwiftUI
 
-private let appGroupIdentifier = "group.com.beerlab.thumby"
+private let appGroupIdentifier = "group.com.dopaminelab.thumby"
 private let spendingAmountKey = "today_spending_amount"
 private let spendingUpdatedAtKey = "today_spending_updated_at"
 private let widgetKind = "ThumbySpending"

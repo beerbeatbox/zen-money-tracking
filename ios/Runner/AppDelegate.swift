@@ -12,7 +12,7 @@ import WidgetKit
 
     if let controller = window?.rootViewController as? FlutterViewController {
       let widgetChannel = FlutterMethodChannel(
-        name: "com.beerlab.thumby/widget",
+        name: "com.dopaminelab.thumby/widget",
         binaryMessenger: controller.binaryMessenger
       )
 
@@ -44,7 +44,7 @@ import WidgetKit
   }
 
   private func saveTodaySpending(amount: Double) {
-    let appGroupId = "group.com.beerlab.thumby"
+    let appGroupId = "group.com.dopaminelab.thumby"
     let amountKey = "today_spending_amount"
     let updatedAtKey = "today_spending_updated_at"
 

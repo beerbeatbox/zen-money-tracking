@@ -82,7 +82,7 @@ Future<void> updateExpenseLogAction(Ref ref, ExpenseLog log) async {
   await controller.updateExpenseLog(log);
 }
 
-const _widgetChannel = MethodChannel('com.beerlab.thumby/widget');
+const _widgetChannel = MethodChannel('com.dopaminelab.thumby/widget');
 
 Future<void> _syncTodaySpendingWithWidget(List<ExpenseLog> logs) async {
   if (!_isRunningOnIOS()) return;
