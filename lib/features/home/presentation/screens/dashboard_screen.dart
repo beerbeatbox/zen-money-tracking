@@ -3,9 +3,12 @@ import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
+import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -155,6 +158,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
   Widget _buildMonthContent({
     required double netBalance,
+    required double projectedBalance,
+    required bool showProjected,
     required double income,
     required double spent,
     required List<ExpenseLog> scopedLogs,
@@ -166,7 +171,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _NetBalanceSection(netBalance: netBalance),
+        _NetBalanceSection(
+          netBalance: netBalance,
+          projectedBalance: projectedBalance,
+          showProjected: showProjected,
+        ),
         const SizedBox(height: 16),
         _IncomeSpentRow(income: income, spent: spent),
         const SizedBox(height: 16),
@@ -189,6 +198,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
     final dateLabel = 'Swipe left or right to change month';
     final logsAsync = watchExpenseLogs(ref);
+    final scheduledAsync = ref.watch(scheduledTransactionsProvider);
+    final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
+    final carryEnabled = carryAsync.value ?? false;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -196,10 +208,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         child: logsAsync.when(
           data: (logs) {
             final scopedLogs = _filterLogsByMonth(logs, selectedMonth);
-            final netBalance = calculateNetBalance(scopedLogs);
+            final previousMonth = DateTime(
+              selectedMonth.year,
+              selectedMonth.month - 1,
+            );
+            final previousLogs = _filterLogsByMonth(logs, previousMonth);
+            final canCarry =
+                !DateTime(
+                  previousMonth.year,
+                  previousMonth.month + 1,
+                  0,
+                ).isAfter(DateUtils.dateOnly(DateTime.now()));
+            final carryBalance =
+                (carryEnabled && canCarry)
+                    ? calculateNetBalance(previousLogs)
+                    : 0.0;
+            final netBalance = calculateNetBalance(scopedLogs) + carryBalance;
             final income = calculateIncome(scopedLogs);
             final spent = calculateSpent(scopedLogs);
             final itemsLabel = logsCountLabel(scopedLogs.length);
+            final scheduledTransactions =
+                scheduledAsync.value ?? const <ScheduledTransaction>[];
+            final projectedBalance = calculateProjectedBalance(
+              balanceWithCarry: netBalance,
+              selectedMonth: selectedMonth,
+              scheduledTransactions: scheduledTransactions,
+            );
+            final showProjected = scheduledTransactions.any(
+              (t) =>
+                  !t.scheduledDate.isBefore(
+                    DateTime(selectedMonth.year, selectedMonth.month),
+                  ),
+            );
 
             return LayoutBuilder(
               builder: (context, constraints) {
@@ -268,6 +308,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                               offset: Offset(_dragOffset, 0),
                               child: _buildMonthContent(
                                 netBalance: netBalance,
+                                projectedBalance: projectedBalance,
+                                showProjected: showProjected,
                                 income: income,
                                 spent: spent,
                                 scopedLogs: scopedLogs,
@@ -428,9 +470,15 @@ class _TopBar extends StatelessWidget {
 }
 
 class _NetBalanceSection extends StatelessWidget {
-  const _NetBalanceSection({required this.netBalance});
+  const _NetBalanceSection({
+    required this.netBalance,
+    required this.projectedBalance,
+    required this.showProjected,
+  });
 
   final double netBalance;
+  final double projectedBalance;
+  final bool showProjected;
 
   @override
   Widget build(BuildContext context) {
@@ -456,6 +504,32 @@ class _NetBalanceSection extends StatelessWidget {
             color: Colors.black,
           ),
         ),
+        if (showProjected) ...[
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Projected balance',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                  color: Colors.grey[700],
+                ),
+              ),
+              Text(
+                formatNetBalance(projectedBalance),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

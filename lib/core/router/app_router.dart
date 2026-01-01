@@ -3,7 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/home/domain/entities/expense_log.dart';
+import '../../features/home/domain/entities/scheduled_transaction.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
+import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
+import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/budget_screen.dart';
 import '../../features/home/presentation/screens/report_screen.dart';
@@ -21,6 +24,8 @@ enum AppRouter {
   report,
   settings,
   profile,
+  scheduledTransactions,
+  addScheduledTransaction,
   expenseLogDetail;
 
   String get path {
@@ -37,6 +42,10 @@ enum AppRouter {
         return '/settings';
       case AppRouter.profile:
         return '/profile';
+      case AppRouter.scheduledTransactions:
+        return '/scheduled-transactions';
+      case AppRouter.addScheduledTransaction:
+        return '/scheduled-transactions/add';
       case AppRouter.expenseLogDetail:
         return '/logs/:id';
     }
@@ -107,6 +116,22 @@ GoRouter appRouter(Ref ref) {
           final log = extra is ExpenseLog ? extra : null;
           final logId = state.pathParameters['id'] ?? log?.id ?? '';
           return ExpenseLogDetailScreen(logId: logId, log: log);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.scheduledTransactions.path,
+        name: AppRouter.scheduledTransactions.name,
+        builder: (context, state) => const ScheduledTransactionsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.addScheduledTransaction.path,
+        name: AppRouter.addScheduledTransaction.name,
+        builder: (context, state) {
+          final extra = state.extra;
+          final initial = extra is ScheduledTransaction ? extra : null;
+          return AddScheduledTransactionScreen(initial: initial);
         },
       ),
       ...profileRouter,

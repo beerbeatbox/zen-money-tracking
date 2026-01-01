@@ -6,6 +6,7 @@ import 'package:heroicons/heroicons.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:anti/features/settings/presentation/screens/settings_events.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 
@@ -83,12 +84,82 @@ class _SettingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
+    final carryEnabled = carryAsync.value ?? false;
+    final canToggle = !carryAsync.isLoading;
+
     return Column(
       children: [
+        OutlinedSurface(
+          padding: const EdgeInsets.all(16),
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: HeroIcon(
+                  HeroIcons.arrowPath,
+                  style: HeroIconStyle.outline,
+                  color: Colors.black,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'CARRY BALANCE FORWARD',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Include last month’s balance in your current month.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Switch(
+                value: carryEnabled,
+                onChanged:
+                    canToggle
+                        ? (value) => ref
+                            .read(
+                              carryBalanceSettingControllerProvider.notifier,
+                            )
+                            .setEnabled(value)
+                        : null,
+                activeColor: Colors.black,
+                inactiveThumbColor: Colors.black,
+                inactiveTrackColor: Colors.grey[300],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         _SettingsCard(
           icon: HeroIcons.sparkles,
           title: 'Money Tracker with AI',
           onTap: () => context.go(AppRouter.dashboard.path),
+        ),
+        const SizedBox(height: 12),
+        _SettingsCard(
+          icon: HeroIcons.calendarDays,
+          title: 'Scheduled Payments',
+          onTap: () => context.pushNamed(AppRouter.scheduledTransactions.name),
         ),
         const SizedBox(height: 12),
         _SettingsCard(
