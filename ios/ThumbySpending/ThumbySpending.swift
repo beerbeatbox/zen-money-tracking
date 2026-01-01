@@ -105,7 +105,7 @@ struct ThumbySpendingEntryView: View {
         VStack(alignment: .leading, spacing: isSmall ? 10 : 12) {
             Text(dateLabel)
                 .font(isSmall ? .subheadline.weight(.semibold) : .title3.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.black.opacity(0.6))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -113,14 +113,14 @@ struct ThumbySpendingEntryView: View {
             HStack(alignment: .lastTextBaseline, spacing: isSmall ? 6 : 8) {
                 Text("Spending")
                     .font(isSmall ? .caption.weight(.semibold) : .body.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.black.opacity(0.6))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(formattedAmount)
                     .font(.system(size: isSmall ? 14 : 18, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.black)
                     .lineLimit(1)
                     .minimumScaleFactor(0.4)
                     .allowsTightening(true)
@@ -132,7 +132,7 @@ struct ThumbySpendingEntryView: View {
             if !isSmall, let updatedLabel {
                 Text(updatedLabel)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.black)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
@@ -150,10 +150,10 @@ struct ThumbySpending: Widget {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             if #available(iOS 17.0, *) {
                 ThumbySpendingEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
+                    .containerBackground(Color.white, for: .widget)
             } else {
                 ThumbySpendingEntryView(entry: entry)
-                    .background()
+                    .background(Color.white)
             }
         }
         .configurationDisplayName("Your spending today")
