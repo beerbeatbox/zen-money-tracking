@@ -19,6 +19,17 @@ const _kExpenseCategories = <String>[
   'Others',
 ];
 
+const _kIncomeCategories = <String>[
+  'Salary',
+  'Bonus',
+  'Business',
+  'Gift',
+  'Interest',
+  'Refund',
+  'Investment Return',
+  'Others',
+];
+
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
   required Future<bool> Function(
@@ -84,9 +95,11 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   Timer? _backspaceHoldTimer;
   late bool _isExpense;
   late DateTime _logDateTime;
-  String _selectedCategory = _kExpenseCategories.first;
+  late String _selectedCategory;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
+  List<String> get _availableCategories =>
+      _isExpense ? _kExpenseCategories : _kIncomeCategories;
   String get _logTimeLabel {
     final dateLabel = formatWithPattern(
       _logDateTime,
@@ -105,18 +118,22 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     _isExpense = widget.initialIsExpense;
     _value = widget.initialValue ?? '';
     _logDateTime = widget.initialLogDateTime ?? DateTime.now();
-    _selectedCategory = _resolveInitialCategory(widget.initialCategory);
+    _selectedCategory = _resolveInitialCategory(
+      widget.initialCategory,
+      categories: _availableCategories,
+    );
   }
 
-  String _resolveInitialCategory(String? initialCategory) {
+  String _resolveInitialCategory(
+    String? initialCategory, {
+    required List<String> categories,
+  }) {
     if (initialCategory == null || initialCategory.isEmpty) {
-      return _kExpenseCategories.first;
+      return categories.first;
     }
-    final matched =
-        _kExpenseCategories.contains(initialCategory)
-            ? initialCategory
-            : _kExpenseCategories.first;
-    return matched;
+    return categories.contains(initialCategory)
+        ? initialCategory
+        : categories.first;
   }
 
   void _onKeyTap(String key) {
@@ -210,7 +227,13 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
 
   void _updateExpenseType(bool isExpense) {
     if (_isExpense == isExpense) return;
-    setState(() => _isExpense = isExpense);
+    setState(() {
+      _isExpense = isExpense;
+      final categories = _availableCategories;
+      if (!categories.contains(_selectedCategory)) {
+        _selectedCategory = categories.first;
+      }
+    });
   }
 
   Future<void> _onLogTimeTap() async {
@@ -261,16 +284,17 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                _CategorySection(
+                  selected: _selectedCategory,
+                  onChanged: _setCategory,
+                  categories: _availableCategories,
+                ),
+                const SizedBox(height: 16),
                 Center(
                   child: _LogTimeSection(
                     label: _logTimeLabel,
                     onTap: _onLogTimeTap,
                   ),
-                ),
-                const SizedBox(height: 16),
-                _CategorySection(
-                  selected: _selectedCategory,
-                  onChanged: _setCategory,
                 ),
                 const SizedBox(height: 28),
                 Center(child: _AmountHeader(value: _displayValue)),
@@ -501,10 +525,15 @@ class _TypeChip extends StatelessWidget {
 }
 
 class _CategorySection extends StatelessWidget {
-  const _CategorySection({required this.selected, required this.onChanged});
+  const _CategorySection({
+    required this.selected,
+    required this.onChanged,
+    required this.categories,
+  });
 
   final String selected;
   final ValueChanged<String> onChanged;
+  final List<String> categories;
 
   @override
   Widget build(BuildContext context) {
@@ -524,7 +553,7 @@ class _CategorySection extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              for (final category in _kExpenseCategories) ...[
+              for (final category in categories) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _CategoryChip(
@@ -533,8 +562,7 @@ class _CategorySection extends StatelessWidget {
                     onTap: () => onChanged(category),
                   ),
                 ),
-                if (category != _kExpenseCategories.last)
-                  const SizedBox(width: 10),
+                if (category != categories.last) const SizedBox(width: 10),
               ],
             ],
           ),
