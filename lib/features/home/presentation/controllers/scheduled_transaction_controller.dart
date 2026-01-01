@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
 import 'package:anti/features/home/domain/usecases/scheduled_transaction_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'scheduled_transaction_controller.g.dart';

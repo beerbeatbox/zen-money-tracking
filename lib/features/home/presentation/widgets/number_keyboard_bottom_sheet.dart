@@ -3,10 +3,14 @@ import 'dart:async';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const _kExpenseCategories = <String>[
   'Food',
@@ -60,7 +64,7 @@ Future<void> showNumberKeyboardBottomSheet(
   );
 }
 
-class NumberKeyboardBottomSheet extends StatefulWidget {
+class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
   const NumberKeyboardBottomSheet({
     super.key,
     required this.onSubmit,
@@ -84,11 +88,12 @@ class NumberKeyboardBottomSheet extends StatefulWidget {
   final String? initialCategory;
 
   @override
-  State<NumberKeyboardBottomSheet> createState() =>
+  ConsumerState<NumberKeyboardBottomSheet> createState() =>
       _NumberKeyboardBottomSheetState();
 }
 
-class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
+class _NumberKeyboardBottomSheetState
+    extends ConsumerState<NumberKeyboardBottomSheet> {
   String _value = '';
   bool _ctaPressed = false;
   bool _closePressed = false;
@@ -98,8 +103,25 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   late String _selectedCategory;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
-  List<String> get _availableCategories =>
-      _isExpense ? _kExpenseCategories : _kIncomeCategories;
+  List<String> get _availableCategories {
+    final categoriesAsync = ref.watch(categoriesControllerProvider);
+    final categories = categoriesAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => null,
+    );
+    if (categories == null) {
+      // While loading (or before codegen runs), fall back to defaults so the UI
+      // stays usable. Once loaded, we reflect the persisted list exactly.
+      return _isExpense ? _kExpenseCategories : _kIncomeCategories;
+    }
+
+    final type = _isExpense ? CategoryType.expense : CategoryType.income;
+    return categories
+        .where((c) => c.type == type)
+        .map((c) => c.label)
+        .toList(growable: false);
+  }
+
   String get _logTimeLabel {
     final dateLabel = formatWithPattern(
       _logDateTime,
@@ -118,22 +140,12 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     _isExpense = widget.initialIsExpense;
     _value = widget.initialValue ?? '';
     _logDateTime = widget.initialLogDateTime ?? DateTime.now();
-    _selectedCategory = _resolveInitialCategory(
-      widget.initialCategory,
-      categories: _availableCategories,
-    );
-  }
-
-  String _resolveInitialCategory(
-    String? initialCategory, {
-    required List<String> categories,
-  }) {
-    if (initialCategory == null || initialCategory.isEmpty) {
-      return categories.first;
-    }
-    return categories.contains(initialCategory)
-        ? initialCategory
-        : categories.first;
+    final initial =
+        (widget.initialCategory ?? '').trim().isEmpty
+            ? null
+            : widget.initialCategory!.trim();
+    final fallback = _isExpense ? _kExpenseCategories : _kIncomeCategories;
+    _selectedCategory = initial ?? fallback.first;
   }
 
   void _onKeyTap(String key) {
@@ -183,6 +195,16 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
   }
 
   Future<void> _submit() async {
+    if (_selectedCategory.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Add a category in Settings to continue.'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
     final shouldClose = await widget.onSubmit(
       context,
       _displayValue,
@@ -230,7 +252,9 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
     setState(() {
       _isExpense = isExpense;
       final categories = _availableCategories;
-      if (!categories.contains(_selectedCategory)) {
+      if (categories.isEmpty) {
+        _selectedCategory = '';
+      } else if (!categories.contains(_selectedCategory)) {
         _selectedCategory = categories.first;
       }
     });
@@ -254,6 +278,34 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<List<Category>>>(categoriesControllerProvider, (
+      _,
+      next,
+    ) {
+      final categories = next.maybeWhen(
+        data: (value) => value,
+        orElse: () => null,
+      );
+      if (categories == null) return;
+
+      final type = _isExpense ? CategoryType.expense : CategoryType.income;
+      final available = categories
+          .where((c) => c.type == type)
+          .map((c) => c.label)
+          .toList(growable: false);
+
+      if (available.isEmpty) {
+        if (_selectedCategory.isNotEmpty) {
+          setState(() => _selectedCategory = '');
+        }
+        return;
+      }
+
+      if (!available.contains(_selectedCategory)) {
+        setState(() => _selectedCategory = available.first);
+      }
+    });
+
     final mediaQuery = MediaQuery.of(context);
     final bottomPadding = mediaQuery.viewInsets.bottom;
     final sheetHeight =
@@ -278,7 +330,7 @@ class _NumberKeyboardBottomSheetState extends State<NumberKeyboardBottomSheet> {
               children: [
                 const Spacer(),
                 Center(
-                  child: _ExpenseTypeToggle(
+                  child: ExpenseTypeToggle(
                     isExpense: _isExpense,
                     onChanged: _updateExpenseType,
                   ),
@@ -440,90 +492,6 @@ class _AmountHeader extends StatelessWidget {
   }
 }
 
-class _ExpenseTypeToggle extends StatelessWidget {
-  const _ExpenseTypeToggle({required this.isExpense, required this.onChanged});
-
-  final bool isExpense;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _TypeChip(
-            label: 'Expense',
-            selected: isExpense,
-            onTap: () => onChanged(true),
-          ),
-          Container(
-            width: 1,
-            height: 20,
-            color: Colors.black,
-          ).paddingSymmetric(horizontal: 10),
-          _TypeChip(
-            label: 'Income',
-            selected: !isExpense,
-            onTap: () => onChanged(false),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TypeChip extends StatelessWidget {
-  const _TypeChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
-      isPressed: false,
-      color: Colors.white,
-      pressedColor: Colors.white,
-      border: const Border.fromBorderSide(
-        BorderSide(color: Colors.transparent, width: 0),
-      ),
-      unpressedShadowOffset: Offset.zero,
-      pressedShadowOffset: Offset.zero,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
-              letterSpacing: 0.6,
-              color: selected ? Colors.black : Colors.grey[600],
-              decoration: TextDecoration.none,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Container(
-            height: 2,
-            width: 34,
-            color: selected ? Colors.black : Colors.transparent,
-          ),
-        ],
-      ),
-    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
-  }
-}
-
 class _CategorySection extends StatelessWidget {
   const _CategorySection({
     required this.selected,
@@ -537,6 +505,35 @@ class _CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (categories.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Category',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          OutlinedSurface(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            borderRadius: BorderRadius.circular(12),
+            child: Text(
+              'Add a category in Settings to continue.',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

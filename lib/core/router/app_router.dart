@@ -14,6 +14,7 @@ import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/categories/presentation/screens/category_management_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -23,6 +24,7 @@ enum AppRouter {
   budget,
   report,
   settings,
+  categoryManagement,
   profile,
   scheduledTransactions,
   addScheduledTransaction,
@@ -40,6 +42,8 @@ enum AppRouter {
         return '/report';
       case AppRouter.settings:
         return '/settings';
+      case AppRouter.categoryManagement:
+        return '/settings/categories';
       case AppRouter.profile:
         return '/profile';
       case AppRouter.scheduledTransactions:
@@ -106,6 +110,12 @@ GoRouter appRouter(Ref ref) {
                 ),
           ),
         ],
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.categoryManagement.path,
+        name: AppRouter.categoryManagement.name,
+        builder: (context, state) => const CategoryManagementScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,

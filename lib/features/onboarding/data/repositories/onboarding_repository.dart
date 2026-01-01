@@ -18,6 +18,7 @@ OnboardingRepository onboardingRepository(Ref ref) {
 }
 
 class OnboardingRepositoryImpl implements OnboardingRepository {
+  // ignore: unused_field
   final Dio _dio;
 
   OnboardingRepositoryImpl(this._dio);

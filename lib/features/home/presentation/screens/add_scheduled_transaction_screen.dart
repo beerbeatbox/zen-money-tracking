@@ -113,6 +113,7 @@ class AddScheduledTransactionScreen extends ConsumerWidget {
           didSave = true;
           return true;
         } catch (_) {
+          if (!sheetContext.mounted) return false;
           _showSnack(sheetContext, "Let's try that again.");
           return false;
         }
