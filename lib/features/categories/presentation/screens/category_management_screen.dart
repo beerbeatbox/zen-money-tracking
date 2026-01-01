@@ -20,6 +20,8 @@ class CategoryManagementScreen extends ConsumerStatefulWidget {
 class _CategoryManagementScreenState
     extends ConsumerState<CategoryManagementScreen> {
   bool _isExpense = true;
+  List<Category> _expenseWorking = const [];
+  List<Category> _incomeWorking = const [];
 
   CategoryType get _selectedType =>
       _isExpense ? CategoryType.expense : CategoryType.income;
@@ -35,15 +37,14 @@ class _CategoryManagementScreenState
           loading: () => const _LoadingState().paddingAll(24),
           error:
               (_, __) => _ErrorState(
-                onRetry:
-                    () => ref.invalidate(categoriesControllerProvider),
+                onRetry: () => ref.invalidate(categoriesControllerProvider),
               ).paddingAll(24),
           data: (categories) {
+            _syncWorkingLists(categories);
             final filtered =
-                categories
-                    .where((c) => c.type == _selectedType)
-                    .toList(growable: false)
-                  ..sort((a, b) => a.label.compareTo(b.label));
+                _selectedType == CategoryType.expense
+                    ? _expenseWorking
+                    : _incomeWorking;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,6 +92,12 @@ class _CategoryManagementScreenState
                           )
                           : _CategoryList(
                             items: filtered,
+                            onReorder:
+                                (oldIndex, newIndex) => _onReorder(
+                                  context,
+                                  oldIndex: oldIndex,
+                                  newIndex: newIndex,
+                                ),
                             onRename:
                                 (item) => _onRenameCategoryTap(
                                   context,
@@ -108,6 +115,51 @@ class _CategoryManagementScreenState
     );
   }
 
+  void _syncWorkingLists(List<Category> categories) {
+    final expense =
+        categories.where((c) => c.type == CategoryType.expense).toList()
+          ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    final income =
+        categories.where((c) => c.type == CategoryType.income).toList()
+          ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+    // Only overwrite working lists when they materially differ (e.g., add/delete
+    // or provider refresh), so reorder feels instant.
+    if (!_sameIds(_expenseWorking, expense)) _expenseWorking = expense;
+    if (!_sameIds(_incomeWorking, income)) _incomeWorking = income;
+  }
+
+  bool _sameIds(List<Category> a, List<Category> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id) return false;
+    }
+    return true;
+  }
+
+  Future<void> _onReorder(
+    BuildContext context, {
+    required int oldIndex,
+    required int newIndex,
+  }) async {
+    // ReorderableListView gives newIndex after removal; adjust accordingly.
+    final list =
+        _selectedType == CategoryType.expense
+            ? _expenseWorking
+            : _incomeWorking;
+    final adjustedNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+
+    setState(() {
+      final item = list.removeAt(oldIndex);
+      list.insert(adjustedNewIndex, item);
+    });
+
+    final orderedIds = list.map((c) => c.id).toList(growable: false);
+    await ref
+        .read(categoriesControllerProvider.notifier)
+        .reorderCategoryType(type: _selectedType, orderedIds: orderedIds);
+  }
+
   Future<void> _onAddCategoryTap(
     BuildContext context,
     List<Category> allCategories,
@@ -121,12 +173,11 @@ class _CategoryManagementScreenState
       return;
     }
 
-    final exists =
-        allCategories.any(
-          (c) =>
-              c.type == _selectedType &&
-              c.label.trim().toLowerCase() == trimmed.toLowerCase(),
-        );
+    final exists = allCategories.any(
+      (c) =>
+          c.type == _selectedType &&
+          c.label.trim().toLowerCase() == trimmed.toLowerCase(),
+    );
     if (exists) {
       _showSnack(context, 'That category already exists.');
       return;
@@ -177,13 +228,12 @@ class _CategoryManagementScreenState
       return;
     }
 
-    final exists =
-        allCategories.any(
-          (c) =>
-              c.id != item.id &&
-              c.type == item.type &&
-              c.label.trim().toLowerCase() == trimmed.toLowerCase(),
-        );
+    final exists = allCategories.any(
+      (c) =>
+          c.id != item.id &&
+          c.type == item.type &&
+          c.label.trim().toLowerCase() == trimmed.toLowerCase(),
+    );
     if (exists) {
       _showSnack(context, 'That category already exists.');
       return;
@@ -253,47 +303,63 @@ class _TopBar extends StatelessWidget {
 class _CategoryList extends StatelessWidget {
   const _CategoryList({
     required this.items,
+    required this.onReorder,
     required this.onRename,
     required this.onDelete,
   });
 
   final List<Category> items;
+  final void Function(int oldIndex, int newIndex) onReorder;
   final ValueChanged<Category> onRename;
   final ValueChanged<String> onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
+      onReorder: onReorder,
       itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      proxyDecorator:
+          (child, _, __) => Material(color: Colors.transparent, child: child),
       itemBuilder: (context, index) {
         final item = items[index];
-        return OutlinedSurface(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
+        return Padding(
+          key: ValueKey(item.id),
+          padding: const EdgeInsets.only(bottom: 10),
+          child: OutlinedSurface(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            borderRadius: BorderRadius.circular(12),
+            child: Row(
+              children: [
+                ReorderableDragStartListener(
+                  index: index,
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: Icon(Icons.drag_handle, color: Colors.black),
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: () => onRename(item),
-                icon: const Icon(Icons.edit_outlined, color: Colors.black),
-                tooltip: 'Rename',
-              ),
-              IconButton(
-                onPressed: () => onDelete(item.id),
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                tooltip: 'Delete',
-              ),
-            ],
+                Expanded(
+                  child: Text(
+                    item.label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => onRename(item),
+                  icon: const Icon(Icons.edit_outlined, color: Colors.black),
+                  tooltip: 'Rename',
+                ),
+                IconButton(
+                  onPressed: () => onDelete(item.id),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  tooltip: 'Delete',
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -360,9 +426,7 @@ class _LoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(color: Colors.black),
-    );
+    return const Center(child: CircularProgressIndicator(color: Colors.black));
   }
 }
 
@@ -478,7 +542,8 @@ Future<String?> _showAddCategoryDialog(BuildContext context) {
                     child: OutlinedActionButton(
                       label: 'Add',
                       onPressed:
-                          () => Navigator.of(dialogContext).pop(controller.text),
+                          () =>
+                              Navigator.of(dialogContext).pop(controller.text),
                       textColor: Colors.white,
                       borderColor: Colors.black,
                       backgroundColor: Colors.black,
@@ -575,7 +640,8 @@ Future<String?> _showRenameCategoryDialog(
                     child: OutlinedActionButton(
                       label: 'Save',
                       onPressed:
-                          () => Navigator.of(dialogContext).pop(controller.text),
+                          () =>
+                              Navigator.of(dialogContext).pop(controller.text),
                       textColor: Colors.white,
                       borderColor: Colors.black,
                       backgroundColor: Colors.black,
@@ -590,5 +656,3 @@ Future<String?> _showRenameCategoryDialog(
     },
   ).whenComplete(controller.dispose);
 }
-
-

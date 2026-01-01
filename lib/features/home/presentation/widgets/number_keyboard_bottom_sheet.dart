@@ -116,10 +116,11 @@ class _NumberKeyboardBottomSheetState
     }
 
     final type = _isExpense ? CategoryType.expense : CategoryType.income;
-    return categories
+    final filtered = categories
         .where((c) => c.type == type)
-        .map((c) => c.label)
-        .toList(growable: false);
+        .toList(growable: false)
+      ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    return filtered.map((c) => c.label).toList(growable: false);
   }
 
   String get _logTimeLabel {
@@ -289,10 +290,11 @@ class _NumberKeyboardBottomSheetState
       if (categories == null) return;
 
       final type = _isExpense ? CategoryType.expense : CategoryType.income;
-      final available = categories
-          .where((c) => c.type == type)
-          .map((c) => c.label)
-          .toList(growable: false);
+      final available = (categories
+        .where((c) => c.type == type)
+        .toList(growable: false)..sort(
+        (a, b) => a.sortIndex.compareTo(b.sortIndex),
+      )).map((c) => c.label).toList(growable: false);
 
       if (available.isEmpty) {
         if (_selectedCategory.isNotEmpty) {

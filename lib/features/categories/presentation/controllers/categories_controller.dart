@@ -41,6 +41,16 @@ class CategoriesController extends _$CategoriesController {
     ref.invalidateSelf();
     await future;
   }
+
+  Future<void> reorderCategoryType({
+    required CategoryType type,
+    required List<String> orderedIds,
+  }) async {
+    final service = ref.read(categoryServiceProvider);
+    await service.reorderCategoryType(type: type, orderedIds: orderedIds);
+    ref.invalidateSelf();
+    await future;
+  }
 }
 
 
