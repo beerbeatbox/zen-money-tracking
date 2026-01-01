@@ -5,9 +5,11 @@ import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
+import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
+import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   double _dragOffset = 0.0;
   int _lastSwipeDirection = 0; // -1 = next, 1 = previous
   Animation<double>? _currentAnimation;
+  bool _didHandleQuickAdd = false;
 
   @override
   void initState() {
@@ -35,6 +38,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final state = GoRouterState.of(context);
+    final quickAdd = state.uri.queryParameters['quickAdd'] == '1';
+
+    if (!quickAdd) {
+      // Allow widget taps to trigger Quick Add again after we clear the query.
+      _didHandleQuickAdd = false;
+      return;
+    }
+
+    if (_didHandleQuickAdd) return;
+    _didHandleQuickAdd = true;
+
+    final type = (state.uri.queryParameters['type'] ?? '').trim().toLowerCase();
+    final initialIsExpense = type == 'income' ? false : true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await _openQuickLogKeyboard(initialIsExpense: initialIsExpense);
+      if (!mounted) return;
+      // Clear query params so we don't auto-open again on rebuild.
+      context.go(AppRouter.dashboard.path);
+    });
   }
 
   @override
@@ -155,6 +186,67 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         onComplete?.call();
       }
     });
+  }
+
+  String _formatTimeLabel(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+    );
+  }
+
+  Future<void> _openQuickLogKeyboard({required bool initialIsExpense}) async {
+    await showNumberKeyboardBottomSheet(
+      context,
+      useRootNavigator: true,
+      initialIsExpense: initialIsExpense,
+      onSubmit: (
+        sheetContext,
+        rawValue,
+        isExpense,
+        logDateTime,
+        category,
+      ) async {
+        final parsed = double.tryParse(rawValue);
+        if (parsed == null) {
+          _showSnack(sheetContext, 'Please enter a valid number.');
+          return false;
+        }
+        if (parsed <= 0) {
+          _showSnack(
+            sheetContext,
+            'Add an amount above zero to log your spending.',
+          );
+          return false;
+        }
+
+        final now = DateTime.now();
+        final amount = isExpense ? -parsed.abs() : parsed.abs();
+        final entryDateTime = logDateTime;
+        final log = ExpenseLog(
+          id: now.microsecondsSinceEpoch.toString(),
+          timeLabel: _formatTimeLabel(entryDateTime),
+          category: category,
+          amount: amount,
+          createdAt: entryDateTime,
+        );
+
+        try {
+          await ref.read(addExpenseLogActionProvider(log).future);
+          return true;
+        } catch (_) {
+          if (!sheetContext.mounted) return false;
+          _showSnack(sheetContext, "Let's try that again.");
+          return false;
+        }
+      },
+    );
   }
 
   Widget _buildMonthContent({

@@ -23,6 +23,7 @@ Future<void> showNumberKeyboardBottomSheet(
     String category,
   )
   onSubmit,
+  bool useRootNavigator = false,
   bool initialIsExpense = true,
   String? initialValue,
   DateTime? initialLogDateTime,
@@ -30,6 +31,7 @@ Future<void> showNumberKeyboardBottomSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: useRootNavigator,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder:

@@ -21,6 +21,7 @@ part 'app_router.g.dart';
 enum AppRouter {
   onboarding,
   dashboard,
+  quickAdd,
   budget,
   report,
   settings,
@@ -36,6 +37,8 @@ enum AppRouter {
         return '/onboarding';
       case AppRouter.dashboard:
         return '/dashboard';
+      case AppRouter.quickAdd:
+        return '/quick-add';
       case AppRouter.budget:
         return '/budget';
       case AppRouter.report:
@@ -67,6 +70,16 @@ GoRouter appRouter(Ref ref) {
     initialLocation: AppRouter.dashboard.path,
     routes: [
       ...onboardingRouter,
+      GoRoute(
+        path: AppRouter.quickAdd.path,
+        name: AppRouter.quickAdd.name,
+        redirect: (context, state) {
+          final qp = <String, String>{...state.uri.queryParameters};
+          qp['quickAdd'] = '1';
+          return Uri(path: AppRouter.dashboard.path, queryParameters: qp)
+              .toString();
+        },
+      ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
