@@ -11,8 +11,8 @@ String formatAmountWithComma(num amount, {int decimalDigits = 0}) {
 
 String formatCurrencySigned(double amount) {
   final formatted = formatAmountWithComma(amount.abs(), decimalDigits: 2);
-  final prefix = amount < 0 ? '฿' : '฿';
-  return '$prefix$formatted';
+  final sign = amount < 0 ? '-' : (amount > 0 ? '+' : '');
+  return '$sign฿$formatted';
 }
 
 String formatNetBalance(double amount) {
