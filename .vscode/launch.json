@@ -6,64 +6,56 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/main_dev.dart",
-            "flutterMode": "debug",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "debug"
         },
         {
             "name": "Dev (Release)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main_dev.dart",
-            "flutterMode": "release",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "release"
         },
         {
             "name": "SIT (Debug)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main_sit.dart",
-            "flutterMode": "debug",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "debug"
         },
         {
             "name": "SIT (Release)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main_sit.dart",
-            "flutterMode": "release",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "release"
         },
         {
             "name": "UAT (Debug)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main_uat.dart",
-            "flutterMode": "debug",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "debug"
         },
         {
             "name": "UAT (Release)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main_uat.dart",
-            "flutterMode": "release",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "release"
         },
         {
             "name": "Prod (Debug)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main_prod.dart",
-            "flutterMode": "debug",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "debug"
         },
         {
             "name": "Prod (Release)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main_prod.dart",
-            "flutterMode": "release",
-            "preLaunchTask": "rps gen build"
+            "flutterMode": "release"
         }
     ]
 }
