@@ -339,14 +339,28 @@ class _DatedLogsList extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _dateLabel(group.date),
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.3,
-                  color: Colors.black,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _dateLabel(group.date),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    _calculateDayTotal(group.logs),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
               ...List.generate(group.logs.length, (logIndex) {
@@ -387,6 +401,11 @@ class _DatedLogsList extends StatelessWidget {
     final baseLabel = formatDateWithWeekday(date);
     final isToday = date.isAtSameMomentAs(today);
     return isToday ? 'Today $baseLabel' : baseLabel;
+  }
+
+  String _calculateDayTotal(List<ExpenseLog> logs) {
+    final total = logs.fold<double>(0.0, (sum, log) => sum + log.amount);
+    return formatCurrencySigned(total);
   }
 }
 
