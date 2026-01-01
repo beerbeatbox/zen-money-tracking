@@ -6,7 +6,6 @@ import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
-import 'package:anti/features/home/presentation/widgets/weekly_streak.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -171,7 +170,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         const SizedBox(height: 16),
         _IncomeSpentRow(income: income, spent: spent),
         const SizedBox(height: 16),
-        WeeklyStreak(logs: scopedLogs, dailyBudgetLimit: 500),
+        // WeeklyStreak(logs: scopedLogs, dailyBudgetLimit: 500),
         const SizedBox(height: 32),
         _RecentLogsSection(
           logs: scopedLogs,
