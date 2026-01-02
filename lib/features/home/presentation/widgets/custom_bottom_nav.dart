@@ -107,6 +107,7 @@ class CustomBottomNav extends StatelessWidget {
 
     return SafeArea(
       top: false,
+      bottom: false,
       child: DecoratedBox(
         decoration: BoxDecoration(
           boxShadow: [
