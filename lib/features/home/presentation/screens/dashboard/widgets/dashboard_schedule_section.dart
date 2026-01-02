@@ -240,11 +240,19 @@ class _ScheduleReminderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final canConvert = !item.scheduledDate.isAfter(now) && item.isActive;
+    final isRecurring = item.frequency != PaymentFrequency.oneTime;
 
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
     final amountLabel = formatCurrencySigned(item.amount);
     final statusLabel = _statusLabel(item.scheduledDate, now: now);
+
+    final primaryLabel =
+        !item.isActive
+            ? 'Paused'
+            : (isRecurring
+                ? 'Mark as paid'
+                : (canConvert ? 'Add to logs' : 'Available on schedule'));
 
     return OutlinedSurface(
       padding: const EdgeInsets.all(16),
@@ -291,14 +299,7 @@ class _ScheduleReminderTile extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedActionButton(
-                  label:
-                      canConvert
-                          ? (item.isSubscription
-                              ? 'Mark as paid'
-                              : 'Add to logs')
-                          : (!item.isActive
-                              ? 'Paused'
-                              : 'Available on schedule'),
+                  label: primaryLabel,
                   onPressed: canConvert ? onConvert : null,
                   textColor: Colors.black,
                   borderColor: Colors.black,

@@ -21,8 +21,6 @@ class ScheduledTransaction {
     this.remindDaysBefore = 0,
   });
 
-  bool get isSubscription => frequency != PaymentFrequency.oneTime;
-
   ScheduledTransaction copyWith({
     String? id,
     String? title,
@@ -49,5 +47,3 @@ class ScheduledTransaction {
 }
 
 enum PaymentFrequency { oneTime, monthly, yearly }
-
-

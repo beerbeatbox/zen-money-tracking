@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:flutter/material.dart';
 
 import 'outlined_surface.dart';
 
@@ -27,6 +26,7 @@ class OutlinedActionButton extends StatefulWidget {
 class _OutlinedActionButtonState extends State<OutlinedActionButton> {
   static const _radius = BorderRadius.all(Radius.circular(12));
   static const _releaseDelay = Duration(milliseconds: 90);
+  static const _disabledBackgroundColor = Color(0xFFF4F4F4);
 
   bool _pressed = false;
 
@@ -63,11 +63,20 @@ class _OutlinedActionButtonState extends State<OutlinedActionButton> {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    final enabled = widget.onPressed != null;
+
+    final effectiveBackgroundColor =
+        enabled ? widget.backgroundColor : _disabledBackgroundColor;
+    final effectiveBorderColor =
+        enabled ? widget.borderColor : Colors.black.withValues(alpha: 0.12);
+    final effectiveTextColor =
+        enabled ? widget.textColor : Colors.black.withValues(alpha: 0.45);
+
+    final child = OutlinedSurface(
       borderRadius: _radius,
-      border: Border.all(color: widget.borderColor, width: 2),
-      color: widget.backgroundColor,
-      pressedColor: widget.backgroundColor,
+      border: Border.all(color: effectiveBorderColor, width: 2),
+      color: effectiveBackgroundColor,
+      pressedColor: effectiveBackgroundColor,
       isPressed: _pressed,
       duration: const Duration(milliseconds: 0),
       curve: Curves.easeOut,
@@ -76,14 +85,18 @@ class _OutlinedActionButtonState extends State<OutlinedActionButton> {
         child: Text(
           widget.label,
           style: TextStyle(
-            color: widget.textColor,
+            color: effectiveTextColor,
             fontSize: 14,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.2,
           ),
         ),
       ),
-    ).onTap(
+    );
+
+    if (!enabled) return child;
+
+    return child.onTap(
       behavior: HitTestBehavior.opaque,
       onTap: _handleTap,
       onTapDown: _handleTapDown,

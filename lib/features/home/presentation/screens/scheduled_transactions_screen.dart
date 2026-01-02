@@ -1,13 +1,10 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
-import 'package:anti/core/utils/date_time_formatter.dart';
-import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -348,11 +345,12 @@ class _Content extends StatelessWidget {
 
         return Padding(
           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-          child: _ScheduledTransactionTile(
+          child: ScheduledTransactionTile(
             item: item,
             onConvert: () => onConvert(item),
             onDelete: () => onDelete(item),
             onEdit: () => onEdit(item),
+            showRecurrenceBadges: true,
           ),
         );
       }),
@@ -417,122 +415,6 @@ class _ErrorState extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _ScheduledTransactionTile extends StatelessWidget {
-  const _ScheduledTransactionTile({
-    required this.item,
-    required this.onConvert,
-    required this.onDelete,
-    required this.onEdit,
-  });
-
-  final ScheduledTransaction item;
-  final VoidCallback onConvert;
-  final VoidCallback onDelete;
-  final VoidCallback onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final isDue = !item.scheduledDate.isAfter(now);
-    final canConvert = isDue && item.isActive;
-    final dateLabel = formatDateLabel(item.scheduledDate);
-    final timeLabel = formatTimeHm(item.scheduledDate);
-    final amountLabel = formatCurrencySigned(item.amount);
-    final recurrenceLabel = _recurrenceLabel(item.frequency);
-    final showRecurrence = item.frequency != PaymentFrequency.oneTime;
-
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.category,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                amountLabel,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            '$dateLabel • $timeLabel',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          if (showRecurrence || !item.isActive) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (showRecurrence) _Badge(label: recurrenceLabel),
-                if (!item.isActive)
-                  const _Badge(
-                    label: 'Paused',
-                    backgroundColor: Color(0xFFF4F4F4),
-                  ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedActionButton(
-                  label:
-                      canConvert
-                          ? (item.isSubscription
-                              ? 'Mark as paid'
-                              : 'Add to logs')
-                          : (!item.isActive
-                              ? 'Paused'
-                              : 'Available on schedule'),
-                  onPressed: canConvert ? onConvert : null,
-                  textColor: Colors.black,
-                  borderColor: Colors.black,
-                  backgroundColor: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedActionButton(
-                  label: 'Remove',
-                  onPressed: onDelete,
-                  textColor: Colors.red,
-                  borderColor: Colors.red,
-                  backgroundColor: const Color(0xFFFDEBEB),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ).onTap(onTap: onEdit);
   }
 }
 
@@ -606,47 +488,5 @@ class _FilterChip extends StatelessWidget {
         ),
       ),
     ).onTap(onTap: onTap);
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.label,
-    this.backgroundColor = const Color(0xFFF2F2F2),
-  });
-
-  final String label;
-  final Color backgroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.10)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.2,
-          color: Colors.black,
-        ),
-      ),
-    );
-  }
-}
-
-String _recurrenceLabel(PaymentFrequency frequency) {
-  switch (frequency) {
-    case PaymentFrequency.oneTime:
-      return 'One-time';
-    case PaymentFrequency.monthly:
-      return 'Monthly';
-    case PaymentFrequency.yearly:
-      return 'Yearly';
   }
 }
