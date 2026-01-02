@@ -24,7 +24,7 @@ Future<void> showNumberKeyboardBottomSheet(
     String category,
   )
   onSubmit,
-  bool useRootNavigator = false,
+  bool useRootNavigator = true,
   bool initialIsExpense = true,
   String? initialValue,
   DateTime? initialLogDateTime,

@@ -64,7 +64,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Future<void> _openQuickLogKeyboard({required bool initialIsExpense}) async {
     await showNumberKeyboardBottomSheet(
       context,
-      useRootNavigator: true,
       initialIsExpense: initialIsExpense,
       onSubmit: (
         sheetContext,
