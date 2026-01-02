@@ -1,7 +1,9 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/dashboard_quick_add_handler.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/providers/dashboard_month_vm_provider.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_balance_section.dart';
@@ -9,6 +11,7 @@ import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_recent_logs_section.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
@@ -59,6 +62,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
+  }
+
+  Future<void> _refreshDashboard() async {
+    ref.invalidate(expenseLogsProvider);
+    ref.invalidate(scheduledTransactionsProvider);
+    await Future.wait([
+      ref.read(expenseLogsProvider.future),
+      ref.read(scheduledTransactionsProvider.future),
+    ]);
   }
 
   Future<void> _openQuickLogKeyboard({required bool initialIsExpense}) async {
@@ -115,9 +127,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required double income,
     required double spent,
     required List<ExpenseLog> scopedLogs,
+    required DateTime selectedMonth,
     required String itemsLabel,
     required String monthYearLabel,
-    required DateTime selectedMonth,
+    required List<ScheduledTransaction> scheduleReminders,
   }) {
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
@@ -130,6 +143,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         ),
         const SizedBox(height: 16),
         DashboardIncomeSpentRow(income: income, spent: spent),
+        const SizedBox(height: 16),
+        DashboardScheduleSection(
+          items: scheduleReminders,
+          selectedMonth: selectedMonth,
+        ),
         const SizedBox(height: 16),
         MonthlyIncomeSpentLineChart(
           selectedMonth: selectedMonth,
@@ -160,6 +178,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           data: (vm) {
             return DashboardMonthPager(
               selectedMonth: selectedMonth,
+              onRefresh: _refreshDashboard,
               header: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -188,9 +207,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 income: vm.income,
                 spent: vm.spent,
                 scopedLogs: vm.logs,
+                selectedMonth: vm.selectedMonth,
                 itemsLabel: vm.itemsLabel,
                 monthYearLabel: vm.monthYearLabel,
-                selectedMonth: vm.selectedMonth,
+                scheduleReminders: vm.scheduleReminders,
               ),
               onSwipeToPreviousMonth:
                   () =>
@@ -217,6 +237,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
                             .goToNextMonth(),
+                onRefresh: _refreshDashboard,
                 child: const DashboardLogsLoading(),
               ),
           error:
@@ -232,6 +253,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
                             .goToNextMonth(),
+                onRefresh: _refreshDashboard,
                 child: DashboardLogsError(
                   onRetry: () => refreshExpenseLogs(ref),
                 ),
@@ -247,31 +269,38 @@ class _DashboardStateWrapper extends StatelessWidget {
     required this.monthYearLabel,
     required this.onPreviousMonth,
     required this.onNextMonth,
+    required this.onRefresh,
     required this.child,
   });
 
   final String monthYearLabel;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
+  final Future<void> Function() onRefresh;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DashboardTopBar(
-            monthYearLabel: monthYearLabel,
-            onPreviousMonth: onPreviousMonth,
-            onNextMonth: onNextMonth,
-          ),
-          const SizedBox(height: 16),
-          const Divider(thickness: 2, color: Colors.black),
-          const SizedBox(height: 24),
-          child,
-        ],
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      color: Colors.black,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DashboardTopBar(
+              monthYearLabel: monthYearLabel,
+              onPreviousMonth: onPreviousMonth,
+              onNextMonth: onNextMonth,
+            ),
+            const SizedBox(height: 16),
+            const Divider(thickness: 2, color: Colors.black),
+            const SizedBox(height: 24),
+            child,
+          ],
+        ),
       ),
     );
   }

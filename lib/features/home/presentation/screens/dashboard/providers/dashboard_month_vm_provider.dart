@@ -20,6 +20,7 @@ class DashboardMonthVm {
     required this.showProjected,
     required this.income,
     required this.spent,
+    required this.scheduleReminders,
   });
 
   final DateTime selectedMonth;
@@ -31,6 +32,7 @@ class DashboardMonthVm {
   final bool showProjected;
   final double income;
   final double spent;
+  final List<ScheduledTransaction> scheduleReminders;
 }
 
 /// Derived dashboard values for the given month.
@@ -56,6 +58,10 @@ final dashboardMonthVmProvider = Provider.family<
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
 
     final scopedLogs = filterLogsByMonth(allLogs, selectedMonth);
+    final scheduleReminders = _buildScheduleReminders(
+      selectedMonth: selectedMonth,
+      scheduledTransactions: scheduledTransactions,
+    );
 
     final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
     final previousLogs = filterLogsByMonth(allLogs, previousMonth);
@@ -96,6 +102,7 @@ final dashboardMonthVmProvider = Provider.family<
       showProjected: showProjected,
       income: income,
       spent: spent,
+      scheduleReminders: scheduleReminders,
     );
   });
 });
@@ -124,3 +131,51 @@ double _calculateProjectedBalance({
 }
 
 String _logsCountLabel(int count) => '$count Items';
+
+List<ScheduledTransaction> _buildScheduleReminders({
+  required DateTime selectedMonth,
+  required List<ScheduledTransaction> scheduledTransactions,
+}) {
+  final now = DateTime.now();
+  final startOfMonth = DateTime(selectedMonth.year, selectedMonth.month);
+  final endOfMonth = DateTime(selectedMonth.year, selectedMonth.month + 1, 0);
+
+  final reminders =
+      scheduledTransactions.where((t) {
+        final dateOnly = DateUtils.dateOnly(t.scheduledDate);
+        final isOverdueOrDue = !t.scheduledDate.isAfter(now);
+
+        final isInSelectedMonth =
+            !dateOnly.isBefore(startOfMonth) && !dateOnly.isAfter(endOfMonth);
+        final isOverdueCarry =
+            isOverdueOrDue && dateOnly.isBefore(startOfMonth);
+
+        final remindWindowDays =
+            t.remindDaysBefore > 0 ? t.remindDaysBefore : 7;
+        final daysUntil =
+            DateUtils.dateOnly(
+              t.scheduledDate,
+            ).difference(DateUtils.dateOnly(now)).inDays;
+        final isDueSoon = daysUntil > 0 && daysUntil <= remindWindowDays;
+
+        return (isInSelectedMonth && (isOverdueOrDue || isDueSoon)) ||
+            isOverdueCarry;
+      }).toList();
+
+  int urgencyRank(ScheduledTransaction t) {
+    final dateOnly = DateUtils.dateOnly(t.scheduledDate);
+    final today = DateUtils.dateOnly(now);
+    if (!t.scheduledDate.isAfter(now) && dateOnly.isBefore(today))
+      return 0; // overdue
+    if (dateOnly == today) return 1; // due today
+    return 2; // due soon
+  }
+
+  reminders.sort((a, b) {
+    final byRank = urgencyRank(a).compareTo(urgencyRank(b));
+    if (byRank != 0) return byRank;
+    return a.scheduledDate.compareTo(b.scheduledDate);
+  });
+
+  return reminders;
+}

@@ -8,6 +8,7 @@ class DashboardMonthPager extends StatefulWidget {
     required this.monthContent,
     required this.onSwipeToPreviousMonth,
     required this.onSwipeToNextMonth,
+    this.onRefresh,
     this.padding = const EdgeInsets.all(24),
   });
 
@@ -16,6 +17,7 @@ class DashboardMonthPager extends StatefulWidget {
   final Widget monthContent;
   final VoidCallback onSwipeToPreviousMonth;
   final VoidCallback onSwipeToNextMonth;
+  final Future<void> Function()? onRefresh;
   final EdgeInsets padding;
 
   @override
@@ -149,6 +151,44 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final scrollable = SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: widget.padding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              widget.header,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  final slideOffset =
+                      _lastSwipeDirection == 0
+                          ? const Offset(0.2, 0)
+                          : Offset(_lastSwipeDirection * 0.2, 0);
+
+                  final tween = Tween<Offset>(
+                    begin: slideOffset,
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+                  final offsetAnimation = animation.drive(tween);
+
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+                child: Transform.translate(
+                  offset: Offset(_dragOffset, 0),
+                  child: widget.monthContent,
+                ),
+              ),
+            ],
+          ),
+        );
+
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onHorizontalDragUpdate: _onHorizontalDragUpdate,
@@ -156,42 +196,14 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
           onHorizontalDragCancel: _onHorizontalDragCancel,
           child: SizedBox(
             height: constraints.maxHeight,
-            child: SingleChildScrollView(
-              padding: widget.padding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  widget.header,
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final slideOffset =
-                          _lastSwipeDirection == 0
-                              ? const Offset(0.2, 0)
-                              : Offset(_lastSwipeDirection * 0.2, 0);
-
-                      final tween = Tween<Offset>(
-                        begin: slideOffset,
-                        end: Offset.zero,
-                      ).chain(CurveTween(curve: Curves.easeOutCubic));
-
-                      final offsetAnimation = animation.drive(tween);
-
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: FadeTransition(opacity: animation, child: child),
-                      );
-                    },
-                    child: Transform.translate(
-                      offset: Offset(_dragOffset, 0),
-                      child: widget.monthContent,
+            child:
+                widget.onRefresh == null
+                    ? scrollable
+                    : RefreshIndicator(
+                      onRefresh: widget.onRefresh!,
+                      color: Colors.black,
+                      child: scrollable,
                     ),
-                  ),
-                ],
-              ),
-            ),
           ),
         );
       },

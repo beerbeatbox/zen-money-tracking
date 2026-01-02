@@ -9,6 +9,7 @@ import '../../features/home/presentation/screens/add_scheduled_transaction_scree
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/report_screen.dart';
+import '../../features/home/presentation/screens/scheduled_transaction_detail_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
@@ -28,6 +29,7 @@ enum AppRouter {
   profile,
   scheduledTransactions,
   addScheduledTransaction,
+  scheduledTransactionDetail,
   expenseLogDetail;
 
   String get path {
@@ -52,6 +54,8 @@ enum AppRouter {
         return '/scheduled-transactions';
       case AppRouter.addScheduledTransaction:
         return '/scheduled-transactions/add';
+      case AppRouter.scheduledTransactionDetail:
+        return '/scheduled-transactions/:id';
       case AppRouter.expenseLogDetail:
         return '/logs/:id';
     }
@@ -166,6 +170,17 @@ GoRouter appRouter(Ref ref) {
           final extra = state.extra;
           final initial = extra is ScheduledTransaction ? extra : null;
           return AddScheduledTransactionScreen(initial: initial);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.scheduledTransactionDetail.path,
+        name: AppRouter.scheduledTransactionDetail.name,
+        builder: (context, state) {
+          final extra = state.extra;
+          final item = extra is ScheduledTransaction ? extra : null;
+          final id = state.pathParameters['id'] ?? item?.id ?? '';
+          return ScheduledTransactionDetailScreen(scheduledId: id, item: item);
         },
       ),
       ...profileRouter,
