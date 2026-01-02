@@ -189,7 +189,7 @@ class _LogTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  log.category.toUpperCase(),
+                  log.category,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,

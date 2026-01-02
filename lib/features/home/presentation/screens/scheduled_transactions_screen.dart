@@ -464,7 +464,7 @@ class _ScheduledTransactionTile extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  item.category.toUpperCase(),
+                  item.category,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,

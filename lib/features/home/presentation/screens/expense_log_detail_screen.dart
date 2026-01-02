@@ -108,7 +108,7 @@ class _LogDetailCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            log.category.toUpperCase(),
+            log.category,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -135,7 +135,7 @@ class _LogDetailCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _MetaRow(label: 'Category', value: log.category.toUpperCase()),
+          _MetaRow(label: 'Category', value: log.category),
           const SizedBox(height: 12),
           _MetaRow(
             label: 'Time',
@@ -379,7 +379,7 @@ class _Tag extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w800,
