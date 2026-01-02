@@ -9,10 +9,9 @@ import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
-enum _ScheduledPaymentsFilter { all, subscriptions, oneTime }
+enum _ScheduledPaymentsFilter { all, monthly, yearly, oneTime }
 
 class ScheduledTransactionsScreen extends ConsumerStatefulWidget {
   const ScheduledTransactionsScreen({super.key});
@@ -39,10 +38,7 @@ class _ScheduledTransactionsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _TopBar(
-                onBack: () => context.pop(),
-                onAdd: () => _openScheduleSheet(context, ref),
-              ),
+              _TopBar(onAdd: () => _openScheduleSheet(context, ref)),
               const SizedBox(height: 16),
               const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
@@ -270,8 +266,14 @@ List<ScheduledTransaction> _applyFilter(
   switch (filter) {
     case _ScheduledPaymentsFilter.all:
       return items;
-    case _ScheduledPaymentsFilter.subscriptions:
-      return items.where((e) => e.isSubscription).toList(growable: false);
+    case _ScheduledPaymentsFilter.monthly:
+      return items
+          .where((e) => e.frequency == PaymentFrequency.monthly)
+          .toList(growable: false);
+    case _ScheduledPaymentsFilter.yearly:
+      return items
+          .where((e) => e.frequency == PaymentFrequency.yearly)
+          .toList(growable: false);
     case _ScheduledPaymentsFilter.oneTime:
       return items
           .where((e) => e.frequency == PaymentFrequency.oneTime)
@@ -280,9 +282,8 @@ List<ScheduledTransaction> _applyFilter(
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.onBack, required this.onAdd});
+  const _TopBar({required this.onAdd});
 
-  final VoidCallback onBack;
   final VoidCallback onAdd;
 
   @override
@@ -290,11 +291,6 @@ class _TopBar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        IconButton(
-          onPressed: onBack,
-          icon: const Icon(Icons.chevron_left, color: Colors.black),
-          tooltip: 'Back',
-        ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -383,8 +379,10 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = switch (filter) {
       _ScheduledPaymentsFilter.all => 'Start planning your future payments.',
-      _ScheduledPaymentsFilter.subscriptions =>
-        'Add a subscription to keep your monthly bills on track.',
+      _ScheduledPaymentsFilter.monthly =>
+        'Add a monthly payment to keep your bills on track.',
+      _ScheduledPaymentsFilter.yearly =>
+        'Schedule a yearly payment to plan ahead with confidence.',
       _ScheduledPaymentsFilter.oneTime =>
         'Schedule a payment to plan ahead with confidence.',
     };
@@ -566,9 +564,14 @@ class _FilterChips extends StatelessWidget {
           onTap: () => onChanged(_ScheduledPaymentsFilter.all),
         ),
         _FilterChip(
-          label: 'Subscriptions',
-          selected: value == _ScheduledPaymentsFilter.subscriptions,
-          onTap: () => onChanged(_ScheduledPaymentsFilter.subscriptions),
+          label: 'Monthly',
+          selected: value == _ScheduledPaymentsFilter.monthly,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.monthly),
+        ),
+        _FilterChip(
+          label: 'Yearly',
+          selected: value == _ScheduledPaymentsFilter.yearly,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.yearly),
         ),
         _FilterChip(
           label: 'One-time',

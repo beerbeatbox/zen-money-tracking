@@ -141,18 +141,12 @@ class _SettingsList extends StatelessWidget {
                             )
                             .setEnabled(value)
                         : null,
-                activeColor: Colors.green,
+                activeThumbColor: Colors.green,
                 inactiveThumbColor: Colors.black,
                 inactiveTrackColor: Colors.grey[300],
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 12),
-        _SettingsCard(
-          icon: HeroIcons.calendarDays,
-          title: 'Scheduled Payments',
-          onTap: () => context.goNamed(AppRouter.scheduledTransactions.name),
         ),
         const SizedBox(height: 12),
         _SettingsCard(
