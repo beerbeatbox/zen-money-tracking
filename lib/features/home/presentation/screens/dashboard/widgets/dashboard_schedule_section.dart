@@ -1,11 +1,10 @@
-import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
-import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,7 +82,7 @@ class DashboardScheduleSection extends ConsumerWidget {
             final isLast = index == preview.length - 1;
             return Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-              child: _ScheduleReminderTile(
+              child: ScheduledTransactionTile(
                 item: item,
                 onConvert: () => _convert(context, ref, item),
                 onDelete: () => _confirmAndDelete(context, ref, item),
@@ -95,6 +94,7 @@ class DashboardScheduleSection extends ConsumerWidget {
                       ),
                       extra: item,
                     ),
+                showStatusLabel: true,
               ),
             );
           }),
@@ -220,119 +220,5 @@ class _EmptyState extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _ScheduleReminderTile extends StatelessWidget {
-  const _ScheduleReminderTile({
-    required this.item,
-    required this.onConvert,
-    required this.onDelete,
-    required this.onEdit,
-  });
-
-  final ScheduledTransaction item;
-  final VoidCallback onConvert;
-  final VoidCallback onDelete;
-  final VoidCallback onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final canConvert = !item.scheduledDate.isAfter(now) && item.isActive;
-    final isRecurring = item.frequency != PaymentFrequency.oneTime;
-
-    final dateLabel = formatDateLabel(item.scheduledDate);
-    final timeLabel = formatTimeHm(item.scheduledDate);
-    final amountLabel = formatCurrencySigned(item.amount);
-    final statusLabel = _statusLabel(item.scheduledDate, now: now);
-
-    final primaryLabel =
-        !item.isActive
-            ? 'Paused'
-            : (isRecurring
-                ? 'Mark as paid'
-                : (canConvert ? 'Add to logs' : 'Available on schedule'));
-
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.category,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                amountLabel,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            '$statusLabel • $dateLabel • $timeLabel',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedActionButton(
-                  label: primaryLabel,
-                  onPressed: canConvert ? onConvert : null,
-                  textColor: Colors.black,
-                  borderColor: Colors.black,
-                  backgroundColor: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedActionButton(
-                  label: 'Remove',
-                  onPressed: onDelete,
-                  textColor: Colors.red,
-                  borderColor: Colors.red,
-                  backgroundColor: const Color(0xFFFDEBEB),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ).onTap(onTap: onEdit);
-  }
-
-  String _statusLabel(DateTime scheduledDate, {required DateTime now}) {
-    final today = DateUtils.dateOnly(now);
-    final scheduledDay = DateUtils.dateOnly(scheduledDate);
-
-    if (!scheduledDate.isAfter(now) && scheduledDay.isBefore(today))
-      return 'Overdue';
-    if (scheduledDay == today) return 'Due today';
-
-    final daysUntil = scheduledDay.difference(today).inDays;
-    if (daysUntil == 1) return 'Due in 1 day';
-    return 'Due in $daysUntil days';
   }
 }
