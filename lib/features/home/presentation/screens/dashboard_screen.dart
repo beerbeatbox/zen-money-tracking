@@ -292,7 +292,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Widget build(BuildContext context) {
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
-    final dateLabel = 'Swipe left or right to change month';
     final logsAsync = watchExpenseLogs(ref);
     final scheduledAsync = ref.watch(scheduledTransactionsProvider);
     final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
@@ -353,7 +352,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         children: [
                           _TopBar(
                             monthYearLabel: monthYearLabel,
-                            dateLabel: dateLabel,
                             onPreviousMonth:
                                 () =>
                                     ref
@@ -426,7 +424,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           loading:
               () => _DashboardStateWrapper(
                 monthYearLabel: monthYearLabel,
-                dateLabel: dateLabel,
                 onPreviousMonth:
                     () =>
                         ref
@@ -442,7 +439,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           error:
               (_, __) => _DashboardStateWrapper(
                 monthYearLabel: monthYearLabel,
-                dateLabel: dateLabel,
                 onPreviousMonth:
                     () =>
                         ref
@@ -474,14 +470,12 @@ List<ExpenseLog> _filterLogsByMonth(List<ExpenseLog> logs, DateTime month) {
 class _DashboardStateWrapper extends StatelessWidget {
   const _DashboardStateWrapper({
     required this.monthYearLabel,
-    required this.dateLabel,
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.child,
   });
 
   final String monthYearLabel;
-  final String dateLabel;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final Widget child;
@@ -495,7 +489,6 @@ class _DashboardStateWrapper extends StatelessWidget {
         children: [
           _TopBar(
             monthYearLabel: monthYearLabel,
-            dateLabel: dateLabel,
             onPreviousMonth: onPreviousMonth,
             onNextMonth: onNextMonth,
           ),
@@ -512,48 +505,36 @@ class _DashboardStateWrapper extends StatelessWidget {
 class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.monthYearLabel,
-    required this.dateLabel,
     required this.onPreviousMonth,
     required this.onNextMonth,
   });
 
   final String monthYearLabel;
-  final String dateLabel;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           onPressed: onPreviousMonth,
           icon: const Icon(Icons.chevron_left, color: Colors.black),
           tooltip: 'Previous month',
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        Expanded(
+          child: Center(
+            child: Text(
               monthYearLabel,
-              style: TextStyle(
+              textAlign: TextAlign.center,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.4,
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              dateLabel,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
+          ),
         ),
         IconButton(
           onPressed: onNextMonth,
