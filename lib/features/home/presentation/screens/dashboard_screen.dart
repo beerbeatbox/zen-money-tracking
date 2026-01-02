@@ -14,7 +14,6 @@ import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
-import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -148,11 +147,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           items: scheduleReminders,
           selectedMonth: selectedMonth,
         ),
-        const SizedBox(height: 16),
-        MonthlyIncomeSpentLineChart(
-          selectedMonth: selectedMonth,
-          logs: scopedLogs,
-        ),
         const SizedBox(height: 32),
         DashboardRecentLogsSection(
           logs: scopedLogs,
@@ -182,6 +176,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               header: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    'Dashboard',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   DashboardTopBar(
                     monthYearLabel: vm.monthYearLabel,
                     onPreviousMonth:
@@ -329,6 +333,16 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              'Dashboard',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 12),
             DashboardTopBar(
               monthYearLabel: widget.monthYearLabel,
               onPreviousMonth: widget.onPreviousMonth,
