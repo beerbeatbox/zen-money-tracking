@@ -6,6 +6,7 @@ import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/domain/usecases/category_service.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
@@ -28,6 +29,9 @@ Future<void> showNumberKeyboardBottomSheet(
   String? initialValue,
   DateTime? initialLogDateTime,
   String? initialCategory,
+  bool showFrequencyChips = false,
+  PaymentFrequency initialFrequency = PaymentFrequency.oneTime,
+  ValueChanged<PaymentFrequency>? onFrequencyChanged,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -41,6 +45,9 @@ Future<void> showNumberKeyboardBottomSheet(
           initialValue: initialValue,
           initialLogDateTime: initialLogDateTime,
           initialCategory: initialCategory,
+          showFrequencyChips: showFrequencyChips,
+          initialFrequency: initialFrequency,
+          onFrequencyChanged: onFrequencyChanged,
         ),
   );
 }
@@ -53,6 +60,9 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
     this.initialValue,
     this.initialLogDateTime,
     this.initialCategory,
+    this.showFrequencyChips = false,
+    this.initialFrequency = PaymentFrequency.oneTime,
+    this.onFrequencyChanged,
   });
 
   final Future<bool> Function(
@@ -67,6 +77,9 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
   final String? initialValue;
   final DateTime? initialLogDateTime;
   final String? initialCategory;
+  final bool showFrequencyChips;
+  final PaymentFrequency initialFrequency;
+  final ValueChanged<PaymentFrequency>? onFrequencyChanged;
 
   @override
   ConsumerState<NumberKeyboardBottomSheet> createState() =>
@@ -83,6 +96,7 @@ class _NumberKeyboardBottomSheetState
   late DateTime _logDateTime;
   late String _selectedCategory;
   late bool _shouldDefaultToFirstCategory;
+  late PaymentFrequency _frequency;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
   List<String> get _availableCategories {
@@ -125,6 +139,7 @@ class _NumberKeyboardBottomSheetState
     _isExpense = widget.initialIsExpense;
     _value = widget.initialValue ?? '';
     _logDateTime = widget.initialLogDateTime ?? DateTime.now();
+    _frequency = widget.initialFrequency;
     final initial =
         (widget.initialCategory ?? '').trim().isEmpty
             ? null
@@ -135,6 +150,12 @@ class _NumberKeyboardBottomSheetState
             : CategoryService.defaultIncomeLabels;
     _shouldDefaultToFirstCategory = initial == null;
     _selectedCategory = initial ?? fallback.first;
+  }
+
+  void _setFrequency(PaymentFrequency next) {
+    if (_frequency == next) return;
+    setState(() => _frequency = next);
+    widget.onFrequencyChanged?.call(next);
   }
 
   void _onKeyTap(String key) {
@@ -332,6 +353,10 @@ class _NumberKeyboardBottomSheetState
               mainAxisSize: MainAxisSize.max,
               children: [
                 const Spacer(),
+                if (widget.showFrequencyChips) ...[
+                  _FrequencyChips(value: _frequency, onChanged: _setFrequency),
+                  const SizedBox(height: 14),
+                ],
                 Center(
                   child: ExpenseTypeToggle(
                     isExpense: _isExpense,
@@ -425,6 +450,67 @@ class _NumberKeyboardBottomSheetState
         ),
       ),
     );
+  }
+}
+
+class _FrequencyChips extends StatelessWidget {
+  const _FrequencyChips({required this.value, required this.onChanged});
+
+  final PaymentFrequency value;
+  final ValueChanged<PaymentFrequency> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _FrequencyChip(
+          label: 'One-time',
+          selected: value == PaymentFrequency.oneTime,
+          onTap: () => onChanged(PaymentFrequency.oneTime),
+        ),
+        _FrequencyChip(
+          label: 'Monthly',
+          selected: value == PaymentFrequency.monthly,
+          onTap: () => onChanged(PaymentFrequency.monthly),
+        ),
+        _FrequencyChip(
+          label: 'Yearly',
+          selected: value == PaymentFrequency.yearly,
+          onTap: () => onChanged(PaymentFrequency.yearly),
+        ),
+      ],
+    );
+  }
+}
+
+class _FrequencyChip extends StatelessWidget {
+  const _FrequencyChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      borderRadius: const BorderRadius.all(Radius.circular(18)),
+      color: selected ? Colors.black : Colors.white,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
+          color: selected ? Colors.white : Colors.black,
+        ),
+      ),
+    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
   }
 }
 

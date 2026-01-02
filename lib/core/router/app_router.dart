@@ -6,7 +6,6 @@ import '../../features/categories/presentation/screens/category_management_scree
 import '../../features/home/domain/entities/expense_log.dart';
 import '../../features/home/domain/entities/scheduled_transaction.dart';
 import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
-import '../../features/home/presentation/screens/budget_screen.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/report_screen.dart';
@@ -117,12 +116,12 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRouter.budget.path,
-                name: AppRouter.budget.name,
+                path: AppRouter.scheduledTransactions.path,
+                name: AppRouter.scheduledTransactions.name,
                 pageBuilder:
                     (context, state) => NoTransitionPage(
                       key: state.pageKey,
-                      child: const BudgetScreen(),
+                      child: const ScheduledTransactionsScreen(),
                     ),
               ),
             ],
@@ -158,12 +157,6 @@ GoRouter appRouter(Ref ref) {
           final logId = state.pathParameters['id'] ?? log?.id ?? '';
           return ExpenseLogDetailScreen(logId: logId, log: log);
         },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: AppRouter.scheduledTransactions.path,
-        name: AppRouter.scheduledTransactions.name,
-        builder: (context, state) => const ScheduledTransactionsScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,

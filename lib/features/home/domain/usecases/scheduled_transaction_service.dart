@@ -2,6 +2,7 @@ import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/data/repositories/scheduled_transaction_repository.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:anti/features/home/domain/utils/recurrence.dart';
 import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -48,7 +49,14 @@ class ScheduledTransactionService {
     );
 
     await expenseLogService.addExpenseLog(log);
-    await deleteScheduledTransaction(scheduled.id);
+
+    if (scheduled.frequency == PaymentFrequency.oneTime) {
+      await deleteScheduledTransaction(scheduled.id);
+      return;
+    }
+
+    final next = nextDueDate(from: scheduled.scheduledDate, frequency: scheduled.frequency);
+    await updateScheduledTransaction(scheduled.copyWith(scheduledDate: next));
   }
 }
 

@@ -12,12 +12,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
-class ScheduledTransactionsScreen extends ConsumerWidget {
+enum _ScheduledPaymentsFilter { all, subscriptions, oneTime }
+
+class ScheduledTransactionsScreen extends ConsumerStatefulWidget {
   const ScheduledTransactionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ScheduledTransactionsScreen> createState() =>
+      _ScheduledTransactionsScreenState();
+}
+
+class _ScheduledTransactionsScreenState
+    extends ConsumerState<ScheduledTransactionsScreen> {
+  var _filter = _ScheduledPaymentsFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     final itemsAsync = ref.watch(scheduledTransactionsProvider);
+    final filter = _filter;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -34,16 +46,27 @@ class ScheduledTransactionsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
+              _FilterChips(
+                value: filter,
+                onChanged:
+                    (next) => setState(() {
+                      _filter = next;
+                    }),
+              ),
+              const SizedBox(height: 16),
               itemsAsync.when(
-                data:
-                    (items) => _Content(
-                      items: items,
-                      onConvert: (item) => _convert(context, ref, item),
-                      onDelete: (item) => _confirmAndDelete(context, ref, item),
-                      onEdit:
-                          (item) =>
-                              _openScheduleSheet(context, ref, initial: item),
-                    ),
+                data: (items) {
+                  final filtered = _applyFilter(items, filter);
+                  return _Content(
+                    filter: filter,
+                    items: filtered,
+                    onConvert: (item) => _convert(context, ref, item),
+                    onDelete: (item) => _confirmAndDelete(context, ref, item),
+                    onEdit:
+                        (item) =>
+                            _openScheduleSheet(context, ref, initial: item),
+                  );
+                },
                 loading:
                     () => const Center(
                       child: Padding(
@@ -145,13 +168,18 @@ class ScheduledTransactionsScreen extends ConsumerWidget {
     WidgetRef ref, {
     ScheduledTransaction? initial,
   }) async {
+    var frequency = initial?.frequency ?? PaymentFrequency.oneTime;
+
     await showNumberKeyboardBottomSheet(
       context,
-      initialIsExpense: (initial?.amount ?? -1) < 0,
+      initialIsExpense: true,
       initialValue:
           initial == null ? null : _formatInitialAmount(initial.amount.abs()),
       initialLogDateTime: initial?.scheduledDate,
       initialCategory: initial?.category,
+      showFrequencyChips: true,
+      initialFrequency: frequency,
+      onFrequencyChanged: (next) => frequency = next,
       onSubmit: (
         sheetContext,
         rawValue,
@@ -178,8 +206,15 @@ class ScheduledTransactionsScreen extends ConsumerWidget {
           );
           return false;
         }
+        if (!isExpense) {
+          _showSnack(
+            sheetContext,
+            'Scheduled payments are expenses. Switch to Expense to continue.',
+          );
+          return false;
+        }
 
-        final amount = isExpense ? -parsed.abs() : parsed.abs();
+        final amount = -parsed.abs();
         final now = DateTime.now();
         final item = ScheduledTransaction(
           id: initial?.id ?? now.microsecondsSinceEpoch.toString(),
@@ -188,6 +223,9 @@ class ScheduledTransactionsScreen extends ConsumerWidget {
           amount: amount,
           scheduledDate: logDateTime,
           createdAt: initial?.createdAt ?? now,
+          frequency: frequency,
+          isActive: initial?.isActive ?? true,
+          remindDaysBefore: initial?.remindDaysBefore ?? 0,
         );
 
         try {
@@ -222,6 +260,22 @@ class ScheduledTransactionsScreen extends ConsumerWidget {
     final asInt = value.toInt();
     if (value == asInt) return asInt.toString();
     return value.toStringAsFixed(2);
+  }
+}
+
+List<ScheduledTransaction> _applyFilter(
+  List<ScheduledTransaction> items,
+  _ScheduledPaymentsFilter filter,
+) {
+  switch (filter) {
+    case _ScheduledPaymentsFilter.all:
+      return items;
+    case _ScheduledPaymentsFilter.subscriptions:
+      return items.where((e) => e.isSubscription).toList(growable: false);
+    case _ScheduledPaymentsFilter.oneTime:
+      return items
+          .where((e) => e.frequency == PaymentFrequency.oneTime)
+          .toList(growable: false);
   }
 }
 
@@ -282,12 +336,14 @@ class _TopBar extends StatelessWidget {
 
 class _Content extends StatelessWidget {
   const _Content({
+    required this.filter,
     required this.items,
     required this.onConvert,
     required this.onDelete,
     required this.onEdit,
   });
 
+  final _ScheduledPaymentsFilter filter;
   final List<ScheduledTransaction> items;
   final Future<void> Function(ScheduledTransaction item) onConvert;
   final Future<void> Function(ScheduledTransaction item) onDelete;
@@ -296,7 +352,7 @@ class _Content extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const _EmptyState();
+      return _EmptyState(filter: filter);
     }
 
     return Column(
@@ -319,15 +375,24 @@ class _Content extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.filter});
+
+  final _ScheduledPaymentsFilter filter;
 
   @override
   Widget build(BuildContext context) {
+    final message = switch (filter) {
+      _ScheduledPaymentsFilter.all => 'Start planning your future payments.',
+      _ScheduledPaymentsFilter.subscriptions =>
+        'Add a subscription to keep your monthly bills on track.',
+      _ScheduledPaymentsFilter.oneTime =>
+        'Schedule a payment to plan ahead with confidence.',
+    };
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: Center(
         child: Text(
-          'Start planning your future payments.',
+          message,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -384,9 +449,12 @@ class _ScheduledTransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final isDue = !item.scheduledDate.isAfter(now);
+    final canConvert = isDue && item.isActive;
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
     final amountLabel = formatCurrencySigned(item.amount);
+    final recurrenceLabel = _recurrenceLabel(item.frequency);
+    final showRecurrence = item.frequency != PaymentFrequency.oneTime;
 
     return OutlinedSurface(
       padding: const EdgeInsets.all(16),
@@ -428,13 +496,35 @@ class _ScheduledTransactionTile extends StatelessWidget {
               color: Colors.grey[600],
             ),
           ),
+          if (showRecurrence || !item.isActive) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (showRecurrence) _Badge(label: recurrenceLabel),
+                if (!item.isActive)
+                  const _Badge(
+                    label: 'Paused',
+                    backgroundColor: Color(0xFFF4F4F4),
+                  ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: OutlinedActionButton(
-                  label: isDue ? 'Add to logs' : 'Available on schedule',
-                  onPressed: isDue ? onConvert : null,
+                  label:
+                      canConvert
+                          ? (item.isSubscription
+                              ? 'Mark as paid'
+                              : 'Add to logs')
+                          : (!item.isActive
+                              ? 'Paused'
+                              : 'Available on schedule'),
+                  onPressed: canConvert ? onConvert : null,
                   textColor: Colors.black,
                   borderColor: Colors.black,
                   backgroundColor: Colors.white,
@@ -455,5 +545,115 @@ class _ScheduledTransactionTile extends StatelessWidget {
         ],
       ),
     ).onTap(onTap: onEdit);
+  }
+}
+
+class _FilterChips extends StatelessWidget {
+  const _FilterChips({required this.value, required this.onChanged});
+
+  final _ScheduledPaymentsFilter value;
+  final ValueChanged<_ScheduledPaymentsFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _FilterChip(
+          label: 'All',
+          selected: value == _ScheduledPaymentsFilter.all,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.all),
+        ),
+        _FilterChip(
+          label: 'Subscriptions',
+          selected: value == _ScheduledPaymentsFilter.subscriptions,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.subscriptions),
+        ),
+        _FilterChip(
+          label: 'One-time',
+          selected: value == _ScheduledPaymentsFilter.oneTime,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.oneTime),
+        ),
+      ],
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected ? Colors.black : Colors.white;
+    final fg = selected ? Colors.white : Colors.black;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.black, width: 2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: fg,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+        ),
+      ),
+    ).onTap(onTap: onTap);
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({
+    required this.label,
+    this.backgroundColor = const Color(0xFFF2F2F2),
+  });
+
+  final String label;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.10)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+}
+
+String _recurrenceLabel(PaymentFrequency frequency) {
+  switch (frequency) {
+    case PaymentFrequency.oneTime:
+      return 'One-time';
+    case PaymentFrequency.monthly:
+      return 'Monthly';
+    case PaymentFrequency.yearly:
+      return 'Yearly';
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
 import 'package:anti/features/home/domain/usecases/scheduled_transaction_service.dart';
+import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'scheduled_transaction_controller.g.dart';
@@ -55,8 +56,12 @@ class ScheduledTransactionController extends _$ScheduledTransactionController {
     );
 
     if (!ref.mounted) return;
+    ref.invalidate(expenseLogsProvider);
     ref.invalidate(scheduledTransactionsProvider);
-    await ref.read(scheduledTransactionsProvider.future);
+    await Future.wait([
+      ref.read(expenseLogsProvider.future),
+      ref.read(scheduledTransactionsProvider.future),
+    ]);
   }
 }
 

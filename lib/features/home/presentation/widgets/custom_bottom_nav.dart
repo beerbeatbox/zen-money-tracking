@@ -87,12 +87,12 @@ class CustomBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _buildBudgetButton(BuildContext context, {required bool isActive}) {
+  Widget _buildScheduleButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
       onTap: () => _handleTabTap(2, isActive: isActive),
-      icon: HeroIcons.wallet,
-      semanticLabel: 'Budget',
-      label: 'Budget',
+      icon: HeroIcons.calendarDays,
+      semanticLabel: 'Scheduled payments',
+      label: 'Schedule',
       isActive: isActive,
     );
   }
@@ -102,7 +102,7 @@ class CustomBottomNav extends StatelessWidget {
     final currentIndex = navigationShell.currentIndex;
     final isHomeActive = currentIndex == 0;
     final isReportActive = currentIndex == 1;
-    final isBudgetActive = currentIndex == 2;
+    final isScheduleActive = currentIndex == 2;
     final isSettingsActive = currentIndex == 3;
 
     return SafeArea(
@@ -141,8 +141,11 @@ class CustomBottomNav extends StatelessWidget {
               const SizedBox(width: 32), // gap for the FAB notch
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => _handleTabTap(2, isActive: isBudgetActive),
-                child: _buildBudgetButton(context, isActive: isBudgetActive),
+                onTap: () => _handleTabTap(2, isActive: isScheduleActive),
+                child: _buildScheduleButton(
+                  context,
+                  isActive: isScheduleActive,
+                ),
               ),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
