@@ -1,9 +1,6 @@
 import 'package:anti/core/router/app_router.dart';
-import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +19,8 @@ class DashboardScheduleSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
     final countLabel = '${items.length} Due';
     final preview = items.take(3).toList();
 
@@ -71,34 +70,27 @@ class DashboardScheduleSection extends ConsumerWidget {
         const SizedBox(height: 8),
         const Divider(thickness: 2, color: Colors.black),
         const SizedBox(height: 12),
-        if (items.isEmpty) ...[
-          _EmptyState(
-            selectedMonth: selectedMonth,
-            onSchedule: () => context.go(AppRouter.scheduledTransactions.path),
-          ),
-        ] else ...[
-          ...List.generate(preview.length, (index) {
-            final item = preview[index];
-            final isLast = index == preview.length - 1;
-            return Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-              child: ScheduledTransactionTile(
-                item: item,
-                onConvert: () => _convert(context, ref, item),
-                onDelete: () => _confirmAndDelete(context, ref, item),
-                onEdit:
-                    () => context.push(
-                      AppRouter.scheduledTransactionDetail.path.replaceFirst(
-                        ':id',
-                        item.id,
-                      ),
-                      extra: item,
+        ...List.generate(preview.length, (index) {
+          final item = preview[index];
+          final isLast = index == preview.length - 1;
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+            child: ScheduledTransactionTile(
+              item: item,
+              onConvert: () => _convert(context, ref, item),
+              onDelete: () => _confirmAndDelete(context, ref, item),
+              onEdit:
+                  () => context.push(
+                    AppRouter.scheduledTransactionDetail.path.replaceFirst(
+                      ':id',
+                      item.id,
                     ),
-                showStatusLabel: true,
-              ),
-            );
-          }),
-        ],
+                    extra: item,
+                  ),
+              showStatusLabel: true,
+            ),
+          );
+        }),
       ],
     );
   }
@@ -173,52 +165,5 @@ class DashboardScheduleSection extends ConsumerWidget {
         ),
       );
     }
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.selectedMonth, required this.onSchedule});
-
-  final DateTime selectedMonth;
-  final VoidCallback onSchedule;
-
-  @override
-  Widget build(BuildContext context) {
-    final monthLabel = formatMonthYearLabel(selectedMonth);
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Plan upcoming payments for $monthLabel.',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Schedule one-time bills or subscriptions and add them to your logs when they’re due.',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 14),
-          OutlinedActionButton(
-            label: 'View scheduled payments',
-            onPressed: onSchedule,
-            textColor: Colors.black,
-            borderColor: Colors.black,
-            backgroundColor: Colors.white,
-          ),
-        ],
-      ),
-    );
   }
 }

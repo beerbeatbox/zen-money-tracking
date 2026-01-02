@@ -132,6 +132,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required String monthYearLabel,
     required List<ScheduledTransaction> scheduleReminders,
   }) {
+    final hasSchedule = scheduleReminders.isNotEmpty;
+
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,12 +145,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         ),
         const SizedBox(height: 16),
         DashboardIncomeSpentRow(income: income, spent: spent),
-        const SizedBox(height: 16),
-        DashboardScheduleSection(
-          items: scheduleReminders,
-          selectedMonth: selectedMonth,
-        ),
-        const SizedBox(height: 32),
+        if (hasSchedule) ...[
+          const SizedBox(height: 16),
+          DashboardScheduleSection(
+            items: scheduleReminders,
+            selectedMonth: selectedMonth,
+          ),
+          const SizedBox(height: 32),
+        ] else ...[
+          const SizedBox(height: 32),
+        ],
         DashboardRecentLogsSection(
           logs: scopedLogs,
           itemsLabel: itemsLabel,
