@@ -27,6 +27,7 @@ class DashboardMonthPager extends StatefulWidget {
 class _DashboardMonthPagerState extends State<DashboardMonthPager>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
+  late final ScrollController _scrollController;
   double _dragOffset = 0.0;
   int _lastSwipeDirection = 0; // -1 = next, 1 = previous
   Animation<double>? _currentAnimation;
@@ -38,6 +39,7 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
+    _scrollController = ScrollController();
   }
 
   @override
@@ -47,7 +49,28 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
       _currentAnimation = null;
     }
     _animationController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _snapToTop() async {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.offset <= 0) {
+      _scrollController.jumpTo(0);
+      return;
+    }
+
+    await _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 1),
+      curve: Curves.linear,
+    );
+  }
+
+  Future<void> _handleRefresh() async {
+    if (widget.onRefresh == null) return;
+    await _snapToTop();
+    await widget.onRefresh!.call();
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
@@ -152,6 +175,7 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
     return LayoutBuilder(
       builder: (context, constraints) {
         final scrollable = SingleChildScrollView(
+          controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: widget.padding,
           child: Column(
@@ -163,10 +187,9 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeInCubic,
                 transitionBuilder: (child, animation) {
-                  final slideOffset =
-                      _lastSwipeDirection == 0
-                          ? const Offset(0.2, 0)
-                          : Offset(_lastSwipeDirection * 0.2, 0);
+                  final slideOffset = _lastSwipeDirection == 0
+                      ? const Offset(0.2, 0)
+                      : Offset(_lastSwipeDirection * 0.2, 0);
 
                   final tween = Tween<Offset>(
                     begin: slideOffset,
@@ -196,19 +219,16 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
           onHorizontalDragCancel: _onHorizontalDragCancel,
           child: SizedBox(
             height: constraints.maxHeight,
-            child:
-                widget.onRefresh == null
-                    ? scrollable
-                    : RefreshIndicator(
-                      onRefresh: widget.onRefresh!,
-                      color: Colors.black,
-                      child: scrollable,
-                    ),
+            child: widget.onRefresh == null
+                ? scrollable
+                : RefreshIndicator(
+                    onRefresh: _handleRefresh,
+                    color: Colors.black,
+                    child: scrollable,
+                  ),
           ),
         );
       },
     );
   }
 }
-
-

@@ -264,7 +264,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 }
 
-class _DashboardStateWrapper extends StatelessWidget {
+class _DashboardStateWrapper extends StatefulWidget {
   const _DashboardStateWrapper({
     required this.monthYearLabel,
     required this.onPreviousMonth,
@@ -280,25 +280,64 @@ class _DashboardStateWrapper extends StatelessWidget {
   final Widget child;
 
   @override
+  State<_DashboardStateWrapper> createState() => _DashboardStateWrapperState();
+}
+
+class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _snapToTop() async {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.offset <= 0) {
+      _scrollController.jumpTo(0);
+      return;
+    }
+
+    await _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 1),
+      curve: Curves.linear,
+    );
+  }
+
+  Future<void> _handleRefresh() async {
+    await _snapToTop();
+    await widget.onRefresh();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: onRefresh,
+      onRefresh: _handleRefresh,
       color: Colors.black,
       child: SingleChildScrollView(
+        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DashboardTopBar(
-              monthYearLabel: monthYearLabel,
-              onPreviousMonth: onPreviousMonth,
-              onNextMonth: onNextMonth,
+              monthYearLabel: widget.monthYearLabel,
+              onPreviousMonth: widget.onPreviousMonth,
+              onNextMonth: widget.onNextMonth,
             ),
             const SizedBox(height: 16),
             const Divider(thickness: 2, color: Colors.black),
             const SizedBox(height: 24),
-            child,
+            widget.child,
           ],
         ),
       ),
