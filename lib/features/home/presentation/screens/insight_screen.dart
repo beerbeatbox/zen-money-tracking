@@ -4,19 +4,19 @@ import 'package:anti/features/home/presentation/controllers/dashboard_selected_m
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
-import 'package:anti/features/home/presentation/screens/report/providers/report_month_vm_provider.dart';
+import 'package:anti/features/home/presentation/screens/insight/providers/insight_month_vm_provider.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ReportScreen extends ConsumerWidget {
-  const ReportScreen({super.key});
+class InsightScreen extends ConsumerWidget {
+  const InsightScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
-    final vmAsync = ref.watch(reportMonthVmProvider(selectedMonth));
+    final vmAsync = ref.watch(insightMonthVmProvider(selectedMonth));
     final fallbackMonthYearLabel = formatMonthYearLabel(selectedMonth);
 
     Future<void> refreshLogs() async {
@@ -68,7 +68,7 @@ class ReportScreen extends ConsumerWidget {
             );
           },
           loading:
-              () => _ReportStateWrapper(
+              () => _InsightStateWrapper(
                 selectedMonth: selectedMonth,
                 monthYearLabel: fallbackMonthYearLabel,
                 onPreviousMonth:
@@ -90,7 +90,7 @@ class ReportScreen extends ConsumerWidget {
                 child: const _LoadingState(),
               ),
           error:
-              (_, __) => _ReportStateWrapper(
+              (_, __) => _InsightStateWrapper(
                 selectedMonth: selectedMonth,
                 monthYearLabel: fallbackMonthYearLabel,
                 onPreviousMonth:
@@ -138,7 +138,7 @@ class _HeaderSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Report',
+          'Insight',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w800,
@@ -187,8 +187,8 @@ class _MonthContent extends StatelessWidget {
   }
 }
 
-class _ReportStateWrapper extends StatefulWidget {
-  const _ReportStateWrapper({
+class _InsightStateWrapper extends StatefulWidget {
+  const _InsightStateWrapper({
     required this.selectedMonth,
     required this.monthYearLabel,
     required this.onPreviousMonth,
@@ -207,10 +207,10 @@ class _ReportStateWrapper extends StatefulWidget {
   final Widget child;
 
   @override
-  State<_ReportStateWrapper> createState() => _ReportStateWrapperState();
+  State<_InsightStateWrapper> createState() => _InsightStateWrapperState();
 }
 
-class _ReportStateWrapperState extends State<_ReportStateWrapper> {
+class _InsightStateWrapperState extends State<_InsightStateWrapper> {
   late final ScrollController _scrollController;
 
   @override

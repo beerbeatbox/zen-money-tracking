@@ -16,10 +16,10 @@ class CustomBottomNav extends StatelessWidget {
     return Text(
       label,
       textAlign: TextAlign.center,
-      maxLines: 1,
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: isActive ? FontWeight.w500 : FontWeight.w500,
         color: Colors.black.withValues(alpha: isActive ? 1 : 0.6),
         height: 1.1,
@@ -34,11 +34,9 @@ class CustomBottomNav extends StatelessWidget {
     required String label,
     required bool isActive,
   }) {
-    const hitWidth = 56.0;
     const hitHeight = 64.0;
 
     return SizedBox(
-      width: hitWidth,
       height: hitHeight,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -71,18 +69,18 @@ class CustomBottomNav extends StatelessWidget {
     return _buildNavItem(
       onTap: () => _handleTabTap(0, isActive: isActive),
       icon: HeroIcons.home,
-      semanticLabel: 'Home',
-      label: 'Home',
+      semanticLabel: 'Dashboard',
+      label: 'Dashboard',
       isActive: isActive,
     );
   }
 
-  Widget _buildReportButton(BuildContext context, {required bool isActive}) {
+  Widget _buildInsightButton(BuildContext context, {required bool isActive}) {
     return _buildNavItem(
       onTap: () => _handleTabTap(1, isActive: isActive),
       icon: HeroIcons.chartBar,
-      semanticLabel: 'Report',
-      label: 'Report',
+      semanticLabel: 'Insight',
+      label: 'Insight',
       isActive: isActive,
     );
   }
@@ -101,7 +99,7 @@ class CustomBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentIndex = navigationShell.currentIndex;
     final isHomeActive = currentIndex == 0;
-    final isReportActive = currentIndex == 1;
+    final isInsightActive = currentIndex == 1;
     final isScheduleActive = currentIndex == 2;
     final isSettingsActive = currentIndex == 3;
 
@@ -121,39 +119,49 @@ class CustomBottomNav extends StatelessWidget {
         ),
         child: BottomAppBar(
           shape: const CircularNotchedRectangle(),
-          notchMargin: 8,
+          notchMargin: 6,
           color: Colors.white,
           elevation: 0, // box shadow handles depth
           surfaceTintColor: Colors.white,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _handleTabTap(0, isActive: isHomeActive),
-                child: _buildHomeButton(context, isActive: isHomeActive),
-              ),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _handleTabTap(1, isActive: isReportActive),
-                child: _buildReportButton(context, isActive: isReportActive),
-              ),
-              const SizedBox(width: 32), // gap for the FAB notch
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _handleTabTap(2, isActive: isScheduleActive),
-                child: _buildScheduleButton(
-                  context,
-                  isActive: isScheduleActive,
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _handleTabTap(0, isActive: isHomeActive),
+                  child: _buildHomeButton(context, isActive: isHomeActive),
                 ),
               ),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _handleTabTap(3, isActive: isSettingsActive),
-                child: _buildSettingsButton(
-                  context,
-                  isActive: isSettingsActive,
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _handleTabTap(1, isActive: isInsightActive),
+                  child: _buildInsightButton(
+                    context,
+                    isActive: isInsightActive,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 32), // gap for the FAB notch
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _handleTabTap(2, isActive: isScheduleActive),
+                  child: _buildScheduleButton(
+                    context,
+                    isActive: isScheduleActive,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _handleTabTap(3, isActive: isSettingsActive),
+                  child: _buildSettingsButton(
+                    context,
+                    isActive: isSettingsActive,
+                  ),
                 ),
               ),
             ],

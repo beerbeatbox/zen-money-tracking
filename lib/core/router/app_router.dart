@@ -8,7 +8,7 @@ import '../../features/home/domain/entities/scheduled_transaction.dart';
 import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
-import '../../features/home/presentation/screens/report_screen.dart';
+import '../../features/home/presentation/screens/insight_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transaction_detail_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
@@ -23,7 +23,7 @@ enum AppRouter {
   dashboard,
   quickAdd,
   budget,
-  report,
+  insight,
   settings,
   categoryManagement,
   profile,
@@ -42,8 +42,8 @@ enum AppRouter {
         return '/quick-add';
       case AppRouter.budget:
         return '/budget';
-      case AppRouter.report:
-        return '/report';
+      case AppRouter.insight:
+        return '/insight';
       case AppRouter.settings:
         return '/settings';
       case AppRouter.categoryManagement:
@@ -107,13 +107,17 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRouter.report.path,
-                name: AppRouter.report.name,
+                path: AppRouter.insight.path,
+                name: AppRouter.insight.name,
                 pageBuilder:
                     (context, state) => NoTransitionPage(
                       key: state.pageKey,
-                      child: const ReportScreen(),
+                      child: const InsightScreen(),
                     ),
+              ),
+              GoRoute(
+                path: '/report',
+                redirect: (context, state) => AppRouter.insight.path,
               ),
             ],
           ),
