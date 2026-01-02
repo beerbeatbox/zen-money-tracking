@@ -564,6 +564,11 @@ class _FilterChips extends StatelessWidget {
           onTap: () => onChanged(_ScheduledPaymentsFilter.all),
         ),
         _FilterChip(
+          label: 'One-time',
+          selected: value == _ScheduledPaymentsFilter.oneTime,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.oneTime),
+        ),
+        _FilterChip(
           label: 'Monthly',
           selected: value == _ScheduledPaymentsFilter.monthly,
           onTap: () => onChanged(_ScheduledPaymentsFilter.monthly),
@@ -572,11 +577,6 @@ class _FilterChips extends StatelessWidget {
           label: 'Yearly',
           selected: value == _ScheduledPaymentsFilter.yearly,
           onTap: () => onChanged(_ScheduledPaymentsFilter.yearly),
-        ),
-        _FilterChip(
-          label: 'One-time',
-          selected: value == _ScheduledPaymentsFilter.oneTime,
-          onTap: () => onChanged(_ScheduledPaymentsFilter.oneTime),
         ),
       ],
     );
