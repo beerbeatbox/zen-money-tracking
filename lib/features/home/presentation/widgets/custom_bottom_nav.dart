@@ -20,7 +20,7 @@ class CustomBottomNav extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: 12,
-        fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+        fontWeight: isActive ? FontWeight.w500 : FontWeight.w500,
         color: Colors.black.withValues(alpha: isActive ? 1 : 0.6),
         height: 1.1,
       ),
