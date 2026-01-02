@@ -79,7 +79,7 @@ class _DatedLogsList extends StatelessWidget {
         final isLastGroup = groupIndex == groupedLogs.length - 1;
 
         return Padding(
-          padding: EdgeInsets.only(bottom: isLastGroup ? 0 : 16),
+          padding: EdgeInsets.only(bottom: isLastGroup ? 0 : 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -144,7 +144,7 @@ class _DatedLogsList extends StatelessWidget {
     final today = DateUtils.dateOnly(DateTime.now());
     final baseLabel = formatDateWithWeekday(date);
     final isToday = date.isAtSameMomentAs(today);
-    return isToday ? 'Today $baseLabel' : baseLabel;
+    return isToday ? '$baseLabel (Today)' : baseLabel;
   }
 
   String _calculateDayTotal(List<ExpenseLog> logs) {
@@ -246,5 +246,3 @@ class _LogMetaRow extends StatelessWidget {
     );
   }
 }
-
-
