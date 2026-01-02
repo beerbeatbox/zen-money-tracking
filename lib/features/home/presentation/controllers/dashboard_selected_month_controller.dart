@@ -10,6 +10,10 @@ class DashboardSelectedMonth extends _$DashboardSelectedMonth {
     return DateTime(now.year, now.month);
   }
 
+  void setMonth(DateTime month) {
+    state = DateTime(month.year, month.month);
+  }
+
   void goToPreviousMonth() {
     final current = state;
     state = DateTime(current.year, current.month - 1);

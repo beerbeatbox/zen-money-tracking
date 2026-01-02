@@ -6,14 +6,18 @@ class DashboardTopBar extends StatelessWidget {
     required this.monthYearLabel,
     required this.onPreviousMonth,
     required this.onNextMonth,
+    this.onTapMonthLabel,
   });
 
   final String monthYearLabel;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
+  final Future<void> Function()? onTapMonthLabel;
 
   @override
   Widget build(BuildContext context) {
+    final isMonthLabelTappable = onTapMonthLabel != null;
+
     return Row(
       children: [
         IconButton(
@@ -23,14 +27,31 @@ class DashboardTopBar extends StatelessWidget {
         ),
         Expanded(
           child: Center(
-            child: Text(
-              monthYearLabel,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: Colors.black,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: isMonthLabelTappable ? () => onTapMonthLabel!.call() : null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    monthYearLabel,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                      color: Colors.black,
+                    ),
+                  ),
+                  if (isMonthLabelTappable) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.expand_more,
+                      size: 20,
+                      color: Colors.black.withValues(alpha: 0.8),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

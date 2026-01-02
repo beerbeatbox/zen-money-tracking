@@ -14,6 +14,7 @@ import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
+import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -198,6 +199,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                             ref
                                 .read(dashboardSelectedMonthProvider.notifier)
                                 .goToNextMonth(),
+                    onTapMonthLabel: () async {
+                      final picked = await showMonthPickerDialog(
+                        context,
+                        initialMonth: selectedMonth,
+                      );
+                      if (picked == null) return;
+                      ref
+                          .read(dashboardSelectedMonthProvider.notifier)
+                          .setMonth(picked);
+                    },
                   ),
                   const SizedBox(height: 16),
                   const Divider(thickness: 2, color: Colors.black),
@@ -241,6 +252,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
                             .goToNextMonth(),
+                onTapMonthLabel: () async {
+                  final picked = await showMonthPickerDialog(
+                    context,
+                    initialMonth: selectedMonth,
+                  );
+                  if (picked == null) return;
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(picked);
+                },
                 onRefresh: _refreshDashboard,
                 child: const DashboardLogsLoading(),
               ),
@@ -257,6 +278,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
                             .goToNextMonth(),
+                onTapMonthLabel: () async {
+                  final picked = await showMonthPickerDialog(
+                    context,
+                    initialMonth: selectedMonth,
+                  );
+                  if (picked == null) return;
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(picked);
+                },
                 onRefresh: _refreshDashboard,
                 child: DashboardLogsError(
                   onRetry: () => refreshExpenseLogs(ref),
@@ -273,6 +304,7 @@ class _DashboardStateWrapper extends StatefulWidget {
     required this.monthYearLabel,
     required this.onPreviousMonth,
     required this.onNextMonth,
+    this.onTapMonthLabel,
     required this.onRefresh,
     required this.child,
   });
@@ -280,6 +312,7 @@ class _DashboardStateWrapper extends StatefulWidget {
   final String monthYearLabel;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
+  final Future<void> Function()? onTapMonthLabel;
   final Future<void> Function() onRefresh;
   final Widget child;
 
@@ -347,6 +380,7 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
               monthYearLabel: widget.monthYearLabel,
               onPreviousMonth: widget.onPreviousMonth,
               onNextMonth: widget.onNextMonth,
+              onTapMonthLabel: widget.onTapMonthLabel,
             ),
             const SizedBox(height: 16),
             const Divider(thickness: 2, color: Colors.black),

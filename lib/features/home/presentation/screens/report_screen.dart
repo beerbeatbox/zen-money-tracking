@@ -1,9 +1,11 @@
+import 'package:anti/core/utils/date_time_formatter.dart';
+import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/screens/report/providers/report_month_vm_provider.dart';
+import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +17,7 @@ class ReportScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
     final vmAsync = ref.watch(reportMonthVmProvider(selectedMonth));
+    final fallbackMonthYearLabel = formatMonthYearLabel(selectedMonth);
 
     Future<void> refreshLogs() async {
       ref.invalidate(expenseLogsProvider);
@@ -30,6 +33,7 @@ class ReportScreen extends ConsumerWidget {
               selectedMonth: selectedMonth,
               onRefresh: refreshLogs,
               header: _HeaderSection(
+                selectedMonth: selectedMonth,
                 monthYearLabel: vm.monthYearLabel,
                 onPreviousMonth:
                     () =>
@@ -41,6 +45,11 @@ class ReportScreen extends ConsumerWidget {
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
                             .goToNextMonth(),
+                onPickMonth: (picked) {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(picked);
+                },
               ),
               monthContent: _MonthContent(
                 selectedMonth: vm.selectedMonth,
@@ -60,7 +69,8 @@ class ReportScreen extends ConsumerWidget {
           },
           loading:
               () => _ReportStateWrapper(
-                monthYearLabel: '',
+                selectedMonth: selectedMonth,
+                monthYearLabel: fallbackMonthYearLabel,
                 onPreviousMonth:
                     () =>
                         ref
@@ -71,12 +81,18 @@ class ReportScreen extends ConsumerWidget {
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
                             .goToNextMonth(),
+                onPickMonth: (picked) {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(picked);
+                },
                 onRefresh: refreshLogs,
                 child: const _LoadingState(),
               ),
           error:
               (_, __) => _ReportStateWrapper(
-                monthYearLabel: '',
+                selectedMonth: selectedMonth,
+                monthYearLabel: fallbackMonthYearLabel,
                 onPreviousMonth:
                     () =>
                         ref
@@ -87,6 +103,11 @@ class ReportScreen extends ConsumerWidget {
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
                             .goToNextMonth(),
+                onPickMonth: (picked) {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(picked);
+                },
                 onRefresh: refreshLogs,
                 child: const _ErrorState(),
               ),
@@ -98,14 +119,18 @@ class ReportScreen extends ConsumerWidget {
 
 class _HeaderSection extends StatelessWidget {
   const _HeaderSection({
+    required this.selectedMonth,
     required this.monthYearLabel,
     required this.onPreviousMonth,
     required this.onNextMonth,
+    required this.onPickMonth,
   });
 
+  final DateTime selectedMonth;
   final String monthYearLabel;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
+  final ValueChanged<DateTime> onPickMonth;
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +151,14 @@ class _HeaderSection extends StatelessWidget {
           monthYearLabel: monthYearLabel,
           onPreviousMonth: onPreviousMonth,
           onNextMonth: onNextMonth,
+          onTapMonthLabel: () async {
+            final picked = await showMonthPickerDialog(
+              context,
+              initialMonth: selectedMonth,
+            );
+            if (picked == null) return;
+            onPickMonth(picked);
+          },
         ),
         const SizedBox(height: 16),
         const Divider(thickness: 2, color: Colors.black),
@@ -156,16 +189,20 @@ class _MonthContent extends StatelessWidget {
 
 class _ReportStateWrapper extends StatefulWidget {
   const _ReportStateWrapper({
+    required this.selectedMonth,
     required this.monthYearLabel,
     required this.onPreviousMonth,
     required this.onNextMonth,
+    required this.onPickMonth,
     required this.onRefresh,
     required this.child,
   });
 
+  final DateTime selectedMonth;
   final String monthYearLabel;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
+  final ValueChanged<DateTime> onPickMonth;
   final Future<void> Function() onRefresh;
   final Widget child;
 
@@ -220,9 +257,11 @@ class _ReportStateWrapperState extends State<_ReportStateWrapper> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _HeaderSection(
+              selectedMonth: widget.selectedMonth,
               monthYearLabel: widget.monthYearLabel,
               onPreviousMonth: widget.onPreviousMonth,
               onNextMonth: widget.onNextMonth,
+              onPickMonth: widget.onPickMonth,
             ),
             widget.child,
           ],
@@ -264,4 +303,3 @@ class _ErrorState extends StatelessWidget {
     );
   }
 }
-
