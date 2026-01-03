@@ -4,6 +4,7 @@ import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:anti/features/settings/presentation/screens/settings_events.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -86,6 +87,7 @@ class _SettingsList extends StatelessWidget {
     final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
     final carryEnabled = carryAsync.value ?? false;
     final canToggle = !carryAsync.isLoading;
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
     return Column(
       children: [
@@ -153,6 +155,25 @@ class _SettingsList extends StatelessWidget {
           icon: HeroIcons.tag,
           title: 'Categories',
           onTap: () => context.pushNamed(AppRouter.categoryManagement.name),
+        ),
+        const SizedBox(height: 12),
+        _SettingsCard(
+          icon: HeroIcons.arrowPath,
+          title: 'Import & Export',
+          onTap: () {
+            if (isIOS) {
+              context.pushNamed(AppRouter.expenseLogsCsv.name);
+              return;
+            }
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Android support is coming soon.'),
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
         ),
         const SizedBox(height: 12),
         _SettingsCard(
