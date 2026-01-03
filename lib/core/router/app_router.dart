@@ -8,6 +8,7 @@ import '../../features/home/domain/entities/scheduled_transaction.dart';
 import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
+import '../../features/home/presentation/screens/expense_logs_csv_screen.dart';
 import '../../features/home/presentation/screens/insight_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transaction_detail_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
@@ -26,6 +27,7 @@ enum AppRouter {
   insight,
   settings,
   categoryManagement,
+  expenseLogsCsv,
   profile,
   scheduledTransactions,
   addScheduledTransaction,
@@ -48,6 +50,8 @@ enum AppRouter {
         return '/settings';
       case AppRouter.categoryManagement:
         return '/settings/categories';
+      case AppRouter.expenseLogsCsv:
+        return '/settings/import-export';
       case AppRouter.profile:
         return '/profile';
       case AppRouter.scheduledTransactions:
@@ -154,6 +158,12 @@ GoRouter appRouter(Ref ref) {
         path: AppRouter.categoryManagement.path,
         name: AppRouter.categoryManagement.name,
         builder: (context, state) => const CategoryManagementScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.expenseLogsCsv.path,
+        name: AppRouter.expenseLogsCsv.name,
+        builder: (context, state) => const ExpenseLogsCsvScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
