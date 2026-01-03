@@ -120,6 +120,7 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
         fileName: 'expense_logs_template.csv',
         rows: rows,
       );
+      if (!context.mounted) return;
       await _shareFile(context, file, subject: 'Expense logs template');
       if (!context.mounted) return;
       _showSnack(context, 'Template ready to save or share.');
@@ -154,6 +155,7 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
         rows: rows,
       );
 
+      if (!context.mounted) return;
       await _shareFile(context, file, subject: 'Expense logs export');
 
       if (!context.mounted) return;
@@ -177,6 +179,7 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
         allowedExtensions: const ['csv'],
         withData: true,
       );
+      if (!context.mounted) return;
       if (result == null || result.files.isEmpty) return;
 
       final file = result.files.single;
@@ -277,7 +280,6 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
         return;
       }
 
-      if (!context.mounted) return;
       final shouldOverwrite = await showDialog<bool>(
         context: context,
         barrierDismissible: true,
@@ -293,6 +295,7 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
           );
         },
       );
+      if (!context.mounted) return;
 
       if (shouldOverwrite != true) return;
       if (!context.mounted) return;
@@ -411,8 +414,9 @@ class _ActionCardState extends State<_ActionCard> {
     try {
       await widget.onTap();
     } finally {
-      if (!mounted) return;
-      setState(() => _isBusy = false);
+      if (mounted) {
+        setState(() => _isBusy = false);
+      }
     }
   }
 
