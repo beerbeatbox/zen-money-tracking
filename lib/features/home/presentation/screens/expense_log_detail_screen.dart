@@ -1,5 +1,8 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
@@ -92,24 +95,37 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
   }
 }
 
-class _LogDetailCard extends StatelessWidget {
+class _LogDetailCard extends ConsumerWidget {
   const _LogDetailCard({required this.log});
 
   final ExpenseLog log;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isIncome = log.amount >= 0;
     final amountColor = isIncome ? Colors.green[700] : Colors.red[700];
+    final categories = ref
+        .watch(categoriesControllerProvider)
+        .maybeWhen(data: (value) => value, orElse: () => null);
+    final type = isIncome ? CategoryType.income : CategoryType.expense;
+    final emoji =
+        categories == null
+            ? null
+            : resolveCategoryEmoji(
+              label: log.category,
+              categories: categories,
+              type: type,
+            );
 
     return OutlinedSurface(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            log.category,
-            style: const TextStyle(
+          CategoryNameWithEmoji(
+            label: log.category,
+            emoji: emoji,
+            textStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.4,
@@ -135,7 +151,21 @@ class _LogDetailCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _MetaRow(label: 'Category', value: log.category),
+          _MetaRow(
+            label: 'Category',
+            value: log.category,
+            valueWidget: CategoryNameWithEmoji(
+              label: log.category,
+              emoji: emoji,
+              spacing: 6,
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+                color: Colors.black,
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           _MetaRow(
             label: 'Time',
@@ -325,10 +355,11 @@ class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
 }
 
 class _MetaRow extends StatelessWidget {
-  const _MetaRow({required this.label, required this.value});
+  const _MetaRow({required this.label, required this.value, this.valueWidget});
 
   final String label;
   final String value;
+  final Widget? valueWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -348,16 +379,18 @@ class _MetaRow extends StatelessWidget {
         Expanded(
           child: Align(
             alignment: Alignment.centerRight,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-                color: Colors.black,
-              ),
-            ),
+            child:
+                valueWidget ??
+                Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                    color: Colors.black,
+                  ),
+                ),
           ),
         ),
       ],

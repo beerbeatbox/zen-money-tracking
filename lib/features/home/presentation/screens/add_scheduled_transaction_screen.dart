@@ -1,6 +1,7 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
+import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class _AddScheduledTransactionScreenState
               subtitle:
                   isEditing
                       ? 'Update amount, time, or category'
-                      : 'Pick an amount, a type, and a future date',
+                      : 'Pick an amount, a type, and a date',
               onBack: () => context.pop(),
             ),
             const SizedBox(height: 16),
@@ -136,34 +137,19 @@ class _AddScheduledTransactionScreenState
       initialLogDateTime: initial?.scheduledDate,
       initialCategory: initial?.category,
       onSubmit: (sheetContext, rawValue, isExpense, logDateTime, category) async {
-        final parsed = double.tryParse(rawValue);
-        if (parsed == null) {
-          _showSnack(sheetContext, 'Please enter a valid number.');
-          return false;
-        }
-        if (parsed <= 0) {
-          _showSnack(
-            sheetContext,
-            'Add an amount above zero to schedule a payment.',
-          );
-          return false;
-        }
-        if (!logDateTime.isAfter(DateTime.now())) {
-          _showSnack(
-            sheetContext,
-            'Pick a future date to schedule this payment.',
-          );
-          return false;
-        }
-        if (!isExpense) {
-          _showSnack(
-            sheetContext,
-            'Scheduled payments are expenses. Switch to Expense to continue.',
-          );
+        final result = parseAndValidateScheduledPayment(
+          rawValue: rawValue,
+          isExpense: isExpense,
+          scheduledDateTime: logDateTime,
+          // Allow creating due/overdue scheduled items (past or current time).
+          requireFutureDate: false,
+        );
+        if (result.error != null) {
+          _showSnack(sheetContext, result.error!);
           return false;
         }
 
-        final amount = -parsed.abs();
+        final amount = -result.amount!.abs();
         final now = DateTime.now();
         final item = ScheduledTransaction(
           id: initial?.id ?? now.microsecondsSinceEpoch.toString(),

@@ -18,9 +18,10 @@ class CategoriesController extends _$CategoriesController {
   Future<void> addCategory({
     required CategoryType type,
     required String label,
+    String? emoji,
   }) async {
     final service = ref.read(categoryServiceProvider);
-    await service.addCategory(type: type, label: label);
+    await service.addCategory(type: type, label: label, emoji: emoji);
     ref.invalidateSelf();
     await future;
   }
@@ -38,6 +39,17 @@ class CategoriesController extends _$CategoriesController {
   }) async {
     final service = ref.read(categoryServiceProvider);
     await service.renameCategory(id: id, label: label);
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<void> updateCategory({
+    required String id,
+    required String label,
+    required String? emoji,
+  }) async {
+    final service = ref.read(categoryServiceProvider);
+    await service.updateCategory(id: id, label: label, emoji: emoji);
     ref.invalidateSelf();
     await future;
   }

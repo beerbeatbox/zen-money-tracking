@@ -40,6 +40,7 @@ class CategoryService {
           id: '${CategoryType.expense.name}-$label-${now.microsecondsSinceEpoch}',
           type: CategoryType.expense,
           label: label,
+          emoji: null,
           createdAt: now,
           sortIndex: defaultExpenseLabels.indexOf(label),
         ),
@@ -49,6 +50,7 @@ class CategoryService {
           id: '${CategoryType.income.name}-$label-${now.microsecondsSinceEpoch}',
           type: CategoryType.income,
           label: label,
+          emoji: null,
           createdAt: now,
           sortIndex: defaultIncomeLabels.indexOf(label),
         ),
@@ -91,6 +93,7 @@ class CategoryService {
           id: expense[i].id,
           type: expense[i].type,
           label: expense[i].label,
+          emoji: expense[i].emoji,
           createdAt: expense[i].createdAt,
           sortIndex: i,
         ),
@@ -99,6 +102,7 @@ class CategoryService {
           id: income[i].id,
           type: income[i].type,
           label: income[i].label,
+          emoji: income[i].emoji,
           createdAt: income[i].createdAt,
           sortIndex: i,
         ),
@@ -128,9 +132,13 @@ class CategoryService {
   Future<void> addCategory({
     required CategoryType type,
     required String label,
+    String? emoji,
   }) async {
     final trimmed = label.trim();
     if (trimmed.isEmpty) return;
+
+    final normalizedEmoji = (emoji ?? '').trim();
+    final emojiOrNull = normalizedEmoji.isEmpty ? null : normalizedEmoji;
 
     final categories = await getCategories();
     final exists =
@@ -154,6 +162,7 @@ class CategoryService {
       id: '${type.name}-$trimmed-${now.microsecondsSinceEpoch}',
       type: type,
       label: trimmed,
+      emoji: emojiOrNull,
       createdAt: now,
       sortIndex: nextIndex,
     );
@@ -179,6 +188,7 @@ class CategoryService {
           id: expense[i].id,
           type: expense[i].type,
           label: expense[i].label,
+          emoji: expense[i].emoji,
           createdAt: expense[i].createdAt,
           sortIndex: i,
         ),
@@ -187,6 +197,7 @@ class CategoryService {
           id: income[i].id,
           type: income[i].type,
           label: income[i].label,
+          emoji: income[i].emoji,
           createdAt: income[i].createdAt,
           sortIndex: i,
         ),
@@ -201,6 +212,25 @@ class CategoryService {
   }) async {
     final trimmed = label.trim();
     if (trimmed.isEmpty) return;
+
+    final categories = await getCategories();
+    final existing = categories.where((c) => c.id == id).toList();
+    if (existing.isEmpty) return;
+    final current = existing.first;
+
+    await updateCategory(id: id, label: trimmed, emoji: current.emoji);
+  }
+
+  Future<void> updateCategory({
+    required String id,
+    required String label,
+    required String? emoji,
+  }) async {
+    final trimmed = label.trim();
+    if (trimmed.isEmpty) return;
+
+    final normalizedEmoji = (emoji ?? '').trim();
+    final emojiOrNull = normalizedEmoji.isEmpty ? null : normalizedEmoji;
 
     final categories = await getCategories();
     final existing = categories.where((c) => c.id == id).toList();
@@ -225,6 +255,7 @@ class CategoryService {
                         id: c.id,
                         type: c.type,
                         label: trimmed,
+                        emoji: emojiOrNull,
                         createdAt: c.createdAt,
                         sortIndex: c.sortIndex,
                       )
@@ -263,6 +294,7 @@ class CategoryService {
           id: byId[finalOrder[i]]!.id,
           type: byId[finalOrder[i]]!.type,
           label: byId[finalOrder[i]]!.label,
+          emoji: byId[finalOrder[i]]!.emoji,
           createdAt: byId[finalOrder[i]]!.createdAt,
           sortIndex: i,
         ),

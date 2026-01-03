@@ -5,6 +5,8 @@ import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
+import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -125,14 +127,16 @@ class _CategoryManagementScreenState
 
     // Only overwrite working lists when they materially differ (e.g., add/delete
     // or provider refresh), so reorder feels instant.
-    if (!_sameIds(_expenseWorking, expense)) _expenseWorking = expense;
-    if (!_sameIds(_incomeWorking, income)) _incomeWorking = income;
+    if (!_sameSignature(_expenseWorking, expense)) _expenseWorking = expense;
+    if (!_sameSignature(_incomeWorking, income)) _incomeWorking = income;
   }
 
-  bool _sameIds(List<Category> a, List<Category> b) {
+  bool _sameSignature(List<Category> a, List<Category> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
       if (a[i].id != b[i].id) return false;
+      if (a[i].label != b[i].label) return false;
+      if ((a[i].emoji ?? '').trim() != (b[i].emoji ?? '').trim()) return false;
     }
     return true;
   }
@@ -164,10 +168,17 @@ class _CategoryManagementScreenState
     BuildContext context,
     List<Category> allCategories,
   ) async {
-    final label = await _showAddCategoryDialog(context);
-    if (!context.mounted || label == null) return;
+    final result = await _showUpsertCategoryDialog(
+      context,
+      title: 'Add a category',
+      description: 'Pick a short name you’ll recognize instantly.',
+      primaryLabel: 'Add',
+      initialLabel: '',
+      initialEmoji: null,
+    );
+    if (!context.mounted || result == null) return;
 
-    final trimmed = label.trim();
+    final trimmed = result.label.trim();
     if (trimmed.isEmpty) {
       _showSnack(context, 'Add a category name to continue.');
       return;
@@ -185,7 +196,7 @@ class _CategoryManagementScreenState
 
     await ref
         .read(categoriesControllerProvider.notifier)
-        .addCategory(type: _selectedType, label: trimmed);
+        .addCategory(type: _selectedType, label: trimmed, emoji: result.emoji);
   }
 
   Future<void> _confirmAndDelete(BuildContext context, String id) async {
@@ -216,13 +227,17 @@ class _CategoryManagementScreenState
     required List<Category> allCategories,
     required Category item,
   }) async {
-    final label = await _showRenameCategoryDialog(
+    final result = await _showUpsertCategoryDialog(
       context,
+      title: 'Edit category',
+      description: 'Update the name and icon you’ll recognize instantly.',
+      primaryLabel: 'Save',
       initialLabel: item.label,
+      initialEmoji: item.emoji,
     );
-    if (!context.mounted || label == null) return;
+    if (!context.mounted || result == null) return;
 
-    final trimmed = label.trim();
+    final trimmed = result.label.trim();
     if (trimmed.isEmpty) {
       _showSnack(context, 'Add a category name to continue.');
       return;
@@ -241,7 +256,7 @@ class _CategoryManagementScreenState
 
     await ref
         .read(categoriesControllerProvider.notifier)
-        .renameCategory(id: item.id, label: trimmed);
+        .updateCategory(id: item.id, label: trimmed, emoji: result.emoji);
   }
 
   void _showSnack(BuildContext context, String message) {
@@ -339,9 +354,11 @@ class _CategoryList extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                    item.label,
-                    style: const TextStyle(
+                  child: CategoryNameWithEmoji(
+                    label: item.label,
+                    emoji: item.emoji,
+                    spacing: 8,
+                    textStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
@@ -464,108 +481,25 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-Future<String?> _showAddCategoryDialog(BuildContext context) {
-  final controller = TextEditingController();
+class _CategoryEditResult {
+  final String label;
+  final String? emoji;
 
-  return showDialog<String>(
-    context: context,
-    barrierDismissible: true,
-    builder: (dialogContext) {
-      return Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: OutlinedSurface(
-          padding: const EdgeInsets.all(20),
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Add a category',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Pick a short name you’ll recognize instantly.',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                textInputAction: TextInputAction.done,
-                decoration: InputDecoration(
-                  hintText: 'e.g., Coffee',
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[500],
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.black, width: 2),
-                  ),
-                ),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-                onSubmitted: (_) {
-                  Navigator.of(dialogContext).pop(controller.text);
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedActionButton(
-                      label: 'Cancel',
-                      onPressed: () => Navigator.of(dialogContext).pop(null),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedActionButton(
-                      label: 'Add',
-                      onPressed:
-                          () =>
-                              Navigator.of(dialogContext).pop(controller.text),
-                      textColor: Colors.white,
-                      borderColor: Colors.black,
-                      backgroundColor: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  ).whenComplete(controller.dispose);
+  const _CategoryEditResult({required this.label, required this.emoji});
 }
 
-Future<String?> _showRenameCategoryDialog(
+Future<_CategoryEditResult?> _showUpsertCategoryDialog(
   BuildContext context, {
+  required String title,
+  required String description,
+  required String primaryLabel,
   required String initialLabel,
+  required String? initialEmoji,
 }) {
-  final controller = TextEditingController(text: initialLabel);
+  final labelController = TextEditingController(text: initialLabel);
+  final emojiController = TextEditingController(text: initialEmoji ?? '');
 
-  return showDialog<String>(
+  return showDialog<_CategoryEditResult>(
     context: context,
     barrierDismissible: true,
     builder: (dialogContext) {
@@ -579,9 +513,9 @@ Future<String?> _showRenameCategoryDialog(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Rename category',
-                style: TextStyle(
+              Text(
+                title,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: Colors.black,
@@ -589,7 +523,7 @@ Future<String?> _showRenameCategoryDialog(
               ),
               const SizedBox(height: 8),
               Text(
-                'Use a short name you’ll recognize instantly.',
+                description,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -597,34 +531,14 @@ Future<String?> _showRenameCategoryDialog(
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                textInputAction: TextInputAction.done,
-                decoration: InputDecoration(
-                  hintText: 'e.g., Coffee',
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[500],
+              Row(
+                children: [
+                  _EmojiField(controller: emojiController),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _CategoryNameField(controller: labelController),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.black, width: 2),
-                  ),
-                ),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-                onSubmitted: (_) {
-                  Navigator.of(dialogContext).pop(controller.text);
-                },
+                ],
               ),
               const SizedBox(height: 16),
               Row(
@@ -638,10 +552,17 @@ Future<String?> _showRenameCategoryDialog(
                   const SizedBox(width: 10),
                   Expanded(
                     child: OutlinedActionButton(
-                      label: 'Save',
-                      onPressed:
-                          () =>
-                              Navigator.of(dialogContext).pop(controller.text),
+                      label: primaryLabel,
+                      onPressed: () {
+                        final label = labelController.text;
+                        final emoji = emojiController.text.trim();
+                        Navigator.of(dialogContext).pop(
+                          _CategoryEditResult(
+                            label: label,
+                            emoji: emoji.isEmpty ? null : emoji,
+                          ),
+                        );
+                      },
                       textColor: Colors.white,
                       borderColor: Colors.black,
                       backgroundColor: Colors.black,
@@ -654,5 +575,162 @@ Future<String?> _showRenameCategoryDialog(
         ),
       );
     },
-  ).whenComplete(controller.dispose);
+  ).whenComplete(() {
+    labelController.dispose();
+    emojiController.dispose();
+  });
+}
+
+class _CategoryNameField extends StatelessWidget {
+  const _CategoryNameField({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      autofocus: true,
+      textInputAction: TextInputAction.done,
+      decoration: InputDecoration(
+        hintText: 'e.g., Coffee',
+        hintStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[500],
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.black),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.black, width: 2),
+        ),
+      ),
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: Colors.black,
+      ),
+    );
+  }
+}
+
+class _EmojiField extends StatelessWidget {
+  const _EmojiField({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 64,
+      height: 52,
+      child: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: controller,
+        builder: (_, value, __) {
+          final emoji = value.text.trim();
+          final hasEmoji = emoji.isNotEmpty;
+
+          return OutlinedSurface(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            borderRadius: BorderRadius.circular(12),
+            child: Center(
+              child:
+                  hasEmoji
+                      ? Text(
+                        emoji,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                      )
+                      : const Icon(
+                        Icons.emoji_emotions_outlined,
+                        color: Colors.black,
+                        size: 18,
+                      ),
+            ),
+          ).onTap(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              final picked = await _showEmojiPickerBottomSheet(context);
+              if (picked == null) return;
+              controller.text = picked.trim();
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+Future<String?> _showEmojiPickerBottomSheet(BuildContext context) {
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) {
+      final mediaQuery = MediaQuery.of(sheetContext);
+      final bottomPadding = mediaQuery.padding.bottom;
+      final height = mediaQuery.size.height * 0.6;
+
+      return SafeArea(
+        top: false,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: OutlinedSurface(
+            height: height,
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(28),
+              topRight: Radius.circular(28),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Pick an icon',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    OutlinedActionButton(
+                      label: 'Clear',
+                      onPressed: () => Navigator.of(sheetContext).pop(''),
+                      textColor: Colors.black,
+                      borderColor: Colors.black,
+                      backgroundColor: Colors.white,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: EmojiPicker(
+                    onEmojiSelected: (_, emoji) {
+                      Navigator.of(sheetContext).pop(emoji.emoji);
+                    },
+                    config: const Config(
+                      height: null,
+                      checkPlatformCompatibility: true,
+                      emojiViewConfig: EmojiViewConfig(
+                        emojiSizeMax: 28,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

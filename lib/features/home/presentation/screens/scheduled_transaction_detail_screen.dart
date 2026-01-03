@@ -1,5 +1,8 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
@@ -95,26 +98,39 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
   }
 }
 
-class _ScheduledDetailCard extends StatelessWidget {
+class _ScheduledDetailCard extends ConsumerWidget {
   const _ScheduledDetailCard({required this.item});
 
   final ScheduledTransaction item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final amountLabel = formatCurrencySigned(item.amount);
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
     final frequencyLabel = _frequencyLabel(item.frequency);
+    final categories = ref
+        .watch(categoriesControllerProvider)
+        .maybeWhen(data: (value) => value, orElse: () => null);
+    final type = item.amount >= 0 ? CategoryType.income : CategoryType.expense;
+    final emoji =
+        categories == null
+            ? null
+            : resolveCategoryEmoji(
+              label: item.category,
+              categories: categories,
+              type: type,
+            );
 
     return OutlinedSurface(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            item.category,
-            style: const TextStyle(
+          CategoryNameWithEmoji(
+            label: item.category,
+            emoji: emoji,
+            textStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.4,
@@ -132,7 +148,21 @@ class _ScheduledDetailCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _MetaRow(label: 'Category', value: item.category),
+          _MetaRow(
+            label: 'Category',
+            value: item.category,
+            valueWidget: CategoryNameWithEmoji(
+              label: item.category,
+              emoji: emoji,
+              spacing: 6,
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+                color: Colors.black,
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           _MetaRow(label: 'When', value: '$timeLabel • $dateLabel'),
           const SizedBox(height: 12),
@@ -299,10 +329,11 @@ class _ScheduledActionsRow extends ConsumerWidget {
 }
 
 class _MetaRow extends StatelessWidget {
-  const _MetaRow({required this.label, required this.value});
+  const _MetaRow({required this.label, required this.value, this.valueWidget});
 
   final String label;
   final String value;
+  final Widget? valueWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -322,16 +353,18 @@ class _MetaRow extends StatelessWidget {
         Expanded(
           child: Align(
             alignment: Alignment.centerRight,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-                color: Colors.black,
-              ),
-            ),
+            child:
+                valueWidget ??
+                Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                    color: Colors.black,
+                  ),
+                ),
           ),
         ),
       ],

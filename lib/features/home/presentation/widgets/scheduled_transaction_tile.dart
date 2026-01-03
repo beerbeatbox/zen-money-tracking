@@ -1,12 +1,16 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ScheduledTransactionTile extends StatelessWidget {
+class ScheduledTransactionTile extends ConsumerWidget {
   const ScheduledTransactionTile({
     super.key,
     required this.item,
@@ -33,7 +37,7 @@ class ScheduledTransactionTile extends StatelessWidget {
   final DateTime? now;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final now = this.now ?? DateTime.now();
     final isDue = !item.scheduledDate.isAfter(now);
     final canConvert = isDue && item.isActive;
@@ -48,28 +52,37 @@ class ScheduledTransactionTile extends StatelessWidget {
             : '$dateLabel • $timeLabel';
 
     final primaryLabel = !item.isActive ? 'Paused' : 'Mark as paid';
+    final categories = ref
+        .watch(categoriesControllerProvider)
+        .maybeWhen(data: (value) => value, orElse: () => null);
+    final type = item.amount >= 0 ? CategoryType.income : CategoryType.expense;
+    final emoji =
+        categories == null
+            ? null
+            : resolveCategoryEmoji(
+              label: item.category,
+              categories: categories,
+              type: type,
+            );
 
     final shouldShowBadges =
         showRecurrenceBadges &&
         (item.frequency != PaymentFrequency.oneTime || !item.isActive);
 
     return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 16),
       borderRadius: BorderRadius.circular(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               Expanded(
-                child: Text(
-                  item.category,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: Colors.black,
-                  ),
+                child: _CategoryLabelWithEmojiBaseline(
+                  label: item.category,
+                  emoji: emoji,
                 ),
               ),
               const SizedBox(width: 12),
@@ -149,6 +162,56 @@ class ScheduledTransactionTile extends StatelessWidget {
     final daysUntil = scheduledDay.difference(today).inDays;
     if (daysUntil == 1) return 'Due in 1 day';
     return 'Due in $daysUntil days';
+  }
+}
+
+class _CategoryLabelWithEmojiBaseline extends StatelessWidget {
+  const _CategoryLabelWithEmojiBaseline({
+    required this.label,
+    required this.emoji,
+  });
+
+  final String label;
+  final String? emoji;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalizedEmoji = (emoji ?? '').trim();
+    const labelStyle = TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.2,
+      color: Colors.black,
+    );
+
+    if (normalizedEmoji.isEmpty) {
+      return Text(
+        label,
+        style: labelStyle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final emojiFontSize = (labelStyle.fontSize! + 6).clamp(18, 28).toDouble();
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: normalizedEmoji,
+            style: labelStyle.copyWith(fontSize: emojiFontSize),
+          ),
+          const WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: SizedBox(width: 8),
+          ),
+          TextSpan(text: label, style: labelStyle),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
 

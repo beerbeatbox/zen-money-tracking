@@ -2,10 +2,14 @@ import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class DashboardRecentLogsSection extends StatelessWidget {
@@ -160,56 +164,61 @@ class _LogGroup {
   final List<ExpenseLog> logs;
 }
 
-class _LogTile extends StatelessWidget {
+class _LogTile extends ConsumerWidget {
   const _LogTile({required this.log});
 
   final ExpenseLog log;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final amountLabel = formatCurrencySigned(log.amount);
+    final categories = ref
+        .watch(categoriesControllerProvider)
+        .maybeWhen(data: (value) => value, orElse: () => null);
+    final type = log.amount >= 0 ? CategoryType.income : CategoryType.expense;
+    final emoji =
+        categories == null
+            ? null
+            : resolveCategoryEmoji(
+              label: log.category,
+              categories: categories,
+              type: type,
+            );
 
     return OutlinedSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 12,
-            height: 12,
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              border: Border.all(color: Colors.black, width: 2),
-            ),
-          ),
-          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  log.category,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                    letterSpacing: 0.2,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      child: _CategoryLabelWithEmojiBaseline(
+                        label: log.category,
+                        emoji: emoji,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      amountLabel,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 _LogMetaRow(log: log),
               ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            amountLabel,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.3,
-              color: Colors.black,
             ),
           ),
         ],
@@ -225,6 +234,57 @@ class _LogTile extends StatelessWidget {
       AppRouter.expenseLogDetail.name,
       pathParameters: {'id': log.id},
       extra: log,
+    );
+  }
+}
+
+class _CategoryLabelWithEmojiBaseline extends StatelessWidget {
+  const _CategoryLabelWithEmojiBaseline({
+    required this.label,
+    required this.emoji,
+  });
+
+  final String label;
+  final String? emoji;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalizedEmoji = (emoji ?? '').trim();
+    const labelStyle = TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w800,
+      color: Colors.black,
+      letterSpacing: 0.2,
+    );
+
+    if (normalizedEmoji.isEmpty) {
+      return Text(
+        label,
+        style: labelStyle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    // Use Text.rich so the widget participates in baseline alignment within the Row.
+    final emojiFontSize = (labelStyle.fontSize! + 6).clamp(18, 28).toDouble();
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: normalizedEmoji,
+            style: labelStyle.copyWith(fontSize: emojiFontSize),
+          ),
+          const WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: SizedBox(width: 8),
+          ),
+          TextSpan(text: label, style: labelStyle),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

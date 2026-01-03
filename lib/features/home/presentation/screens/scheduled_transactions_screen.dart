@@ -190,7 +190,8 @@ class _ScheduledTransactionsScreenState
           rawValue: rawValue,
           isExpense: isExpense,
           scheduledDateTime: logDateTime,
-          requireFutureDate: true,
+          // Allow creating due/overdue scheduled items (past or current time).
+          requireFutureDate: false,
         );
         if (result.error != null) {
           _showSnack(sheetContext, result.error!);
@@ -366,7 +367,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = switch (filter) {
-      _ScheduledPaymentsFilter.all => 'Start planning your future payments.',
+      _ScheduledPaymentsFilter.all => 'Start planning your payments.',
       _ScheduledPaymentsFilter.monthly =>
         'Add a monthly payment to keep your bills on track.',
       _ScheduledPaymentsFilter.yearly =>

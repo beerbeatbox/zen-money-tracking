@@ -6,6 +6,7 @@ import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/domain/usecases/category_service.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
@@ -99,7 +100,7 @@ class _NumberKeyboardBottomSheetState
   late PaymentFrequency _frequency;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
-  List<String> get _availableCategories {
+  List<Category> get _availableCategories {
     final categoriesAsync = ref.watch(categoriesControllerProvider);
     final categories = categoriesAsync.maybeWhen(
       data: (value) => value,
@@ -108,9 +109,22 @@ class _NumberKeyboardBottomSheetState
     if (categories == null) {
       // While loading (or before codegen runs), fall back to defaults so the UI
       // stays usable. Once loaded, we reflect the persisted list exactly.
-      return _isExpense
-          ? CategoryService.defaultExpenseLabels
-          : CategoryService.defaultIncomeLabels;
+      final type = _isExpense ? CategoryType.expense : CategoryType.income;
+      final labels =
+          _isExpense
+              ? CategoryService.defaultExpenseLabels
+              : CategoryService.defaultIncomeLabels;
+      return [
+        for (var i = 0; i < labels.length; i++)
+          Category(
+            id: 'fallback-$i',
+            type: type,
+            label: labels[i],
+            emoji: null,
+            createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+            sortIndex: i,
+          ),
+      ];
     }
 
     final type = _isExpense ? CategoryType.expense : CategoryType.income;
@@ -118,7 +132,7 @@ class _NumberKeyboardBottomSheetState
         .where((c) => c.type == type)
         .toList(growable: false)
       ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
-    return filtered.map((c) => c.label).toList(growable: false);
+    return filtered;
   }
 
   String get _logTimeLabel {
@@ -269,8 +283,8 @@ class _NumberKeyboardBottomSheetState
       final categories = _availableCategories;
       if (categories.isEmpty) {
         _selectedCategory = '';
-      } else if (!categories.contains(_selectedCategory)) {
-        _selectedCategory = categories.first;
+      } else if (!categories.map((c) => c.label).contains(_selectedCategory)) {
+        _selectedCategory = categories.first.label;
       }
     });
   }
@@ -308,9 +322,11 @@ class _NumberKeyboardBottomSheetState
         .where((c) => c.type == type)
         .toList(growable: false)..sort(
         (a, b) => a.sortIndex.compareTo(b.sortIndex),
-      )).map((c) => c.label).toList(growable: false);
+      ));
+      final availableLabels =
+          available.map((c) => c.label).toList(growable: false);
 
-      if (available.isEmpty) {
+      if (availableLabels.isEmpty) {
         if (_selectedCategory.isNotEmpty) {
           setState(() => _selectedCategory = '');
         }
@@ -318,15 +334,15 @@ class _NumberKeyboardBottomSheetState
       }
 
       if (_shouldDefaultToFirstCategory &&
-          _selectedCategory != available.first) {
+          _selectedCategory != availableLabels.first) {
         setState(() {
-          _selectedCategory = available.first;
+          _selectedCategory = availableLabels.first;
         });
         return;
       }
 
-      if (!available.contains(_selectedCategory)) {
-        setState(() => _selectedCategory = available.first);
+      if (!availableLabels.contains(_selectedCategory)) {
+        setState(() => _selectedCategory = availableLabels.first);
       }
     });
 
@@ -590,7 +606,7 @@ class _CategorySection extends StatelessWidget {
 
   final String selected;
   final ValueChanged<String> onChanged;
-  final List<String> categories;
+  final List<Category> categories;
 
   @override
   Widget build(BuildContext context) {
@@ -643,9 +659,9 @@ class _CategorySection extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _CategoryChip(
-                    label: category,
-                    selected: category == selected,
-                    onTap: () => onChanged(category),
+                    item: category,
+                    selected: category.label == selected,
+                    onTap: () => onChanged(category.label),
                   ),
                 ),
                 if (category != categories.last) const SizedBox(width: 10),
@@ -660,12 +676,12 @@ class _CategorySection extends StatelessWidget {
 
 class _CategoryChip extends StatelessWidget {
   const _CategoryChip({
-    required this.label,
+    required this.item,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
+  final Category item;
   final bool selected;
   final VoidCallback onTap;
 
@@ -675,9 +691,11 @@ class _CategoryChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       borderRadius: const BorderRadius.all(Radius.circular(18)),
       color: selected ? Colors.black : Colors.white,
-      child: Text(
-        label,
-        style: TextStyle(
+      child: CategoryNameWithEmoji(
+        label: item.label,
+        emoji: item.emoji,
+        spacing: 6,
+        textStyle: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w700,
           color: selected ? Colors.white : Colors.black,

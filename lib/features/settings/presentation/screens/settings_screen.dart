@@ -141,7 +141,7 @@ class _SettingsList extends StatelessWidget {
                             )
                             .setEnabled(value)
                         : null,
-                activeThumbColor: Colors.green,
+                activeColor: Colors.green,
                 inactiveThumbColor: Colors.black,
                 inactiveTrackColor: Colors.grey[300],
               ),
