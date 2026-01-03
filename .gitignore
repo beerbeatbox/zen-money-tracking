@@ -180,7 +180,6 @@ app.*.map.json
 # ===================
 # FVM (Flutter Version Management)
 # ===================
-.fvm/versions
 
 # ===================
 # Environment & Secrets
@@ -259,3 +258,6 @@ doc/api/
 # Cursor IDE
 .cursor/
 !.cursor/rules/
+
+# FVM Version Cache
+.fvm/
