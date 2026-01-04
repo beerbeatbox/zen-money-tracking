@@ -82,6 +82,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         isExpense,
         logDateTime,
         category,
+        frequency,
+        intervalCount,
+        intervalUnit,
       ) async {
         final parsed = double.tryParse(rawValue);
         if (parsed == null) {

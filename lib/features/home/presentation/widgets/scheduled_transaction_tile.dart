@@ -117,7 +117,13 @@ class ScheduledTransactionTile extends ConsumerWidget {
               runSpacing: 8,
               children: [
                 if (item.frequency != PaymentFrequency.oneTime)
-                  _Badge(label: _recurrenceLabel(item.frequency)),
+                  _Badge(
+                    label: _recurrenceLabel(
+                      item.frequency,
+                      item.intervalCount,
+                      item.intervalUnit,
+                    ),
+                  ),
                 if (!item.isActive)
                   const _Badge(
                     label: 'Paused',
@@ -252,7 +258,11 @@ class _Badge extends StatelessWidget {
   }
 }
 
-String _recurrenceLabel(PaymentFrequency frequency) {
+String _recurrenceLabel(
+  PaymentFrequency frequency,
+  int? intervalCount,
+  IntervalUnit? intervalUnit,
+) {
   switch (frequency) {
     case PaymentFrequency.oneTime:
       return 'One-time';
@@ -260,5 +270,16 @@ String _recurrenceLabel(PaymentFrequency frequency) {
       return 'Monthly';
     case PaymentFrequency.yearly:
       return 'Yearly';
+    case PaymentFrequency.interval:
+      if (intervalCount == null || intervalUnit == null) {
+        return 'Recurring';
+      }
+      final unitLabel = switch (intervalUnit) {
+        IntervalUnit.days => intervalCount == 1 ? 'day' : 'days',
+        IntervalUnit.weeks => intervalCount == 1 ? 'week' : 'weeks',
+        IntervalUnit.months => intervalCount == 1 ? 'month' : 'months',
+        IntervalUnit.years => intervalCount == 1 ? 'year' : 'years',
+      };
+      return 'Every $intervalCount $unitLabel';
   }
 }

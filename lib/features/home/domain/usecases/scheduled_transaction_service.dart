@@ -55,7 +55,12 @@ class ScheduledTransactionService {
       return;
     }
 
-    final next = nextDueDate(from: scheduled.scheduledDate, frequency: scheduled.frequency);
+    final next = nextDueDate(
+      from: scheduled.scheduledDate,
+      frequency: scheduled.frequency,
+      intervalCount: scheduled.intervalCount,
+      intervalUnit: scheduled.intervalUnit,
+    );
     await updateScheduledTransaction(scheduled.copyWith(scheduledDate: next));
   }
 }

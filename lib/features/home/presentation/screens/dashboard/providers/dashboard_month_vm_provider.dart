@@ -1,6 +1,7 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:anti/features/home/domain/utils/recurrence.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
@@ -134,12 +135,25 @@ List<ScheduledTransaction> _scheduledInMonth({
   final startOfMonth = DateTime(selectedMonth.year, selectedMonth.month);
   final endOfMonth = DateTime(selectedMonth.year, selectedMonth.month + 1, 0);
 
-  final items =
-      scheduledTransactions.where((t) {
-        final dateOnly = DateUtils.dateOnly(t.scheduledDate);
-        return !dateOnly.isBefore(startOfMonth) &&
-            !dateOnly.isAfter(endOfMonth);
-      }).toList();
+  final items = <ScheduledTransaction>[];
+
+  for (final schedule in scheduledTransactions) {
+    final occurrences = occurrencesInMonth(
+      schedule: schedule,
+      startOfMonth: startOfMonth,
+      endOfMonth: endOfMonth,
+    );
+
+    for (final occurrenceDate in occurrences) {
+      // Create a virtual scheduled transaction for this occurrence
+      // Use a stable ID suffix to differentiate occurrences
+      final occurrenceId =
+          '${schedule.id}_${occurrenceDate.millisecondsSinceEpoch}';
+      items.add(
+        schedule.copyWith(id: occurrenceId, scheduledDate: occurrenceDate),
+      );
+    }
+  }
 
   items.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
   return items;

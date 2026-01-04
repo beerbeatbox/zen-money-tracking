@@ -10,7 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
-enum _ScheduledPaymentsFilter { all, monthly, yearly, oneTime }
+enum _ScheduledPaymentsFilter {
+  all,
+  oneTime,
+  days,
+  weeks,
+  months,
+  years,
+}
 
 class ScheduledTransactionsScreen extends ConsumerStatefulWidget {
   const ScheduledTransactionsScreen({super.key});
@@ -92,6 +99,8 @@ class _ScheduledTransactionsScreenState
     ScheduledTransaction? initial,
   }) async {
     var frequency = initial?.frequency ?? PaymentFrequency.oneTime;
+    var intervalCount = initial?.intervalCount;
+    var intervalUnit = initial?.intervalUnit;
 
     await showNumberKeyboardBottomSheet(
       context,
@@ -102,13 +111,22 @@ class _ScheduledTransactionsScreenState
       initialCategory: initial?.category,
       showFrequencyChips: true,
       initialFrequency: frequency,
+      initialIntervalCount: intervalCount,
+      initialIntervalUnit: intervalUnit,
       onFrequencyChanged: (next) => frequency = next,
+      onIntervalChanged: (interval) {
+        intervalCount = interval.$1;
+        intervalUnit = interval.$2;
+      },
       onSubmit: (
         sheetContext,
         rawValue,
         isExpense,
         logDateTime,
         category,
+        freq,
+        count,
+        unit,
       ) async {
         final result = parseAndValidateScheduledPayment(
           rawValue: rawValue,
@@ -131,7 +149,9 @@ class _ScheduledTransactionsScreenState
           amount: amount,
           scheduledDate: logDateTime,
           createdAt: initial?.createdAt ?? now,
-          frequency: frequency,
+          frequency: freq,
+          intervalCount: count,
+          intervalUnit: unit,
           isActive: initial?.isActive ?? true,
           remindDaysBefore: initial?.remindDaysBefore ?? 0,
         );
@@ -178,17 +198,41 @@ List<ScheduledTransaction> _applyFilter(
   switch (filter) {
     case _ScheduledPaymentsFilter.all:
       return items;
-    case _ScheduledPaymentsFilter.monthly:
-      return items
-          .where((e) => e.frequency == PaymentFrequency.monthly)
-          .toList(growable: false);
-    case _ScheduledPaymentsFilter.yearly:
-      return items
-          .where((e) => e.frequency == PaymentFrequency.yearly)
-          .toList(growable: false);
     case _ScheduledPaymentsFilter.oneTime:
       return items
           .where((e) => e.frequency == PaymentFrequency.oneTime)
+          .toList(growable: false);
+    case _ScheduledPaymentsFilter.days:
+      return items
+          .where(
+            (e) =>
+                e.frequency == PaymentFrequency.interval &&
+                e.intervalUnit == IntervalUnit.days,
+          )
+          .toList(growable: false);
+    case _ScheduledPaymentsFilter.weeks:
+      return items
+          .where(
+            (e) =>
+                e.frequency == PaymentFrequency.interval &&
+                e.intervalUnit == IntervalUnit.weeks,
+          )
+          .toList(growable: false);
+    case _ScheduledPaymentsFilter.months:
+      return items
+          .where(
+            (e) =>
+                e.frequency == PaymentFrequency.interval &&
+                e.intervalUnit == IntervalUnit.months,
+          )
+          .toList(growable: false);
+    case _ScheduledPaymentsFilter.years:
+      return items
+          .where(
+            (e) =>
+                e.frequency == PaymentFrequency.interval &&
+                e.intervalUnit == IntervalUnit.years,
+          )
           .toList(growable: false);
   }
 }
@@ -286,12 +330,16 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = switch (filter) {
       _ScheduledPaymentsFilter.all => 'Start planning your payments.',
-      _ScheduledPaymentsFilter.monthly =>
-        'Add a monthly payment to keep your bills on track.',
-      _ScheduledPaymentsFilter.yearly =>
-        'Schedule a yearly payment to plan ahead with confidence.',
       _ScheduledPaymentsFilter.oneTime =>
         'Schedule a payment to plan ahead with confidence.',
+      _ScheduledPaymentsFilter.days =>
+        'Add a daily recurring payment to track regular expenses.',
+      _ScheduledPaymentsFilter.weeks =>
+        'Add a weekly recurring payment to keep your bills on track.',
+      _ScheduledPaymentsFilter.months =>
+        'Add a monthly recurring payment to plan ahead with confidence.',
+      _ScheduledPaymentsFilter.years =>
+        'Schedule a yearly recurring payment to plan ahead with confidence.',
     };
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 32),
@@ -360,14 +408,24 @@ class _FilterChips extends StatelessWidget {
           onTap: () => onChanged(_ScheduledPaymentsFilter.oneTime),
         ),
         _FilterChip(
-          label: 'Monthly',
-          selected: value == _ScheduledPaymentsFilter.monthly,
-          onTap: () => onChanged(_ScheduledPaymentsFilter.monthly),
+          label: 'Days',
+          selected: value == _ScheduledPaymentsFilter.days,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.days),
         ),
         _FilterChip(
-          label: 'Yearly',
-          selected: value == _ScheduledPaymentsFilter.yearly,
-          onTap: () => onChanged(_ScheduledPaymentsFilter.yearly),
+          label: 'Weeks',
+          selected: value == _ScheduledPaymentsFilter.weeks,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.weeks),
+        ),
+        _FilterChip(
+          label: 'Months',
+          selected: value == _ScheduledPaymentsFilter.months,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.months),
+        ),
+        _FilterChip(
+          label: 'Years',
+          selected: value == _ScheduledPaymentsFilter.years,
+          onTap: () => onChanged(_ScheduledPaymentsFilter.years),
         ),
       ],
     );
