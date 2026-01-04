@@ -146,12 +146,8 @@ List<ScheduledTransaction> _scheduledInMonth({
 
     for (final occurrenceDate in occurrences) {
       // Create a virtual scheduled transaction for this occurrence
-      // Use a stable ID suffix to differentiate occurrences
-      final occurrenceId =
-          '${schedule.id}_${occurrenceDate.millisecondsSinceEpoch}';
-      items.add(
-        schedule.copyWith(id: occurrenceId, scheduledDate: occurrenceDate),
-      );
+      // Keep the original ID so edit/delete actions work correctly
+      items.add(schedule.copyWith(scheduledDate: occurrenceDate));
     }
   }
 
