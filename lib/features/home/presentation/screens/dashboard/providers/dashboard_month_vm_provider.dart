@@ -22,6 +22,7 @@ class DashboardMonthVm {
     required this.income,
     required this.spent,
     required this.scheduledThisMonth,
+    required this.dueNow,
   });
 
   final DateTime selectedMonth;
@@ -34,6 +35,7 @@ class DashboardMonthVm {
   final double income;
   final double spent;
   final List<ScheduledTransaction> scheduledThisMonth;
+  final List<ScheduledTransaction> dueNow;
 }
 
 /// Derived dashboard values for the given month.
@@ -89,6 +91,17 @@ final dashboardMonthVmProvider = Provider.family<
 
     final showProjected = scheduledThisMonth.isNotEmpty;
 
+    final now = DateTime.now();
+    final isCurrentMonth =
+        selectedMonth.year == now.year && selectedMonth.month == now.month;
+    final dueNow =
+        isCurrentMonth
+            ? _dueNowItems(
+              scheduledTransactions: scheduledTransactions,
+              now: now,
+            )
+            : const <ScheduledTransaction>[];
+
     return DashboardMonthVm(
       selectedMonth: selectedMonth,
       monthYearLabel: monthYearLabel,
@@ -100,6 +113,7 @@ final dashboardMonthVmProvider = Provider.family<
       income: income,
       spent: spent,
       scheduledThisMonth: scheduledThisMonth,
+      dueNow: dueNow,
     );
   });
 });
@@ -153,4 +167,20 @@ List<ScheduledTransaction> _scheduledInMonth({
 
   items.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
   return items;
+}
+
+List<ScheduledTransaction> _dueNowItems({
+  required List<ScheduledTransaction> scheduledTransactions,
+  required DateTime now,
+}) {
+  final today = DateUtils.dateOnly(now);
+  final dueItems =
+      scheduledTransactions.where((item) {
+          if (!item.isActive) return false;
+          final scheduledDay = DateUtils.dateOnly(item.scheduledDate);
+          return scheduledDay.isBefore(today) ||
+              scheduledDay.isAtSameMomentAs(today);
+        }).toList()
+        ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+  return dueItems;
 }
