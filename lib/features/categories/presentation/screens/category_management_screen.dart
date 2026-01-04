@@ -69,13 +69,29 @@ class _CategoryManagementScreenState
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        _isExpense ? 'Expense categories' : 'Income categories',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _isExpense
+                                ? 'Expense categories'
+                                : 'Income categories',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Press and hold, then drag to sort.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     OutlinedSurface(
@@ -252,7 +268,10 @@ class _CategoryManagementScreenState
       if (_expandedMainIds.contains(mainId)) {
         _expandedMainIds.remove(mainId);
       } else {
-        _expandedMainIds.add(mainId);
+        // Accordion behavior: only one main category can be expanded at a time.
+        _expandedMainIds
+          ..clear()
+          ..add(mainId);
       }
     });
   }
@@ -423,7 +442,11 @@ class _CategoryManagementScreenState
           label: trimmed,
           emoji: result.emoji,
         );
-    setState(() => _expandedMainIds.add(parent.id));
+    setState(() {
+      _expandedMainIds
+        ..clear()
+        ..add(parent.id);
+    });
   }
 
   Future<void> _confirmAndDelete(
@@ -586,6 +609,7 @@ class _CategoryTreeList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
       buildDefaultDragHandles: false,
+      padding: const EdgeInsets.only(right: 6, bottom: 6),
       onReorder: onReorder,
       itemCount: items.length,
       proxyDecorator:
@@ -598,133 +622,131 @@ class _CategoryTreeList extends StatelessWidget {
           final isExpanded = expandedMainIds.contains(category.id);
           final hasChildren = hasChildrenByMainId[category.id] == true;
 
-          return Padding(
+          return ReorderableDelayedDragStartListener(
             key: ValueKey(category.id),
-            padding: const EdgeInsets.only(bottom: 10),
-            child: OutlinedSurface(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              borderRadius: BorderRadius.circular(12),
-              child: Row(
-                children: [
-                  ReorderableDragStartListener(
-                    index: index,
-                    child: const Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: Icon(Icons.drag_handle, color: Colors.black),
-                    ),
-                  ),
-                  Expanded(
-                    child: CategoryNameWithEmoji(
-                      label: category.label,
-                      emoji: category.emoji,
-                      spacing: 8,
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
+            index: index,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: OutlinedSurface(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CategoryNameWithEmoji(
+                        label: category.label,
+                        emoji: category.emoji,
+                        spacing: 8,
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => onAddSub(category),
-                    icon: const Icon(Icons.add, color: Colors.black),
-                    tooltip: 'Add sub-category',
-                  ),
-                  if (hasChildren)
                     IconButton(
-                      onPressed: () => onToggleExpanded(category.id),
-                      icon: Icon(
-                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                      onPressed: () => onAddSub(category),
+                      icon: const Icon(Icons.add, color: Colors.black),
+                      tooltip: 'Add sub-category',
+                    ),
+                    if (hasChildren)
+                      IconButton(
+                        onPressed: () => onToggleExpanded(category.id),
+                        icon: Icon(
+                          isExpanded ? Icons.expand_less : Icons.expand_more,
+                          color: Colors.black,
+                        ),
+                        tooltip: isExpanded ? 'Collapse' : 'Expand',
+                      ),
+                    IconButton(
+                      onPressed: () => onRename(category),
+                      icon: const Icon(
+                        Icons.edit_outlined,
                         color: Colors.black,
                       ),
-                      tooltip: isExpanded ? 'Collapse' : 'Expand',
+                      tooltip: 'Edit',
                     ),
-                  IconButton(
-                    onPressed: () => onRename(category),
-                    icon: const Icon(Icons.edit_outlined, color: Colors.black),
-                    tooltip: 'Edit',
-                  ),
-                  IconButton(
-                    onPressed: () => onDelete(category),
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    tooltip: 'Delete',
-                  ),
-                ],
+                    IconButton(
+                      onPressed: () => onDelete(category),
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      tooltip: 'Delete',
+                    ),
+                  ],
+                ),
               ),
             ),
           );
         }
 
-        return Padding(
+        return ReorderableDelayedDragStartListener(
           key: ValueKey(category.id),
-          padding: const EdgeInsets.only(bottom: 8),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  width: 28,
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      width: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(99),
+          index: index,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    width: 28,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        width: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: OutlinedSurface(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Row(
-                      children: [
-                        ReorderableDragStartListener(
-                          index: index,
-                          child: const Padding(
-                            padding: EdgeInsets.only(right: 8),
-                            child: Icon(Icons.drag_handle, color: Colors.black),
-                          ),
-                        ),
-                        Expanded(
-                          child: CategoryNameWithEmoji(
-                            label: category.label,
-                            emoji: category.emoji,
-                            spacing: 8,
-                            textStyle: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
+                  Expanded(
+                    child: OutlinedSurface(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CategoryNameWithEmoji(
+                              label: category.label,
+                              emoji: category.emoji,
+                              spacing: 8,
+                              textStyle: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: () => onRename(category),
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            color: Colors.black,
+                          IconButton(
+                            onPressed: () => onRename(category),
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: Colors.black,
+                            ),
+                            tooltip: 'Edit',
                           ),
-                          tooltip: 'Edit',
-                        ),
-                        IconButton(
-                          onPressed: () => onDelete(category),
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.red,
+                          IconButton(
+                            onPressed: () => onDelete(category),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                            tooltip: 'Delete',
                           ),
-                          tooltip: 'Delete',
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

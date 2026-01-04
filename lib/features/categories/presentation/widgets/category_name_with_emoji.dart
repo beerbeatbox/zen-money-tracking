@@ -9,6 +9,7 @@ class CategoryNameWithEmoji extends StatelessWidget {
   final double emojiSizeDelta;
   final double emojiMinSize;
   final double emojiMaxSize;
+  final int maxLines;
 
   const CategoryNameWithEmoji({
     super.key,
@@ -19,6 +20,7 @@ class CategoryNameWithEmoji extends StatelessWidget {
     this.emojiSizeDelta = 6,
     this.emojiMinSize = 18,
     this.emojiMaxSize = 28,
+    this.maxLines = 1,
   });
 
   @override
@@ -32,7 +34,13 @@ class CategoryNameWithEmoji extends StatelessWidget {
     );
 
     if (normalizedEmoji.isEmpty) {
-      return Text(label, style: style);
+      return Text(
+        label,
+        style: style,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        softWrap: false,
+      );
     }
 
     return Row(
@@ -43,7 +51,15 @@ class CategoryNameWithEmoji extends StatelessWidget {
           style: (style ?? const TextStyle()).copyWith(fontSize: emojiFontSize),
         ),
         SizedBox(width: spacing),
-        Flexible(child: Text(label, style: style)),
+        Flexible(
+          child: Text(
+            label,
+            style: style,
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          ),
+        ),
       ],
     );
   }
