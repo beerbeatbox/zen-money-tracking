@@ -13,6 +13,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -41,7 +42,7 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _HeaderSection(),
+            _HeaderSection(onBackPressed: context.pop),
             const SizedBox(height: 16),
             const Divider(thickness: 2, color: Colors.black),
             const SizedBox(height: 24),
@@ -316,30 +317,44 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
 }
 
 class _HeaderSection extends StatelessWidget {
-  const _HeaderSection();
+  const _HeaderSection({required this.onBackPressed});
+
+  final VoidCallback onBackPressed;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Text(
-          'Import & Export',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
-            color: Colors.black,
-          ),
+        IconButton(
+          onPressed: onBackPressed,
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          tooltip: 'Back',
         ),
-        SizedBox(height: 8),
-        Text(
-          'Save your logs as a CSV, or import a CSV to restore them on this device.',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-            height: 1.2,
+        const SizedBox(width: 8),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'IMPORT & EXPORT',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Save your logs as a CSV, or import a CSV to restore them on this device.',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
           ),
         ),
       ],
