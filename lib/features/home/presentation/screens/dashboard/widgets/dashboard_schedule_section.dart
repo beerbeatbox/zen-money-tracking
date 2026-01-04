@@ -12,17 +12,20 @@ class DashboardScheduleSection extends ConsumerWidget {
     super.key,
     required this.items,
     required this.selectedMonth,
+    this.maxPreviewCount = 3,
   });
 
   final List<ScheduledTransaction> items;
   final DateTime selectedMonth;
+  final int? maxPreviewCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final countLabel = '${items.length} Due';
-    final preview = items.take(3).toList();
+    final countLabel = '${items.length} Scheduled';
+    final preview =
+        maxPreviewCount == null ? items : items.take(maxPreviewCount!).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

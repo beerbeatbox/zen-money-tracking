@@ -20,7 +20,7 @@ class DashboardMonthVm {
     required this.showProjected,
     required this.income,
     required this.spent,
-    required this.scheduleReminders,
+    required this.scheduledThisMonth,
   });
 
   final DateTime selectedMonth;
@@ -32,7 +32,7 @@ class DashboardMonthVm {
   final bool showProjected;
   final double income;
   final double spent;
-  final List<ScheduledTransaction> scheduleReminders;
+  final List<ScheduledTransaction> scheduledThisMonth;
 }
 
 /// Derived dashboard values for the given month.
@@ -58,7 +58,7 @@ final dashboardMonthVmProvider = Provider.family<
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
 
     final scopedLogs = filterLogsByMonth(allLogs, selectedMonth);
-    final scheduleReminders = _buildScheduleReminders(
+    final scheduledThisMonth = _scheduledInMonth(
       selectedMonth: selectedMonth,
       scheduledTransactions: scheduledTransactions,
     );
@@ -83,14 +83,10 @@ final dashboardMonthVmProvider = Provider.family<
 
     final projectedBalance = _calculateProjectedBalance(
       balanceWithCarry: netBalance,
-      selectedMonth: selectedMonth,
-      scheduledTransactions: scheduledTransactions,
+      scheduledThisMonth: scheduledThisMonth,
     );
 
-    final from = DateTime(selectedMonth.year, selectedMonth.month);
-    final showProjected = scheduledTransactions.any(
-      (t) => !t.scheduledDate.isBefore(from),
-    );
+    final showProjected = scheduledThisMonth.isNotEmpty;
 
     return DashboardMonthVm(
       selectedMonth: selectedMonth,
@@ -102,7 +98,7 @@ final dashboardMonthVmProvider = Provider.family<
       showProjected: showProjected,
       income: income,
       spent: spent,
-      scheduleReminders: scheduleReminders,
+      scheduledThisMonth: scheduledThisMonth,
     );
   });
 });
@@ -120,62 +116,31 @@ double _calculateSpent(List<ExpenseLog> logs) => logs
 
 double _calculateProjectedBalance({
   required double balanceWithCarry,
-  required DateTime selectedMonth,
-  required List<ScheduledTransaction> scheduledTransactions,
+  required List<ScheduledTransaction> scheduledThisMonth,
 }) {
-  final from = DateTime(selectedMonth.year, selectedMonth.month);
-  final scheduledSum = scheduledTransactions
-      .where((t) => !t.scheduledDate.isBefore(from))
-      .fold<double>(0.0, (sum, t) => sum + t.amount);
+  final scheduledSum = scheduledThisMonth.fold<double>(
+    0.0,
+    (sum, t) => sum + t.amount,
+  );
   return balanceWithCarry + scheduledSum;
 }
 
 String _logsCountLabel(int count) => '$count Items';
 
-List<ScheduledTransaction> _buildScheduleReminders({
+List<ScheduledTransaction> _scheduledInMonth({
   required DateTime selectedMonth,
   required List<ScheduledTransaction> scheduledTransactions,
 }) {
-  final now = DateTime.now();
   final startOfMonth = DateTime(selectedMonth.year, selectedMonth.month);
   final endOfMonth = DateTime(selectedMonth.year, selectedMonth.month + 1, 0);
 
-  final reminders =
+  final items =
       scheduledTransactions.where((t) {
         final dateOnly = DateUtils.dateOnly(t.scheduledDate);
-        final isOverdueOrDue = !t.scheduledDate.isAfter(now);
-
-        final isInSelectedMonth =
-            !dateOnly.isBefore(startOfMonth) && !dateOnly.isAfter(endOfMonth);
-        final isOverdueCarry =
-            isOverdueOrDue && dateOnly.isBefore(startOfMonth);
-
-        final remindWindowDays =
-            t.remindDaysBefore > 0 ? t.remindDaysBefore : 7;
-        final daysUntil =
-            DateUtils.dateOnly(
-              t.scheduledDate,
-            ).difference(DateUtils.dateOnly(now)).inDays;
-        final isDueSoon = daysUntil > 0 && daysUntil <= remindWindowDays;
-
-        return (isInSelectedMonth && (isOverdueOrDue || isDueSoon)) ||
-            isOverdueCarry;
+        return !dateOnly.isBefore(startOfMonth) &&
+            !dateOnly.isAfter(endOfMonth);
       }).toList();
 
-  int urgencyRank(ScheduledTransaction t) {
-    final dateOnly = DateUtils.dateOnly(t.scheduledDate);
-    final today = DateUtils.dateOnly(now);
-    if (!t.scheduledDate.isAfter(now) && dateOnly.isBefore(today))
-      return 0; // overdue
-    if (dateOnly == today) return 1; // due today
-    return 2; // due soon
-  }
-
-  reminders.sort((a, b) {
-    final byRank = urgencyRank(a).compareTo(urgencyRank(b));
-    if (byRank != 0) return byRank;
-    return a.scheduledDate.compareTo(b.scheduledDate);
-  });
-
-  return reminders;
+  items.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+  return items;
 }

@@ -11,7 +11,6 @@ import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_recent_logs_section.dart';
-import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
@@ -130,10 +129,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required DateTime selectedMonth,
     required String itemsLabel,
     required String monthYearLabel,
-    required List<ScheduledTransaction> scheduleReminders,
+    required List<ScheduledTransaction> scheduledThisMonth,
   }) {
-    final hasSchedule = scheduleReminders.isNotEmpty;
-
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,19 +139,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           netBalance: netBalance,
           projectedBalance: projectedBalance,
           showProjected: showProjected,
+          selectedMonth: selectedMonth,
+          scheduledThisMonth: scheduledThisMonth,
         ),
         const SizedBox(height: 16),
         DashboardIncomeSpentRow(income: income, spent: spent),
-        if (hasSchedule) ...[
-          const SizedBox(height: 16),
-          DashboardScheduleSection(
-            items: scheduleReminders,
-            selectedMonth: selectedMonth,
-          ),
-          const SizedBox(height: 32),
-        ] else ...[
-          const SizedBox(height: 32),
-        ],
+        const SizedBox(height: 32),
         DashboardRecentLogsSection(
           logs: scopedLogs,
           itemsLabel: itemsLabel,
@@ -231,7 +221,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 selectedMonth: vm.selectedMonth,
                 itemsLabel: vm.itemsLabel,
                 monthYearLabel: vm.monthYearLabel,
-                scheduleReminders: vm.scheduleReminders,
+                scheduledThisMonth: vm.scheduledThisMonth,
               ),
               onSwipeToPreviousMonth:
                   () =>
