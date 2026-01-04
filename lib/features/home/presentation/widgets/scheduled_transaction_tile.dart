@@ -14,18 +14,22 @@ class ScheduledTransactionTile extends ConsumerWidget {
   const ScheduledTransactionTile({
     super.key,
     required this.item,
-    required this.onConvert,
-    required this.onDelete,
     required this.onEdit,
+    this.onConvert,
+    this.onDelete,
+    this.showActionButtons = false,
     this.showStatusLabel = false,
     this.showRecurrenceBadges = false,
     this.now,
   });
 
   final ScheduledTransaction item;
-  final VoidCallback onConvert;
-  final VoidCallback onDelete;
+  final VoidCallback? onConvert;
+  final VoidCallback? onDelete;
   final VoidCallback onEdit;
+
+  /// When true, shows "Mark as paid" and "Remove" buttons on the tile.
+  final bool showActionButtons;
 
   /// When true, shows "Overdue/Due today/Due in X days" before date/time.
   final bool showStatusLabel;
@@ -122,30 +126,32 @@ class ScheduledTransactionTile extends ConsumerWidget {
               ],
             ),
           ],
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedActionButton(
-                  label: primaryLabel,
-                  onPressed: canConvert ? onConvert : null,
-                  textColor: Colors.black,
-                  borderColor: Colors.black,
-                  backgroundColor: Colors.white,
+          if (showActionButtons) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedActionButton(
+                    label: primaryLabel,
+                    onPressed: canConvert ? onConvert : null,
+                    textColor: Colors.black,
+                    borderColor: Colors.black,
+                    backgroundColor: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedActionButton(
-                  label: 'Remove',
-                  onPressed: onDelete,
-                  textColor: Colors.red,
-                  borderColor: Colors.red,
-                  backgroundColor: const Color(0xFFFDEBEB),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedActionButton(
+                    label: 'Remove',
+                    onPressed: onDelete,
+                    textColor: Colors.red,
+                    borderColor: Colors.red,
+                    backgroundColor: const Color(0xFFFDEBEB),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     ).onTap(onTap: onEdit);

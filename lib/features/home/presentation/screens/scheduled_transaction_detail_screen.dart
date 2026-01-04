@@ -300,28 +300,82 @@ class _ScheduledActionsRow extends ConsumerWidget {
     }
   }
 
+  Future<void> _handleMarkAsPaid(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(
+        convertScheduledTransactionToLogActionProvider(item).future,
+      );
+      messenger.showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Added to your logs.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      // For one-time payments the item is deleted after conversion,
+      // so navigate back; recurring items stay and refresh automatically.
+      if (!context.mounted) return;
+      if (item.frequency == PaymentFrequency.oneTime) {
+        context.pop();
+      }
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text("Let's try that again."),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
+    final now = DateTime.now();
+    final isDue = !item.scheduledDate.isAfter(now);
+    final canMarkAsPaid = isDue && item.isActive;
+    final markAsPaidLabel = !item.isActive ? 'Paused' : 'Mark as paid';
+
+    return Column(
       children: [
-        Expanded(
-          child: OutlinedActionButton(
-            label: 'Edit',
-            onPressed: () => _openEditSheet(context, ref),
-            textColor: Colors.black,
-            borderColor: Colors.black,
-            backgroundColor: Colors.white,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedActionButton(
+                label: markAsPaidLabel,
+                onPressed:
+                    canMarkAsPaid ? () => _handleMarkAsPaid(context, ref) : null,
+                textColor: Colors.white,
+                borderColor: Colors.black,
+                backgroundColor: Colors.black,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedActionButton(
-            label: 'Delete',
-            onPressed: () => _handleDelete(context, ref),
-            textColor: Colors.white,
-            borderColor: Colors.black,
-            backgroundColor: Colors.red,
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedActionButton(
+                label: 'Edit',
+                onPressed: () => _openEditSheet(context, ref),
+                textColor: Colors.black,
+                borderColor: Colors.black,
+                backgroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedActionButton(
+                label: 'Delete',
+                onPressed: () => _handleDelete(context, ref),
+                textColor: Colors.white,
+                borderColor: Colors.black,
+                backgroundColor: Colors.red,
+              ),
+            ),
+          ],
         ),
       ],
     );

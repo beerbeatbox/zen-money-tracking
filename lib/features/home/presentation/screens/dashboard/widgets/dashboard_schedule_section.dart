@@ -1,8 +1,6 @@
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
-import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
-import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -80,8 +78,6 @@ class DashboardScheduleSection extends ConsumerWidget {
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: ScheduledTransactionTile(
               item: item,
-              onConvert: () => _convert(context, ref, item),
-              onDelete: () => _confirmAndDelete(context, ref, item),
               onEdit:
                   () => context.push(
                     AppRouter.scheduledTransactionDetail.path.replaceFirst(
@@ -96,77 +92,5 @@ class DashboardScheduleSection extends ConsumerWidget {
         }),
       ],
     );
-  }
-
-  Future<void> _confirmAndDelete(
-    BuildContext context,
-    WidgetRef ref,
-    ScheduledTransaction item,
-  ) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) {
-        return OutlinedConfirmationDialog(
-          title: 'Remove this scheduled payment?',
-          description: 'You can schedule it again anytime.',
-          primaryLabel: 'Remove payment',
-          onPrimaryPressed: () => Navigator.of(dialogContext).pop(true),
-          secondaryLabel: 'Keep it',
-          onSecondaryPressed: () => Navigator.of(dialogContext).pop(false),
-        );
-      },
-    );
-
-    if (shouldDelete != true) return;
-    if (!context.mounted) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(deleteScheduledTransactionActionProvider(item.id).future);
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Scheduled payment removed.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text("Let's try that again."),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  Future<void> _convert(
-    BuildContext context,
-    WidgetRef ref,
-    ScheduledTransaction item,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(
-        convertScheduledTransactionToLogActionProvider(item).future,
-      );
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Added to your logs.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text("Let's try that again."),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 }

@@ -5,7 +5,6 @@ import 'package:anti/features/home/presentation/controllers/scheduled_transactio
 import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
-import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -56,8 +55,6 @@ class _ScheduledTransactionsScreenState
                   return _Content(
                     filter: filter,
                     items: filtered,
-                    onConvert: (item) => _convert(context, ref, item),
-                    onDelete: (item) => _confirmAndDelete(context, ref, item),
                     onEdit:
                         (item) => context.push(
                           AppRouter.scheduledTransactionDetail.path
@@ -87,79 +84,6 @@ class _ScheduledTransactionsScreenState
         ),
       ),
     );
-  }
-
-  Future<void> _confirmAndDelete(
-    BuildContext context,
-    WidgetRef ref,
-    ScheduledTransaction item,
-  ) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) {
-        return OutlinedConfirmationDialog(
-          title: 'Remove this scheduled payment?',
-          description: 'You can schedule it again anytime.',
-          primaryLabel: 'Remove payment',
-          onPrimaryPressed: () => Navigator.of(dialogContext).pop(true),
-          secondaryLabel: 'Keep it',
-          onSecondaryPressed: () => Navigator.of(dialogContext).pop(false),
-        );
-      },
-    );
-
-    if (shouldDelete != true) return;
-    if (!context.mounted) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(deleteScheduledTransactionActionProvider(item.id).future);
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Scheduled payment removed.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text("Let's try that again."),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  Future<void> _convert(
-    BuildContext context,
-    WidgetRef ref,
-    ScheduledTransaction item,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
-
-    try {
-      await ref.read(
-        convertScheduledTransactionToLogActionProvider(item).future,
-      );
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Added to your logs.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text("Let's try that again."),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   Future<void> _openScheduleSheet(
@@ -322,15 +246,11 @@ class _Content extends StatelessWidget {
   const _Content({
     required this.filter,
     required this.items,
-    required this.onConvert,
-    required this.onDelete,
     required this.onEdit,
   });
 
   final _ScheduledPaymentsFilter filter;
   final List<ScheduledTransaction> items;
-  final Future<void> Function(ScheduledTransaction item) onConvert;
-  final Future<void> Function(ScheduledTransaction item) onDelete;
   final Future<void> Function(ScheduledTransaction item) onEdit;
 
   @override
@@ -348,8 +268,6 @@ class _Content extends StatelessWidget {
           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
           child: ScheduledTransactionTile(
             item: item,
-            onConvert: () => onConvert(item),
-            onDelete: () => onDelete(item),
             onEdit: () => onEdit(item),
             showRecurrenceBadges: true,
           ),
