@@ -62,6 +62,37 @@ String? resolveCategoryEmoji({
           ? categories
           : categories.where((c) => c.type == type).toList(growable: false);
 
+  // Composite labels: "Main - Sub"
+  final parts = label.split(' - ');
+  if (parts.length == 2) {
+    final mainLabel = parts[0].trim().toLowerCase();
+    final subLabel = parts[1].trim().toLowerCase();
+    if (mainLabel.isNotEmpty && subLabel.isNotEmpty) {
+      Category? main;
+      for (final c in candidates) {
+        if (c.parentId != null) continue;
+        if (c.label.trim().toLowerCase() != mainLabel) continue;
+        main = c;
+        break;
+      }
+
+      if (main != null) {
+        // Prefer sub emoji under the matched main.
+        for (final c in candidates) {
+          if (c.parentId != main.id) continue;
+          if (c.label.trim().toLowerCase() != subLabel) continue;
+          final e = (c.emoji ?? '').trim();
+          if (e.isNotEmpty) return e;
+          break;
+        }
+
+        // Fallback to main emoji.
+        final e = (main.emoji ?? '').trim();
+        return e.isEmpty ? null : e;
+      }
+    }
+  }
+
   for (final c in candidates) {
     if (c.label.trim().toLowerCase() != normalizedLabel) continue;
     final e = (c.emoji ?? '').trim();

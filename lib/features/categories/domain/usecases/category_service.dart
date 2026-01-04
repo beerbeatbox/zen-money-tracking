@@ -9,6 +9,7 @@ class CategoryService {
   const CategoryService(this._repository);
 
   final CategoryRepository _repository;
+  static const labelSeparator = ' - ';
 
   static const defaultExpenseLabels = <String>[
     'Food',
@@ -41,6 +42,7 @@ class CategoryService {
           type: CategoryType.expense,
           label: label,
           emoji: null,
+          parentId: null,
           createdAt: now,
           sortIndex: defaultExpenseLabels.indexOf(label),
         ),
@@ -51,6 +53,7 @@ class CategoryService {
           type: CategoryType.income,
           label: label,
           emoji: null,
+          parentId: null,
           createdAt: now,
           sortIndex: defaultIncomeLabels.indexOf(label),
         ),
@@ -59,19 +62,49 @@ class CategoryService {
     return seeded;
   }
 
+  String _groupKey(Category c) => '${c.type.name}:${c.parentId ?? ''}';
+
+  bool _isMain(Category c) => c.parentId == null;
+
+  List<Category> _reindexGroups(List<Category> categories) {
+    final groups = <String, List<Category>>{};
+    for (final c in categories) {
+      (groups[_groupKey(c)] ??= <Category>[]).add(c);
+    }
+
+    final updatedById = <String, Category>{};
+    for (final entry in groups.entries) {
+      final items = [...entry.value]..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+      for (var i = 0; i < items.length; i++) {
+        final c = items[i];
+        updatedById[c.id] = Category(
+          id: c.id,
+          type: c.type,
+          label: c.label,
+          emoji: c.emoji,
+          parentId: c.parentId,
+          createdAt: c.createdAt,
+          sortIndex: i,
+        );
+      }
+    }
+
+    return categories.map((c) => updatedById[c.id] ?? c).toList(growable: false);
+  }
+
   List<Category> _normalizeSortIndexIfNeeded(List<Category> categories) {
-    // If sortIndex is missing/invalid/duplicated, re-index per type while
-    // preserving current file order (the repository returns rows in file order).
+    // If sortIndex is missing/invalid/duplicated, re-index per (type + parentId)
+    // while preserving the current grouping.
     bool needsNormalize = false;
-    final seenExpense = <int>{};
-    final seenIncome = <int>{};
+    final seenByGroup = <String, Set<int>>{};
 
     for (final c in categories) {
       if (c.sortIndex < 0) {
         needsNormalize = true;
         break;
       }
-      final set = c.type == CategoryType.expense ? seenExpense : seenIncome;
+      final key = _groupKey(c);
+      final set = seenByGroup.putIfAbsent(key, () => <int>{});
       if (set.contains(c.sortIndex)) {
         needsNormalize = true;
         break;
@@ -81,34 +114,7 @@ class CategoryService {
 
     if (!needsNormalize) return categories;
 
-    final expense = <Category>[];
-    final income = <Category>[];
-    for (final c in categories) {
-      (c.type == CategoryType.expense ? expense : income).add(c);
-    }
-
-    final normalized = <Category>[
-      for (var i = 0; i < expense.length; i++)
-        Category(
-          id: expense[i].id,
-          type: expense[i].type,
-          label: expense[i].label,
-          emoji: expense[i].emoji,
-          createdAt: expense[i].createdAt,
-          sortIndex: i,
-        ),
-      for (var i = 0; i < income.length; i++)
-        Category(
-          id: income[i].id,
-          type: income[i].type,
-          label: income[i].label,
-          emoji: income[i].emoji,
-          createdAt: income[i].createdAt,
-          sortIndex: i,
-        ),
-    ];
-
-    return normalized;
+    return _reindexGroups(categories);
   }
 
   Future<List<Category>> getCategories() async {
@@ -136,6 +142,7 @@ class CategoryService {
   }) async {
     final trimmed = label.trim();
     if (trimmed.isEmpty) return;
+    if (trimmed.contains(labelSeparator)) return;
 
     final normalizedEmoji = (emoji ?? '').trim();
     final emojiOrNull = normalizedEmoji.isEmpty ? null : normalizedEmoji;
@@ -145,12 +152,15 @@ class CategoryService {
         categories.any(
           (c) =>
               c.type == type &&
+              c.parentId == null &&
               c.label.trim().toLowerCase() == trimmed.toLowerCase(),
         );
     if (exists) return;
 
     final currentType =
-        categories.where((c) => c.type == type).toList(growable: false);
+        categories
+            .where((c) => c.type == type && c.parentId == null)
+            .toList(growable: false);
     final nextIndex =
         currentType.isEmpty
             ? 0
@@ -163,6 +173,55 @@ class CategoryService {
       type: type,
       label: trimmed,
       emoji: emojiOrNull,
+      parentId: null,
+      createdAt: now,
+      sortIndex: nextIndex,
+    );
+    await setCategories([...categories, newItem]);
+  }
+
+  Future<void> addSubCategory({
+    required CategoryType type,
+    required String parentId,
+    required String label,
+    String? emoji,
+  }) async {
+    final trimmed = label.trim();
+    if (trimmed.isEmpty) return;
+    if (trimmed.contains(labelSeparator)) return;
+
+    final normalizedEmoji = (emoji ?? '').trim();
+    final emojiOrNull = normalizedEmoji.isEmpty ? null : normalizedEmoji;
+
+    final categories = await getCategories();
+    final parent =
+        categories.where((c) => c.id == parentId && c.type == type).toList();
+    if (parent.isEmpty) return;
+
+    final exists =
+        categories.any(
+          (c) =>
+              c.type == type &&
+              c.parentId == parentId &&
+              c.label.trim().toLowerCase() == trimmed.toLowerCase(),
+        );
+    if (exists) return;
+
+    final siblings =
+        categories.where((c) => c.type == type && c.parentId == parentId).toList();
+    final nextIndex =
+        siblings.isEmpty
+            ? 0
+            : (siblings.map((c) => c.sortIndex).reduce((a, b) => a > b ? a : b) +
+                1);
+
+    final now = DateTime.now();
+    final newItem = Category(
+      id: '${type.name}-sub-$parentId-$trimmed-${now.microsecondsSinceEpoch}',
+      type: type,
+      label: trimmed,
+      emoji: emojiOrNull,
+      parentId: parentId,
       createdAt: now,
       sortIndex: nextIndex,
     );
@@ -171,39 +230,18 @@ class CategoryService {
 
   Future<void> deleteCategory(String id) async {
     final categories = await getCategories();
-    final updated = categories.where((c) => c.id != id).toList();
-    if (updated.length == categories.length) return;
+    final target = categories.where((c) => c.id == id).toList();
+    if (target.isEmpty) return;
 
-    // Reindex per type to keep order stable and indices compact.
-    final expense =
-        updated.where((c) => c.type == CategoryType.expense).toList()
-          ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
-    final income =
-        updated.where((c) => c.type == CategoryType.income).toList()
-          ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    final isMain = _isMain(target.first);
+    final updated =
+        categories
+            .where(
+              (c) => c.id != id && (!isMain || c.parentId != id),
+            )
+            .toList();
 
-    final reindexed = <Category>[
-      for (var i = 0; i < expense.length; i++)
-        Category(
-          id: expense[i].id,
-          type: expense[i].type,
-          label: expense[i].label,
-          emoji: expense[i].emoji,
-          createdAt: expense[i].createdAt,
-          sortIndex: i,
-        ),
-      for (var i = 0; i < income.length; i++)
-        Category(
-          id: income[i].id,
-          type: income[i].type,
-          label: income[i].label,
-          emoji: income[i].emoji,
-          createdAt: income[i].createdAt,
-          sortIndex: i,
-        ),
-    ];
-
-    await setCategories(reindexed);
+    await setCategories(_reindexGroups(updated));
   }
 
   Future<void> renameCategory({
@@ -228,6 +266,7 @@ class CategoryService {
   }) async {
     final trimmed = label.trim();
     if (trimmed.isEmpty) return;
+    if (trimmed.contains(labelSeparator)) return;
 
     final normalizedEmoji = (emoji ?? '').trim();
     final emojiOrNull = normalizedEmoji.isEmpty ? null : normalizedEmoji;
@@ -242,6 +281,7 @@ class CategoryService {
           (c) =>
               c.id != id &&
               c.type == current.type &&
+              c.parentId == current.parentId &&
               c.label.trim().toLowerCase() == trimmed.toLowerCase(),
         );
     if (exists) return;
@@ -256,6 +296,7 @@ class CategoryService {
                         type: c.type,
                         label: trimmed,
                         emoji: emojiOrNull,
+                        parentId: c.parentId,
                         createdAt: c.createdAt,
                         sortIndex: c.sortIndex,
                       )
@@ -273,12 +314,16 @@ class CategoryService {
 
     final byId = {for (final c in categories) c.id: c};
     final currentType =
-        categories.where((c) => c.type == type).toList(growable: false)
+        categories
+            .where((c) => c.type == type && c.parentId == null)
+            .toList(growable: false)
           ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
 
-    // Keep only ids belonging to this type, preserving the incoming order.
+    // Keep only ids belonging to this type + main group, preserving the incoming order.
     final filteredIds =
-        orderedIds.where((id) => byId[id]?.type == type).toList(growable: false);
+        orderedIds
+            .where((id) => byId[id]?.type == type && byId[id]?.parentId == null)
+            .toList(growable: false);
 
     // Append any missing ids (safety for partial/old lists).
     final missing =
@@ -295,16 +340,68 @@ class CategoryService {
           type: byId[finalOrder[i]]!.type,
           label: byId[finalOrder[i]]!.label,
           emoji: byId[finalOrder[i]]!.emoji,
+          parentId: byId[finalOrder[i]]!.parentId,
           createdAt: byId[finalOrder[i]]!.createdAt,
           sortIndex: i,
         ),
     ];
 
-    final otherType =
-        categories.where((c) => c.type != type).toList(growable: false)
+    final updatedById = {for (final c in updatedType) c.id: c};
+    final updated =
+        categories
+            .map((c) => updatedById[c.id] ?? c)
+            .toList(growable: false);
+    await setCategories(updated);
+  }
+
+  Future<void> reorderSubCategories({
+    required CategoryType type,
+    required String parentId,
+    required List<String> orderedIds,
+  }) async {
+    final categories = await getCategories();
+    final byId = {for (final c in categories) c.id: c};
+
+    final currentGroup =
+        categories
+            .where((c) => c.type == type && c.parentId == parentId)
+            .toList(growable: false)
           ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
 
-    await setCategories([...updatedType, ...otherType]);
+    final filteredIds =
+        orderedIds
+            .where(
+              (id) =>
+                  byId[id]?.type == type && byId[id]?.parentId == parentId,
+            )
+            .toList(growable: false);
+
+    final missing =
+        currentGroup
+            .map((c) => c.id)
+            .where((id) => !filteredIds.contains(id))
+            .toList(growable: false);
+    final finalOrder = [...filteredIds, ...missing];
+
+    final updatedGroup = <Category>[
+      for (var i = 0; i < finalOrder.length; i++)
+        Category(
+          id: byId[finalOrder[i]]!.id,
+          type: byId[finalOrder[i]]!.type,
+          label: byId[finalOrder[i]]!.label,
+          emoji: byId[finalOrder[i]]!.emoji,
+          parentId: byId[finalOrder[i]]!.parentId,
+          createdAt: byId[finalOrder[i]]!.createdAt,
+          sortIndex: i,
+        ),
+    ];
+
+    final updatedById = {for (final c in updatedGroup) c.id: c};
+    final updated =
+        categories
+            .map((c) => updatedById[c.id] ?? c)
+            .toList(growable: false);
+    await setCategories(updated);
   }
 
   Future<void> deleteCategoryFile() => _repository.deleteCategoryFile();

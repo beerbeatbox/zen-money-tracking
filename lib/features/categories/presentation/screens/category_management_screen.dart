@@ -1,11 +1,11 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
-import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,8 +22,11 @@ class CategoryManagementScreen extends ConsumerStatefulWidget {
 class _CategoryManagementScreenState
     extends ConsumerState<CategoryManagementScreen> {
   bool _isExpense = true;
-  List<Category> _expenseWorking = const [];
-  List<Category> _incomeWorking = const [];
+  List<Category> _expenseMainsWorking = const [];
+  List<Category> _incomeMainsWorking = const [];
+  Map<String, List<Category>> _expenseSubsWorkingByParent = {};
+  Map<String, List<Category>> _incomeSubsWorkingByParent = {};
+  final Set<String> _expandedMainIds = <String>{};
 
   CategoryType get _selectedType =>
       _isExpense ? CategoryType.expense : CategoryType.income;
@@ -43,10 +46,11 @@ class _CategoryManagementScreenState
               ).paddingAll(24),
           data: (categories) {
             _syncWorkingLists(categories);
-            final filtered =
+            final mains =
                 _selectedType == CategoryType.expense
-                    ? _expenseWorking
-                    : _incomeWorking;
+                    ? _expenseMainsWorking
+                    : _incomeMainsWorking;
+            final visibleItems = _buildVisibleItems(_selectedType);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,18 +91,26 @@ class _CategoryManagementScreenState
                 const SizedBox(height: 12),
                 Expanded(
                   child:
-                      filtered.isEmpty
+                      mains.isEmpty
                           ? _EmptyState(
                             isExpense: _isExpense,
                             onAdd: () => _onAddCategoryTap(context, categories),
                           )
-                          : _CategoryList(
-                            items: filtered,
+                          : _CategoryTreeList(
+                            items: visibleItems,
+                            expandedMainIds: _expandedMainIds,
+                            hasChildrenByMainId: _hasChildrenByMainId(
+                              _selectedType,
+                            ),
                             onReorder:
-                                (oldIndex, newIndex) => _onReorder(
+                                (oldIndex, newIndex) =>
+                                    _onReorderVisible(oldIndex, newIndex),
+                            onToggleExpanded: (id) => _toggleExpanded(id),
+                            onAddSub:
+                                (main) => _onAddSubCategoryTap(
                                   context,
-                                  oldIndex: oldIndex,
-                                  newIndex: newIndex,
+                                  allCategories: categories,
+                                  parent: main,
                                 ),
                             onRename:
                                 (item) => _onRenameCategoryTap(
@@ -106,7 +118,12 @@ class _CategoryManagementScreenState
                                   allCategories: categories,
                                   item: item,
                                 ),
-                            onDelete: (id) => _confirmAndDelete(context, id),
+                            onDelete:
+                                (item) => _confirmAndDelete(
+                                  context,
+                                  allCategories: categories,
+                                  item: item,
+                                ),
                           ),
                 ),
               ],
@@ -118,17 +135,51 @@ class _CategoryManagementScreenState
   }
 
   void _syncWorkingLists(List<Category> categories) {
-    final expense =
-        categories.where((c) => c.type == CategoryType.expense).toList()
+    final expenseMains =
+        categories
+            .where((c) => c.type == CategoryType.expense && c.parentId == null)
+            .toList()
           ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
-    final income =
-        categories.where((c) => c.type == CategoryType.income).toList()
+    final incomeMains =
+        categories
+            .where((c) => c.type == CategoryType.income && c.parentId == null)
+            .toList()
           ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+    final expenseSubs = _groupSubsByParent(categories, CategoryType.expense);
+    final incomeSubs = _groupSubsByParent(categories, CategoryType.income);
 
     // Only overwrite working lists when they materially differ (e.g., add/delete
     // or provider refresh), so reorder feels instant.
-    if (!_sameSignature(_expenseWorking, expense)) _expenseWorking = expense;
-    if (!_sameSignature(_incomeWorking, income)) _incomeWorking = income;
+    if (!_sameSignature(_expenseMainsWorking, expenseMains)) {
+      _expenseMainsWorking = expenseMains;
+    }
+    if (!_sameSignature(_incomeMainsWorking, incomeMains)) {
+      _incomeMainsWorking = incomeMains;
+    }
+    if (!_sameSubsSignature(_expenseSubsWorkingByParent, expenseSubs)) {
+      _expenseSubsWorkingByParent = expenseSubs;
+    }
+    if (!_sameSubsSignature(_incomeSubsWorkingByParent, incomeSubs)) {
+      _incomeSubsWorkingByParent = incomeSubs;
+    }
+  }
+
+  Map<String, List<Category>> _groupSubsByParent(
+    List<Category> categories,
+    CategoryType type,
+  ) {
+    final map = <String, List<Category>>{};
+    for (final c in categories) {
+      if (c.type != type) continue;
+      final parentId = c.parentId;
+      if (parentId == null) continue;
+      (map[parentId] ??= <Category>[]).add(c);
+    }
+    for (final entry in map.entries) {
+      entry.value.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    }
+    return map;
   }
 
   bool _sameSignature(List<Category> a, List<Category> b) {
@@ -137,31 +188,155 @@ class _CategoryManagementScreenState
       if (a[i].id != b[i].id) return false;
       if (a[i].label != b[i].label) return false;
       if ((a[i].emoji ?? '').trim() != (b[i].emoji ?? '').trim()) return false;
+      if ((a[i].parentId ?? '').trim() != (b[i].parentId ?? '').trim()) {
+        return false;
+      }
     }
     return true;
   }
 
-  Future<void> _onReorder(
-    BuildContext context, {
-    required int oldIndex,
-    required int newIndex,
-  }) async {
-    // ReorderableListView gives newIndex after removal; adjust accordingly.
-    final list =
-        _selectedType == CategoryType.expense
-            ? _expenseWorking
-            : _incomeWorking;
+  bool _sameSubsSignature(
+    Map<String, List<Category>> a,
+    Map<String, List<Category>> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (final key in a.keys) {
+      final listA = a[key];
+      final listB = b[key];
+      if (listA == null || listB == null) return false;
+      if (!_sameSignature(listA, listB)) return false;
+    }
+    return true;
+  }
+
+  Map<String, bool> _hasChildrenByMainId(CategoryType type) {
+    final subsMap =
+        type == CategoryType.expense
+            ? _expenseSubsWorkingByParent
+            : _incomeSubsWorkingByParent;
+    return {
+      for (final entry in subsMap.entries) entry.key: entry.value.isNotEmpty,
+    };
+  }
+
+  List<_CategoryTreeItem> _buildVisibleItems(CategoryType type) {
+    final mains =
+        type == CategoryType.expense
+            ? _expenseMainsWorking
+            : _incomeMainsWorking;
+    final subsMap =
+        type == CategoryType.expense
+            ? _expenseSubsWorkingByParent
+            : _incomeSubsWorkingByParent;
+
+    final items = <_CategoryTreeItem>[];
+    for (final main in mains) {
+      final children = subsMap[main.id] ?? const <Category>[];
+      items.add(
+        _CategoryTreeItem.main(
+          main,
+          isExpanded: _expandedMainIds.contains(main.id),
+          hasChildren: children.isNotEmpty,
+        ),
+      );
+      if (!_expandedMainIds.contains(main.id)) continue;
+      for (final sub in children) {
+        items.add(_CategoryTreeItem.sub(sub, parentId: main.id));
+      }
+    }
+    return items;
+  }
+
+  void _toggleExpanded(String mainId) {
+    setState(() {
+      if (_expandedMainIds.contains(mainId)) {
+        _expandedMainIds.remove(mainId);
+      } else {
+        _expandedMainIds.add(mainId);
+      }
+    });
+  }
+
+  Future<void> _onReorderVisible(int oldIndex, int newIndex) async {
+    final visible = _buildVisibleItems(_selectedType);
+    if (oldIndex < 0 || oldIndex >= visible.length) return;
+
     final adjustedNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    if (adjustedNewIndex < 0 || adjustedNewIndex > visible.length - 1) return;
+
+    final moved = visible[oldIndex];
+
+    if (moved.isMain) {
+      final mains =
+          _selectedType == CategoryType.expense
+              ? _expenseMainsWorking
+              : _incomeMainsWorking;
+
+      final temp = [...visible]..removeAt(oldIndex);
+      final newMainPos =
+          temp.take(adjustedNewIndex).where((i) => i.isMain).length;
+
+      final oldMainPos = mains.indexWhere((c) => c.id == moved.category.id);
+      if (oldMainPos < 0) return;
+
+      setState(() {
+        final item = mains.removeAt(oldMainPos);
+        mains.insert(newMainPos, item);
+      });
+
+      final orderedIds = mains.map((c) => c.id).toList(growable: false);
+      await ref
+          .read(categoriesControllerProvider.notifier)
+          .reorderCategoryType(type: _selectedType, orderedIds: orderedIds);
+      return;
+    }
+
+    final parentId = moved.parentId;
+    if (parentId == null) return;
+    final subsMap =
+        _selectedType == CategoryType.expense
+            ? _expenseSubsWorkingByParent
+            : _incomeSubsWorkingByParent;
+    final siblings = subsMap[parentId];
+    if (siblings == null) return;
+    final oldSubPos = siblings.indexWhere((c) => c.id == moved.category.id);
+    if (oldSubPos < 0) return;
+
+    final temp = [...visible]..removeAt(oldIndex);
+    final siblingIndices = <int>[
+      for (var i = 0; i < temp.length; i++)
+        if (!temp[i].isMain && temp[i].parentId == parentId) i,
+    ];
+    if (siblingIndices.isEmpty) return;
+
+    final minIdx = siblingIndices.first;
+    final maxIdx = siblingIndices.last;
+    final isInsideGroup =
+        adjustedNewIndex >= minIdx && adjustedNewIndex <= (maxIdx + 1);
+    if (!isInsideGroup) {
+      setState(() {});
+      return;
+    }
+
+    final newSubPos =
+        temp
+            .take(adjustedNewIndex)
+            .where((i) => !i.isMain && i.parentId == parentId)
+            .length;
 
     setState(() {
-      final item = list.removeAt(oldIndex);
-      list.insert(adjustedNewIndex, item);
+      final item = siblings.removeAt(oldSubPos);
+      siblings.insert(newSubPos, item);
     });
 
-    final orderedIds = list.map((c) => c.id).toList(growable: false);
+    final orderedIds = siblings.map((c) => c.id).toList(growable: false);
     await ref
         .read(categoriesControllerProvider.notifier)
-        .reorderCategoryType(type: _selectedType, orderedIds: orderedIds);
+        .reorderSubCategories(
+          type: _selectedType,
+          parentId: parentId,
+          orderedIds: orderedIds,
+        );
   }
 
   Future<void> _onAddCategoryTap(
@@ -183,10 +358,15 @@ class _CategoryManagementScreenState
       _showSnack(context, 'Add a category name to continue.');
       return;
     }
+    if (trimmed.contains(' - ')) {
+      _showSnack(context, 'Use a simple name without “ - ”.');
+      return;
+    }
 
     final exists = allCategories.any(
       (c) =>
           c.type == _selectedType &&
+          c.parentId == null &&
           c.label.trim().toLowerCase() == trimmed.toLowerCase(),
     );
     if (exists) {
@@ -199,15 +379,74 @@ class _CategoryManagementScreenState
         .addCategory(type: _selectedType, label: trimmed, emoji: result.emoji);
   }
 
-  Future<void> _confirmAndDelete(BuildContext context, String id) async {
+  Future<void> _onAddSubCategoryTap(
+    BuildContext context, {
+    required List<Category> allCategories,
+    required Category parent,
+  }) async {
+    final result = await _showUpsertCategoryDialog(
+      context,
+      title: 'Add a sub-category',
+      description: 'Add a detail under “${parent.label}”.',
+      primaryLabel: 'Add',
+      initialLabel: '',
+      initialEmoji: null,
+    );
+    if (!context.mounted || result == null) return;
+
+    final trimmed = result.label.trim();
+    if (trimmed.isEmpty) {
+      _showSnack(context, 'Add a sub-category name to continue.');
+      return;
+    }
+    if (trimmed.contains(' - ')) {
+      _showSnack(context, 'Use a simple name without “ - ”.');
+      return;
+    }
+
+    final exists = allCategories.any(
+      (c) =>
+          c.type == parent.type &&
+          c.parentId == parent.id &&
+          c.label.trim().toLowerCase() == trimmed.toLowerCase(),
+    );
+    if (exists) {
+      _showSnack(context, 'That sub-category already exists.');
+      return;
+    }
+
+    await ref
+        .read(categoriesControllerProvider.notifier)
+        .addSubCategory(
+          type: parent.type,
+          parentId: parent.id,
+          label: trimmed,
+          emoji: result.emoji,
+        );
+    setState(() => _expandedMainIds.add(parent.id));
+  }
+
+  Future<void> _confirmAndDelete(
+    BuildContext context, {
+    required List<Category> allCategories,
+    required Category item,
+  }) async {
+    final isMain = item.parentId == null;
+    final hasSubs = isMain && allCategories.any((c) => c.parentId == item.id);
+    final description =
+        isMain
+            ? (hasSubs
+                ? 'This removes it and its sub-categories from future selections. Past logs keep their saved labels.'
+                : 'This removes it from future selections. Past logs keep their saved labels.')
+            : 'This removes it from future selections. Past logs keep their saved labels.';
+
     final shouldDelete = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
         return OutlinedConfirmationDialog(
           title: 'Delete this category?',
-          description:
-              'This removes it from future selections. Past logs keep their current label.',
+          description: description,
           primaryLabel: 'Delete category',
           onPrimaryPressed: () => Navigator.of(dialogContext).pop(true),
           secondaryLabel: 'Keep it',
@@ -219,7 +458,9 @@ class _CategoryManagementScreenState
     if (shouldDelete != true) return;
     if (!context.mounted) return;
 
-    await ref.read(categoriesControllerProvider.notifier).deleteCategory(id);
+    await ref
+        .read(categoriesControllerProvider.notifier)
+        .deleteCategory(item.id);
   }
 
   Future<void> _onRenameCategoryTap(
@@ -242,11 +483,16 @@ class _CategoryManagementScreenState
       _showSnack(context, 'Add a category name to continue.');
       return;
     }
+    if (trimmed.contains(' - ')) {
+      _showSnack(context, 'Use a simple name without “ - ”.');
+      return;
+    }
 
     final exists = allCategories.any(
       (c) =>
           c.id != item.id &&
           c.type == item.type &&
+          c.parentId == item.parentId &&
           c.label.trim().toLowerCase() == trimmed.toLowerCase(),
     );
     if (exists) {
@@ -315,18 +561,26 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-class _CategoryList extends StatelessWidget {
-  const _CategoryList({
+class _CategoryTreeList extends StatelessWidget {
+  const _CategoryTreeList({
     required this.items,
+    required this.expandedMainIds,
+    required this.hasChildrenByMainId,
     required this.onReorder,
+    required this.onToggleExpanded,
+    required this.onAddSub,
     required this.onRename,
     required this.onDelete,
   });
 
-  final List<Category> items;
+  final List<_CategoryTreeItem> items;
+  final Set<String> expandedMainIds;
+  final Map<String, bool> hasChildrenByMainId;
   final void Function(int oldIndex, int newIndex) onReorder;
+  final ValueChanged<String> onToggleExpanded;
+  final ValueChanged<Category> onAddSub;
   final ValueChanged<Category> onRename;
-  final ValueChanged<String> onDelete;
+  final ValueChanged<Category> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -337,43 +591,138 @@ class _CategoryList extends StatelessWidget {
       proxyDecorator:
           (child, _, __) => Material(color: Colors.transparent, child: child),
       itemBuilder: (context, index) {
-        final item = items[index];
-        return Padding(
-          key: ValueKey(item.id),
-          padding: const EdgeInsets.only(bottom: 10),
-          child: OutlinedSurface(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            borderRadius: BorderRadius.circular(12),
-            child: Row(
-              children: [
-                ReorderableDragStartListener(
-                  index: index,
-                  child: const Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: Icon(Icons.drag_handle, color: Colors.black),
+        final treeItem = items[index];
+        final category = treeItem.category;
+
+        if (treeItem.isMain) {
+          final isExpanded = expandedMainIds.contains(category.id);
+          final hasChildren = hasChildrenByMainId[category.id] == true;
+
+          return Padding(
+            key: ValueKey(category.id),
+            padding: const EdgeInsets.only(bottom: 10),
+            child: OutlinedSurface(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              borderRadius: BorderRadius.circular(12),
+              child: Row(
+                children: [
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: Icon(Icons.drag_handle, color: Colors.black),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: CategoryNameWithEmoji(
-                    label: item.label,
-                    emoji: item.emoji,
-                    spacing: 8,
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                  Expanded(
+                    child: CategoryNameWithEmoji(
+                      label: category.label,
+                      emoji: category.emoji,
+                      spacing: 8,
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => onAddSub(category),
+                    icon: const Icon(Icons.add, color: Colors.black),
+                    tooltip: 'Add sub-category',
+                  ),
+                  if (hasChildren)
+                    IconButton(
+                      onPressed: () => onToggleExpanded(category.id),
+                      icon: Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.black,
+                      ),
+                      tooltip: isExpanded ? 'Collapse' : 'Expand',
+                    ),
+                  IconButton(
+                    onPressed: () => onRename(category),
+                    icon: const Icon(Icons.edit_outlined, color: Colors.black),
+                    tooltip: 'Edit',
+                  ),
+                  IconButton(
+                    onPressed: () => onDelete(category),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    tooltip: 'Delete',
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Padding(
+          key: ValueKey(category.id),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: 28,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () => onRename(item),
-                  icon: const Icon(Icons.edit_outlined, color: Colors.black),
-                  tooltip: 'Rename',
-                ),
-                IconButton(
-                  onPressed: () => onDelete(item.id),
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  tooltip: 'Delete',
+                Expanded(
+                  child: OutlinedSurface(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Row(
+                      children: [
+                        ReorderableDragStartListener(
+                          index: index,
+                          child: const Padding(
+                            padding: EdgeInsets.only(right: 8),
+                            child: Icon(Icons.drag_handle, color: Colors.black),
+                          ),
+                        ),
+                        Expanded(
+                          child: CategoryNameWithEmoji(
+                            label: category.label,
+                            emoji: category.emoji,
+                            spacing: 8,
+                            textStyle: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => onRename(category),
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            color: Colors.black,
+                          ),
+                          tooltip: 'Edit',
+                        ),
+                        IconButton(
+                          onPressed: () => onDelete(category),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                          tooltip: 'Delete',
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -381,6 +730,30 @@ class _CategoryList extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _CategoryTreeItem {
+  final Category category;
+  final bool isMain;
+  final String? parentId;
+
+  const _CategoryTreeItem._(
+    this.category, {
+    required this.isMain,
+    this.parentId,
+  });
+
+  factory _CategoryTreeItem.main(
+    Category category, {
+    required bool isExpanded,
+    required bool hasChildren,
+  }) {
+    return _CategoryTreeItem._(category, isMain: true);
+  }
+
+  factory _CategoryTreeItem.sub(Category category, {required String parentId}) {
+    return _CategoryTreeItem._(category, isMain: false, parentId: parentId);
   }
 }
 
@@ -720,9 +1093,7 @@ Future<String?> _showEmojiPickerBottomSheet(BuildContext context) {
                     config: const Config(
                       height: null,
                       checkPlatformCompatibility: true,
-                      emojiViewConfig: EmojiViewConfig(
-                        emojiSizeMax: 28,
-                      ),
+                      emojiViewConfig: EmojiViewConfig(emojiSizeMax: 28),
                     ),
                   ),
                 ),

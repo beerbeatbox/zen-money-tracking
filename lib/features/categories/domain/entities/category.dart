@@ -5,6 +5,9 @@ class Category {
   final CategoryType type;
   final String label;
   final String? emoji;
+  /// Null means this is a main category. Non-null means this is a sub-category
+  /// under the category with the given id.
+  final String? parentId;
   final DateTime createdAt;
   final int sortIndex;
 
@@ -13,6 +16,7 @@ class Category {
     required this.type,
     required this.label,
     this.emoji,
+    this.parentId,
     required this.createdAt,
     required this.sortIndex,
   });

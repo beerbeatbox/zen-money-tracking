@@ -121,6 +121,7 @@ class _NumberKeyboardBottomSheetState
             type: type,
             label: labels[i],
             emoji: null,
+            parentId: null,
             createdAt: DateTime.fromMillisecondsSinceEpoch(0),
             sortIndex: i,
           ),
@@ -281,10 +282,37 @@ class _NumberKeyboardBottomSheetState
       // Switching type should pick the first option if we haven't locked in a
       // user choice yet.
       final categories = _availableCategories;
+      final mains =
+          categories.where((c) => c.parentId == null).toList(growable: false)
+            ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
       if (categories.isEmpty) {
         _selectedCategory = '';
-      } else if (!categories.map((c) => c.label).contains(_selectedCategory)) {
-        _selectedCategory = categories.first.label;
+      } else if (mains.isEmpty) {
+        _selectedCategory = '';
+      } else {
+        final parts = _selectedCategory.split(CategoryService.labelSeparator);
+        final currentMain = parts.first.trim();
+        final hasMain =
+            mains.any((c) => c.label.trim().toLowerCase() == currentMain.toLowerCase());
+        if (!hasMain) {
+          _selectedCategory = mains.first.label;
+        } else if (parts.length == 2) {
+          final main =
+              mains.firstWhere(
+                (c) => c.label.trim().toLowerCase() == currentMain.toLowerCase(),
+              );
+          final subs =
+              categories
+                  .where((c) => c.parentId == main.id)
+                  .toList(growable: false)
+                ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+          final currentSub = parts[1].trim();
+          final hasSub =
+              subs.any((c) => c.label.trim().toLowerCase() == currentSub.toLowerCase());
+          if (!hasSub) {
+            _selectedCategory = main.label;
+          }
+        }
       }
     });
   }
@@ -318,31 +346,49 @@ class _NumberKeyboardBottomSheetState
       if (categories == null) return;
 
       final type = _isExpense ? CategoryType.expense : CategoryType.income;
-      final available = (categories
-        .where((c) => c.type == type)
-        .toList(growable: false)..sort(
-        (a, b) => a.sortIndex.compareTo(b.sortIndex),
-      ));
-      final availableLabels =
-          available.map((c) => c.label).toList(growable: false);
+      final available =
+          categories.where((c) => c.type == type).toList(growable: false);
+      final mains =
+          available.where((c) => c.parentId == null).toList(growable: false)
+            ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
 
-      if (availableLabels.isEmpty) {
-        if (_selectedCategory.isNotEmpty) {
-          setState(() => _selectedCategory = '');
+      if (mains.isEmpty) {
+        // Keep the existing value when editing (even if deleted). For new logs,
+        // defaulting is handled by the fallback list in initState.
+        return;
+      }
+
+      if (_shouldDefaultToFirstCategory) {
+        final firstMain = mains.first.label;
+        if (_selectedCategory.trim().isEmpty || _selectedCategory != firstMain) {
+          setState(() => _selectedCategory = firstMain);
         }
         return;
       }
 
-      if (_shouldDefaultToFirstCategory &&
-          _selectedCategory != availableLabels.first) {
-        setState(() {
-          _selectedCategory = availableLabels.first;
-        });
-        return;
-      }
+      // If the current selection refers to a main that still exists, keep it.
+      // Otherwise, preserve the user's existing value (e.g. deleted category)
+      // instead of forcing a replacement.
+      final parts = _selectedCategory.split(CategoryService.labelSeparator);
+      final currentMain = parts.first.trim();
+      final main =
+          mains.where(
+            (c) => c.label.trim().toLowerCase() == currentMain.toLowerCase(),
+          ).toList();
+      if (main.isEmpty) return;
 
-      if (!availableLabels.contains(_selectedCategory)) {
-        setState(() => _selectedCategory = availableLabels.first);
+      if (parts.length == 2) {
+        final subs =
+            available
+                .where((c) => c.parentId == main.first.id)
+                .toList(growable: false)
+              ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+        final currentSub = parts[1].trim();
+        final hasSub =
+            subs.any((c) => c.label.trim().toLowerCase() == currentSub.toLowerCase());
+        if (!hasSub) {
+          setState(() => _selectedCategory = main.first.label);
+        }
       }
     });
 
@@ -626,18 +672,54 @@ class _CategorySection extends StatelessWidget {
           OutlinedSurface(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             borderRadius: BorderRadius.circular(12),
-            child: Text(
-              'Add a category in Settings to continue.',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (selected.trim().isNotEmpty) ...[
+                  Text(
+                    'Selected: $selected',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
+                Text(
+                  'Add a category in Settings to continue.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       );
     }
+
+    final mains =
+        categories.where((c) => c.parentId == null).toList(growable: false)
+          ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    final parts = selected.split(CategoryService.labelSeparator);
+    final selectedMainLabel = parts.first.trim();
+    final selectedSubLabel = parts.length == 2 ? parts[1].trim() : null;
+
+    final selectedMain =
+        mains.where(
+          (c) => c.label.trim().toLowerCase() == selectedMainLabel.toLowerCase(),
+        ).toList();
+
+    final subOptions =
+        selectedMain.isEmpty
+            ? const <Category>[]
+            : (categories
+                .where((c) => c.parentId == selectedMain.first.id)
+                .toList(growable: false)
+              ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex)));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,20 +737,51 @@ class _CategorySection extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              for (final category in categories) ...[
+              for (final category in mains) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _CategoryChip(
                     item: category,
-                    selected: category.label == selected,
+                    selected:
+                        category.label.trim().toLowerCase() ==
+                        selectedMainLabel.toLowerCase(),
                     onTap: () => onChanged(category.label),
                   ),
                 ),
-                if (category != categories.last) const SizedBox(width: 10),
+                if (category != mains.last) const SizedBox(width: 10),
               ],
             ],
           ),
         ),
+        if (subOptions.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final sub in subOptions) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _CategoryChip(
+                      item: sub,
+                      selected:
+                          selectedSubLabel != null &&
+                          sub.label.trim().toLowerCase() ==
+                              selectedSubLabel.toLowerCase(),
+                      onTap: () {
+                        final mainLabel =
+                            selectedMain.isEmpty ? '' : selectedMain.first.label;
+                        if (mainLabel.trim().isEmpty) return;
+                        onChanged('$mainLabel${CategoryService.labelSeparator}${sub.label}');
+                      },
+                    ),
+                  ),
+                  if (sub != subOptions.last) const SizedBox(width: 10),
+                ],
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

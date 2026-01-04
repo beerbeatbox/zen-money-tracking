@@ -26,6 +26,23 @@ class CategoriesController extends _$CategoriesController {
     await future;
   }
 
+  Future<void> addSubCategory({
+    required CategoryType type,
+    required String parentId,
+    required String label,
+    String? emoji,
+  }) async {
+    final service = ref.read(categoryServiceProvider);
+    await service.addSubCategory(
+      type: type,
+      parentId: parentId,
+      label: label,
+      emoji: emoji,
+    );
+    ref.invalidateSelf();
+    await future;
+  }
+
   Future<void> deleteCategory(String id) async {
     final service = ref.read(categoryServiceProvider);
     await service.deleteCategory(id);
@@ -60,6 +77,21 @@ class CategoriesController extends _$CategoriesController {
   }) async {
     final service = ref.read(categoryServiceProvider);
     await service.reorderCategoryType(type: type, orderedIds: orderedIds);
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<void> reorderSubCategories({
+    required CategoryType type,
+    required String parentId,
+    required List<String> orderedIds,
+  }) async {
+    final service = ref.read(categoryServiceProvider);
+    await service.reorderSubCategories(
+      type: type,
+      parentId: parentId,
+      orderedIds: orderedIds,
+    );
     ref.invalidateSelf();
     await future;
   }

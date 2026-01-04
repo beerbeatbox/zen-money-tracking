@@ -9,7 +9,15 @@ part 'category_local_datasource.g.dart';
 
 class CategoryLocalDatasource {
   static const _fileName = 'categories.csv';
-  static const _headers = ['id', 'type', 'label', 'createdAt', 'sortIndex', 'emoji'];
+  static const _headers = [
+    'id',
+    'type',
+    'label',
+    'createdAt',
+    'sortIndex',
+    'emoji',
+    'parentId',
+  ];
   static const _csvEol = '\n';
 
   Future<File> _ensureFile() async {
