@@ -69,9 +69,7 @@ class ScheduledTransactionTile extends ConsumerWidget {
               type: type,
             );
 
-    final shouldShowBadges =
-        showRecurrenceBadges &&
-        (item.frequency != PaymentFrequency.oneTime || !item.isActive);
+    final shouldShowBadges = showRecurrenceBadges;
 
     return OutlinedSurface(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 16),
@@ -116,14 +114,13 @@ class ScheduledTransactionTile extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                if (item.frequency != PaymentFrequency.oneTime)
-                  _Badge(
-                    label: _recurrenceLabel(
-                      item.frequency,
-                      item.intervalCount,
-                      item.intervalUnit,
-                    ),
+                _Badge(
+                  label: _recurrenceLabel(
+                    item.frequency,
+                    item.intervalCount,
+                    item.intervalUnit,
                   ),
+                ),
                 if (!item.isActive)
                   const _Badge(
                     label: 'Paused',
@@ -272,7 +269,11 @@ String _recurrenceLabel(
       return 'Yearly';
     case PaymentFrequency.interval:
       if (intervalCount == null || intervalUnit == null) {
-        return 'Recurring';
+        // Some legacy/migrated schedules can end up with `interval` frequency
+        // but no interval payload. Treat as one-time for display.
+        return (intervalCount == null && intervalUnit == null)
+            ? 'One-time'
+            : 'Recurring';
       }
       final unitLabel = switch (intervalUnit) {
         IntervalUnit.days => intervalCount == 1 ? 'day' : 'days',
