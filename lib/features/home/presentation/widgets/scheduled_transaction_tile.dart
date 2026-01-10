@@ -43,8 +43,6 @@ class ScheduledTransactionTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = this.now ?? DateTime.now();
-    final isDue = !item.scheduledDate.isAfter(now);
-    final canConvert = isDue && item.isActive;
 
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
@@ -136,7 +134,7 @@ class ScheduledTransactionTile extends ConsumerWidget {
                 Expanded(
                   child: OutlinedActionButton(
                     label: primaryLabel,
-                    onPressed: canConvert ? onConvert : null,
+                    onPressed: !item.isActive ? null : onConvert,
                     textColor: Colors.black,
                     borderColor: Colors.black,
                     backgroundColor: Colors.white,

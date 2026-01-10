@@ -332,6 +332,45 @@ class _ScheduledActionsRow extends ConsumerWidget {
     }
   }
 
+  String _getDueDateStatusMessage(DateTime scheduledDate, DateTime now) {
+    final today = DateUtils.dateOnly(now);
+    final scheduledDay = DateUtils.dateOnly(scheduledDate);
+
+    if (scheduledDay.isBefore(today)) {
+      return 'This payment is overdue. Mark it as paid?';
+    } else if (scheduledDay == today) {
+      return 'Mark this payment as paid?';
+    } else {
+      final dateLabel = formatDateLabel(scheduledDate);
+      return 'This payment is scheduled for $dateLabel. Mark it as paid now?';
+    }
+  }
+
+  Future<void> _showMarkAsPaidConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final now = DateTime.now();
+    final description = _getDueDateStatusMessage(item.scheduledDate, now);
+
+    final shouldMarkAsPaid = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => OutlinedConfirmationDialog(
+        title: 'Mark as paid?',
+        description: description,
+        primaryLabel: 'Mark as paid',
+        onPrimaryPressed: () => Navigator.of(ctx).pop(true),
+        secondaryLabel: 'Cancel',
+        onSecondaryPressed: () => Navigator.of(ctx).pop(false),
+      ),
+    );
+
+    if (shouldMarkAsPaid != true) return;
+
+    await _handleMarkAsPaid(context, ref);
+  }
+
   Future<void> _handleMarkAsPaid(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -364,9 +403,6 @@ class _ScheduledActionsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
-    final isDue = !item.scheduledDate.isAfter(now);
-    final canMarkAsPaid = isDue && item.isActive;
     final markAsPaidLabel = !item.isActive ? 'Paused' : 'Mark as paid';
 
     return Column(
@@ -376,10 +412,9 @@ class _ScheduledActionsRow extends ConsumerWidget {
             Expanded(
               child: OutlinedActionButton(
                 label: markAsPaidLabel,
-                onPressed:
-                    canMarkAsPaid
-                        ? () => _handleMarkAsPaid(context, ref)
-                        : null,
+                onPressed: !item.isActive
+                    ? null
+                    : () => _showMarkAsPaidConfirmation(context, ref),
                 textColor: Colors.white,
                 borderColor: Colors.black,
                 backgroundColor: Colors.black,

@@ -72,11 +72,14 @@ class _DashboardNetBalanceSectionState extends State<DashboardNetBalanceSection>
             switchInCurve: Curves.easeInOut,
             switchOutCurve: Curves.easeInOut,
             transitionBuilder: (child, animation) {
-              return SizeTransition(
-                sizeFactor: animation,
-                axis: Axis.vertical,
-                axisAlignment: -1, // grow down from the top (row position)
-                child: FadeTransition(opacity: animation, child: child),
+              return ClipRect(
+                clipBehavior: Clip.none,
+                child: SizeTransition(
+                  sizeFactor: animation,
+                  axis: Axis.vertical,
+                  axisAlignment: -1, // grow down from the top (row position)
+                  child: FadeTransition(opacity: animation, child: child),
+                ),
               );
             },
             child:

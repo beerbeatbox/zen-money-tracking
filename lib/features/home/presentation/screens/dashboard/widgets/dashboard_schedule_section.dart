@@ -25,72 +25,74 @@ class DashboardScheduleSection extends ConsumerWidget {
     final preview =
         maxPreviewCount == null ? items : items.take(maxPreviewCount!).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Schedule',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: Colors.black,
+    return Padding(
+      padding: const EdgeInsets.only(left: 0, right: 4, bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Schedule',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            Row(
-              children: [
-                Text(
-                  countLabel,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                TextButton(
-                  onPressed:
-                      () => context.go(AppRouter.scheduledTransactions.path),
-                  child: const Text(
-                    'View all',
+              Row(
+                children: [
+                  Text(
+                    countLabel,
                     style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black,
-                      letterSpacing: 0.2,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                      color: Colors.grey[600],
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        const Divider(thickness: 2, color: Colors.black),
-        const SizedBox(height: 12),
-        ...List.generate(preview.length, (index) {
-          final item = preview[index];
-          final isLast = index == preview.length - 1;
-          return Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-            child: ScheduledTransactionTile(
-              item: item,
-              onEdit:
-                  () => context.push(
-                    AppRouter.scheduledTransactionDetail.path.replaceFirst(
-                      ':id',
-                      item.id,
+                  const SizedBox(width: 12),
+                  TextButton(
+                    onPressed:
+                        () => context.go(AppRouter.scheduledTransactions.path),
+                    child: const Text(
+                      'View all',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                        letterSpacing: 0.2,
+                      ),
                     ),
-                    extra: item,
                   ),
-              showStatusLabel: true,
-            ),
-          );
-        }),
-      ],
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Divider(thickness: 2, color: Colors.black),
+          const SizedBox(height: 12),
+          ...List.generate(preview.length, (index) {
+            final item = preview[index];
+            return Padding(
+              padding: EdgeInsets.only(bottom: index == preview.length - 1 ? 0 : 12),
+              child: ScheduledTransactionTile(
+                item: item,
+                onEdit:
+                    () => context.push(
+                      AppRouter.scheduledTransactionDetail.path.replaceFirst(
+                        ':id',
+                        item.id,
+                      ),
+                      extra: item,
+                    ),
+                showStatusLabel: true,
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 }
