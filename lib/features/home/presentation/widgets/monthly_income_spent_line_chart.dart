@@ -52,16 +52,40 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
           _Legend(),
           const SizedBox(height: 16),
           SizedBox(
-            height: 100,
-            child: LineChart(
-              _buildChartData(
-                incomeSpots: incomeSpots,
-                spentSpots: spentSpots,
-                daysInMonth: daysInMonth,
-                maxY: maxY,
+            height: 200,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: daysInMonth * 40.0,
+                height: 200,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Stack(
+                    children: [
+                      LineChart(
+                        _buildChartData(
+                          incomeSpots: incomeSpots,
+                          spentSpots: spentSpots,
+                          daysInMonth: daysInMonth,
+                          maxY: maxY,
+                          incomeByDay: incomeByDay,
+                          spentByDay: spentByDay,
+                        ),
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.linear,
+                      ),
+                      _DataIndicators(
+                        incomeByDay: incomeByDay,
+                        spentByDay: spentByDay,
+                        daysInMonth: daysInMonth,
+                        maxY: maxY,
+                        incomeColor: Colors.green[700] ?? Colors.green,
+                        spentColor: Colors.red[700] ?? Colors.red,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
             ),
           ),
         ],
@@ -100,6 +124,8 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
     required List<FlSpot> spentSpots,
     required int daysInMonth,
     required double maxY,
+    required List<double> incomeByDay,
+    required List<double> spentByDay,
   }) {
     final incomeColor = Colors.green[700] ?? Colors.green;
     final spentColor = Colors.red[700] ?? Colors.red;
@@ -189,19 +215,13 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 26,
+            reservedSize: 50,
             interval: 1,
             getTitlesWidget: (value, meta) {
               final day = value.toInt();
-              final show =
-                  day == 1 ||
-                  day == 7 ||
-                  day == 14 ||
-                  day == 21 ||
-                  day == 28 ||
-                  day == daysInMonth;
-
-              if (!show) return const SizedBox.shrink();
+              if (day < 1 || day > daysInMonth) {
+                return const SizedBox.shrink();
+              }
 
               return Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -223,6 +243,10 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
             reservedSize: 52,
             interval: maxY <= 0 ? 1 : maxY / 4,
             getTitlesWidget: (value, meta) {
+              // Skip the topmost label if it's at maxY to prevent clipping
+              if (value == maxY && meta.max == maxY) {
+                return const SizedBox.shrink();
+              }
               return Text(
                 _formatYAxis(value),
                 style: TextStyle(
@@ -238,11 +262,21 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
       lineBarsData: [
         LineChartBarData(
           spots: incomeSpots,
-          isCurved: true,
+          isCurved: false,
           color: incomeColor,
           barWidth: 3,
           isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, bar, index) {
+              return FlDotCirclePainter(
+                radius: 4,
+                color: incomeColor,
+                strokeWidth: 2,
+                strokeColor: Colors.white,
+              );
+            },
+          ),
           belowBarData: BarAreaData(
             show: true,
             color: incomeColor.withValues(alpha: 0.10),
@@ -250,11 +284,21 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
         ),
         LineChartBarData(
           spots: spentSpots,
-          isCurved: true,
+          isCurved: false,
           color: spentColor,
           barWidth: 3,
           isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, bar, index) {
+              return FlDotCirclePainter(
+                radius: 4,
+                color: spentColor,
+                strokeWidth: 2,
+                strokeColor: Colors.white,
+              );
+            },
+          ),
           belowBarData: BarAreaData(
             show: true,
             color: spentColor.withValues(alpha: 0.08),
@@ -368,4 +412,203 @@ class _EmptyChart extends StatelessWidget {
       ],
     );
   }
+}
+
+class _DataIndicators extends StatelessWidget {
+  const _DataIndicators({
+    required this.incomeByDay,
+    required this.spentByDay,
+    required this.daysInMonth,
+    required this.maxY,
+    required this.incomeColor,
+    required this.spentColor,
+  });
+
+  final List<double> incomeByDay;
+  final List<double> spentByDay;
+  final int daysInMonth;
+  final double maxY;
+  final Color incomeColor;
+  final Color spentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    // Chart dimensions (approximate, adjusted for padding and margins)
+    const chartHeight = 200.0 - 8.0; // minus top padding
+    const chartWidth = 40.0; // per day
+    const leftPadding = 52.0; // reservedSize for left titles
+    const bottomPadding = 50.0; // reservedSize for bottom titles
+    const topPadding = 8.0;
+
+    final effectiveChartHeight = chartHeight - bottomPadding - topPadding;
+    final effectiveChartWidth = daysInMonth * chartWidth;
+
+    return CustomPaint(
+      size: Size(effectiveChartWidth, chartHeight),
+      painter: _DataIndicatorPainter(
+        incomeByDay: incomeByDay,
+        spentByDay: spentByDay,
+        daysInMonth: daysInMonth,
+        maxY: maxY,
+        incomeColor: incomeColor,
+        spentColor: spentColor,
+        chartHeight: effectiveChartHeight,
+        chartWidth: effectiveChartWidth,
+        leftPadding: leftPadding,
+        bottomPadding: bottomPadding,
+        topPadding: topPadding,
+      ),
+    );
+  }
+}
+
+class _DataIndicatorPainter extends CustomPainter {
+  _DataIndicatorPainter({
+    required this.incomeByDay,
+    required this.spentByDay,
+    required this.daysInMonth,
+    required this.maxY,
+    required this.incomeColor,
+    required this.spentColor,
+    required this.chartHeight,
+    required this.chartWidth,
+    required this.leftPadding,
+    required this.bottomPadding,
+    required this.topPadding,
+  });
+
+  final List<double> incomeByDay;
+  final List<double> spentByDay;
+  final int daysInMonth;
+  final double maxY;
+  final Color incomeColor;
+  final Color spentColor;
+  final double chartHeight;
+  final double chartWidth;
+  final double leftPadding;
+  final double bottomPadding;
+  final double topPadding;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+
+    for (int day = 0; day < daysInMonth; day++) {
+      final x =
+          leftPadding +
+          (day + 1) * (chartWidth / daysInMonth) -
+          (chartWidth / daysInMonth / 2);
+
+      // Draw income indicator
+      if (day < incomeByDay.length && incomeByDay[day] > 0) {
+        final incomeY =
+            topPadding + chartHeight - (incomeByDay[day] / maxY) * chartHeight;
+        final labelY = incomeY + 6; // Position below dot
+
+        if (labelY < topPadding + chartHeight) {
+          final label = _formatValue(incomeByDay[day]);
+          textPainter.text = TextSpan(
+            text: label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: incomeColor,
+            ),
+          );
+          textPainter.layout();
+
+          // Draw background
+          final padding = 4.0;
+          final backgroundRect = RRect.fromRectAndRadius(
+            Rect.fromLTWH(
+              x - textPainter.width / 2 - padding,
+              labelY - padding,
+              textPainter.width + padding * 2,
+              textPainter.height + padding * 2,
+            ),
+            const Radius.circular(4),
+          );
+          final backgroundPaint =
+              Paint()
+                ..color = Colors.white.withValues(alpha: 0.9)
+                ..style = PaintingStyle.fill;
+          canvas.drawRRect(backgroundRect, backgroundPaint);
+
+          // Draw border
+          final borderPaint =
+              Paint()
+                ..color = incomeColor.withValues(alpha: 0.3)
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 1;
+          canvas.drawRRect(backgroundRect, borderPaint);
+
+          textPainter.paint(canvas, Offset(x - textPainter.width / 2, labelY));
+        }
+      }
+
+      // Draw spent indicator
+      if (day < spentByDay.length && spentByDay[day] > 0) {
+        final spentY =
+            topPadding + chartHeight - (spentByDay[day] / maxY) * chartHeight;
+        final labelY = spentY; // Position below dot
+
+        if (labelY < topPadding + chartHeight) {
+          final label = _formatValue(spentByDay[day]);
+          textPainter.text = TextSpan(
+            text: label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: spentColor,
+            ),
+          );
+          textPainter.layout();
+
+          // Draw background
+          final padding = 4.0;
+          final backgroundRect = RRect.fromRectAndRadius(
+            Rect.fromLTWH(
+              x - textPainter.width / 2 - padding,
+              labelY - padding,
+              textPainter.width + padding * 2,
+              textPainter.height + padding * 2,
+            ),
+            const Radius.circular(4),
+          );
+          final backgroundPaint =
+              Paint()
+                ..color = Colors.white.withValues(alpha: 0.9)
+                ..style = PaintingStyle.fill;
+          canvas.drawRRect(backgroundRect, backgroundPaint);
+
+          // Draw border
+          final borderPaint =
+              Paint()
+                ..color = spentColor.withValues(alpha: 0.3)
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 1;
+          canvas.drawRRect(backgroundRect, borderPaint);
+
+          textPainter.paint(canvas, Offset(x - textPainter.width / 2, labelY));
+        }
+      }
+    }
+  }
+
+  String _formatValue(double value) {
+    if (value <= 0) return '฿0';
+    if (value >= 1000000) {
+      return '฿${formatAmountWithComma((value / 1000000).round())}m';
+    }
+    if (value >= 1000) {
+      return '฿${formatAmountWithComma((value / 1000).round())}k';
+    }
+    return '฿${formatAmountWithComma(value.round())}';
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
