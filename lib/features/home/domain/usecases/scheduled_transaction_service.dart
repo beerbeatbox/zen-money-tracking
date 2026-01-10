@@ -39,7 +39,7 @@ class ScheduledTransactionService {
     required ScheduledTransaction scheduled,
     required ExpenseLogService expenseLogService,
   }) async {
-    final createdAt = scheduled.scheduledDate;
+    final createdAt = DateTime.now();
     final log = ExpenseLog(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       timeLabel: formatTimeHm(createdAt),
