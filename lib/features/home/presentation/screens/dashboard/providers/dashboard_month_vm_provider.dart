@@ -92,15 +92,10 @@ final dashboardMonthVmProvider = Provider.family<
     final showProjected = scheduledThisMonth.isNotEmpty;
 
     final now = DateTime.now();
-    final isCurrentMonth =
-        selectedMonth.year == now.year && selectedMonth.month == now.month;
-    final dueNow =
-        isCurrentMonth
-            ? _dueNowItems(
-              scheduledTransactions: scheduledTransactions,
-              now: now,
-            )
-            : const <ScheduledTransaction>[];
+    final dueNow = _dueNowItems(
+      scheduledTransactions: scheduledTransactions,
+      now: now,
+    );
 
     return DashboardMonthVm(
       selectedMonth: selectedMonth,
