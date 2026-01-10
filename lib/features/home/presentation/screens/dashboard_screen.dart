@@ -180,14 +180,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               header: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Dashboard',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
-                      color: Colors.black,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Dashboard',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4,
+                          color: Colors.black,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          ref
+                              .read(dashboardSelectedMonthProvider.notifier)
+                              .setMonth(DateTime.now());
+                        },
+                        icon: const Icon(Icons.refresh, color: Colors.black),
+                        tooltip: 'Reset to current month',
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   DashboardTopBar(
@@ -267,6 +281,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       .setMonth(picked);
                 },
                 onRefresh: _refreshDashboard,
+                onResetMonth: () {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(DateTime.now());
+                },
                 child: const DashboardLogsLoading(),
               ),
           error:
@@ -293,6 +312,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       .setMonth(picked);
                 },
                 onRefresh: _refreshDashboard,
+                onResetMonth: () {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(DateTime.now());
+                },
                 child: DashboardLogsError(
                   onRetry: () => refreshExpenseLogs(ref),
                 ),
@@ -310,6 +334,7 @@ class _DashboardStateWrapper extends StatefulWidget {
     required this.onNextMonth,
     this.onTapMonthLabel,
     required this.onRefresh,
+    required this.onResetMonth,
     required this.child,
   });
 
@@ -318,6 +343,7 @@ class _DashboardStateWrapper extends StatefulWidget {
   final VoidCallback onNextMonth;
   final Future<void> Function()? onTapMonthLabel;
   final Future<void> Function() onRefresh;
+  final VoidCallback onResetMonth;
   final Widget child;
 
   @override
@@ -370,14 +396,24 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Dashboard',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: Colors.black,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Dashboard',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                    color: Colors.black,
+                  ),
+                ),
+                IconButton(
+                  onPressed: widget.onResetMonth,
+                  icon: const Icon(Icons.refresh, color: Colors.black),
+                  tooltip: 'Reset to current month',
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             DashboardTopBar(

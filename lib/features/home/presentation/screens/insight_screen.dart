@@ -50,6 +50,11 @@ class InsightScreen extends ConsumerWidget {
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
+                onResetMonth: () {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(DateTime.now());
+                },
               ),
               monthContent: _MonthContent(
                 selectedMonth: vm.selectedMonth,
@@ -86,6 +91,11 @@ class InsightScreen extends ConsumerWidget {
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
+                onResetMonth: () {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(DateTime.now());
+                },
                 onRefresh: refreshLogs,
                 child: const _LoadingState(),
               ),
@@ -108,6 +118,11 @@ class InsightScreen extends ConsumerWidget {
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
+                onResetMonth: () {
+                  ref
+                      .read(dashboardSelectedMonthProvider.notifier)
+                      .setMonth(DateTime.now());
+                },
                 onRefresh: refreshLogs,
                 child: const _ErrorState(),
               ),
@@ -124,6 +139,7 @@ class _HeaderSection extends StatelessWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onPickMonth,
+    required this.onResetMonth,
   });
 
   final DateTime selectedMonth;
@@ -131,20 +147,31 @@ class _HeaderSection extends StatelessWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final ValueChanged<DateTime> onPickMonth;
+  final VoidCallback onResetMonth;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Insight',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
-            color: Colors.black,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Insight',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
+                color: Colors.black,
+              ),
+            ),
+            IconButton(
+              onPressed: onResetMonth,
+              icon: const Icon(Icons.refresh, color: Colors.black),
+              tooltip: 'Reset to current month',
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         DashboardTopBar(
@@ -194,6 +221,7 @@ class _InsightStateWrapper extends StatefulWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onPickMonth,
+    required this.onResetMonth,
     required this.onRefresh,
     required this.child,
   });
@@ -203,6 +231,7 @@ class _InsightStateWrapper extends StatefulWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final ValueChanged<DateTime> onPickMonth;
+  final VoidCallback onResetMonth;
   final Future<void> Function() onRefresh;
   final Widget child;
 
@@ -262,6 +291,7 @@ class _InsightStateWrapperState extends State<_InsightStateWrapper> {
               onPreviousMonth: widget.onPreviousMonth,
               onNextMonth: widget.onNextMonth,
               onPickMonth: widget.onPickMonth,
+              onResetMonth: widget.onResetMonth,
             ),
             widget.child,
           ],
