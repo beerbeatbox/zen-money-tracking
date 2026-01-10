@@ -12,6 +12,7 @@ import '../../features/home/presentation/screens/expense_logs_csv_screen.dart';
 import '../../features/home/presentation/screens/insight_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transaction_detail_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
+import '../../features/home/presentation/screens/scheduled_transactions_search_screen.dart';
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
@@ -30,6 +31,7 @@ enum AppRouter {
   expenseLogsCsv,
   profile,
   scheduledTransactions,
+  scheduledTransactionsSearch,
   addScheduledTransaction,
   scheduledTransactionDetail,
   expenseLogDetail;
@@ -56,6 +58,8 @@ enum AppRouter {
         return '/profile';
       case AppRouter.scheduledTransactions:
         return '/scheduled-transactions';
+      case AppRouter.scheduledTransactionsSearch:
+        return '/scheduled-transactions/search';
       case AppRouter.addScheduledTransaction:
         return '/scheduled-transactions/add';
       case AppRouter.scheduledTransactionDetail:
@@ -185,6 +189,13 @@ GoRouter appRouter(Ref ref) {
           final initial = extra is ScheduledTransaction ? extra : null;
           return AddScheduledTransactionScreen(initial: initial);
         },
+      ),
+      // Search route must come before detail route (more specific routes first)
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.scheduledTransactionsSearch.path,
+        name: AppRouter.scheduledTransactionsSearch.name,
+        builder: (context, state) => const ScheduledTransactionsSearchScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,

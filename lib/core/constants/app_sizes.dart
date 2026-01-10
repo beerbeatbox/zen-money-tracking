@@ -9,5 +9,8 @@ class Sizes {
   static const double kP20 = 20.0;
   static const double kP24 = 24.0;
   static const double kP32 = 32.0;
+
+  // Widget specific heights
+  static const double kSearchBoxHeight = 48.0;
 }
 

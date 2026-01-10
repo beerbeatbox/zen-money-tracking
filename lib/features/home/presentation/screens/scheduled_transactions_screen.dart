@@ -4,20 +4,14 @@ import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
+import 'package:anti/features/home/presentation/widgets/scheduled_transaction_search_box.dart';
 import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
-enum _ScheduledPaymentsFilter {
-  all,
-  oneTime,
-  days,
-  weeks,
-  months,
-  years,
-}
+enum _ScheduledPaymentsFilter { all, oneTime, days, weeks, months, years }
 
 class ScheduledTransactionsScreen extends ConsumerStatefulWidget {
   const ScheduledTransactionsScreen({super.key});
@@ -48,6 +42,13 @@ class _ScheduledTransactionsScreenState
               const SizedBox(height: 16),
               const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
+              ScheduledTransactionSearchBox(
+                onTap:
+                    () => context.push(
+                      AppRouter.scheduledTransactionsSearch.path,
+                    ),
+              ),
+              const SizedBox(height: 16),
               _FilterChips(
                 value: filter,
                 onChanged:
