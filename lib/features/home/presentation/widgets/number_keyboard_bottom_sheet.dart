@@ -23,6 +23,9 @@ Future<void> showNumberKeyboardBottomSheet(
     bool isExpense,
     DateTime logDateTime,
     String category,
+    PaymentFrequency frequency,
+    int? intervalCount,
+    IntervalUnit? intervalUnit,
   )
   onSubmit,
   bool useRootNavigator = true,
@@ -32,7 +35,10 @@ Future<void> showNumberKeyboardBottomSheet(
   String? initialCategory,
   bool showFrequencyChips = false,
   PaymentFrequency initialFrequency = PaymentFrequency.oneTime,
+  int? initialIntervalCount,
+  IntervalUnit? initialIntervalUnit,
   ValueChanged<PaymentFrequency>? onFrequencyChanged,
+  ValueChanged<(int?, IntervalUnit?)>? onIntervalChanged,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -48,7 +54,10 @@ Future<void> showNumberKeyboardBottomSheet(
           initialCategory: initialCategory,
           showFrequencyChips: showFrequencyChips,
           initialFrequency: initialFrequency,
+          initialIntervalCount: initialIntervalCount,
+          initialIntervalUnit: initialIntervalUnit,
           onFrequencyChanged: onFrequencyChanged,
+          onIntervalChanged: onIntervalChanged,
         ),
   );
 }
@@ -63,7 +72,10 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
     this.initialCategory,
     this.showFrequencyChips = false,
     this.initialFrequency = PaymentFrequency.oneTime,
+    this.initialIntervalCount,
+    this.initialIntervalUnit,
     this.onFrequencyChanged,
+    this.onIntervalChanged,
   });
 
   final Future<bool> Function(
@@ -72,6 +84,9 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
     bool isExpense,
     DateTime logDateTime,
     String category,
+    PaymentFrequency frequency,
+    int? intervalCount,
+    IntervalUnit? intervalUnit,
   )
   onSubmit;
   final bool initialIsExpense;
@@ -80,7 +95,10 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
   final String? initialCategory;
   final bool showFrequencyChips;
   final PaymentFrequency initialFrequency;
+  final int? initialIntervalCount;
+  final IntervalUnit? initialIntervalUnit;
   final ValueChanged<PaymentFrequency>? onFrequencyChanged;
+  final ValueChanged<(int?, IntervalUnit?)>? onIntervalChanged;
 
   @override
   ConsumerState<NumberKeyboardBottomSheet> createState() =>
@@ -98,6 +116,8 @@ class _NumberKeyboardBottomSheetState
   late String _selectedCategory;
   late bool _shouldDefaultToFirstCategory;
   late PaymentFrequency _frequency;
+  late int? _intervalCount;
+  late IntervalUnit? _intervalUnit;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
   List<Category> get _availableCategories {
@@ -155,6 +175,8 @@ class _NumberKeyboardBottomSheetState
     _value = widget.initialValue ?? '';
     _logDateTime = widget.initialLogDateTime ?? DateTime.now();
     _frequency = widget.initialFrequency;
+    _intervalCount = widget.initialIntervalCount ?? 1;
+    _intervalUnit = widget.initialIntervalUnit ?? IntervalUnit.months;
     final initial =
         (widget.initialCategory ?? '').trim().isEmpty
             ? null
@@ -169,8 +191,26 @@ class _NumberKeyboardBottomSheetState
 
   void _setFrequency(PaymentFrequency next) {
     if (_frequency == next) return;
-    setState(() => _frequency = next);
+    setState(() {
+      _frequency = next;
+      if (next == PaymentFrequency.oneTime) {
+        _intervalCount = null;
+        _intervalUnit = null;
+      } else if (next == PaymentFrequency.interval) {
+        _intervalCount = _intervalCount ?? 1;
+        _intervalUnit = _intervalUnit ?? IntervalUnit.months;
+      }
+    });
     widget.onFrequencyChanged?.call(next);
+    widget.onIntervalChanged?.call((_intervalCount, _intervalUnit));
+  }
+
+  void _setInterval((int?, IntervalUnit?) interval) {
+    setState(() {
+      _intervalCount = interval.$1;
+      _intervalUnit = interval.$2;
+    });
+    widget.onIntervalChanged?.call(interval);
   }
 
   void _onKeyTap(String key) {
@@ -230,12 +270,21 @@ class _NumberKeyboardBottomSheetState
       );
       return;
     }
+    final freq = _frequency == PaymentFrequency.interval
+        ? PaymentFrequency.interval
+        : _frequency;
+    final count = freq == PaymentFrequency.interval ? _intervalCount : null;
+    final unit = freq == PaymentFrequency.interval ? _intervalUnit : null;
+
     final shouldClose = await widget.onSubmit(
       context,
       _displayValue,
       _isExpense,
       _logDateTime,
       _selectedCategory,
+      freq,
+      count,
+      unit,
     );
     if (!mounted || !shouldClose) return;
     Navigator.of(context).pop();
@@ -416,7 +465,18 @@ class _NumberKeyboardBottomSheetState
               children: [
                 const Spacer(),
                 if (widget.showFrequencyChips) ...[
-                  _FrequencyChips(value: _frequency, onChanged: _setFrequency),
+                  _FrequencyToggle(
+                    value: _frequency,
+                    onChanged: _setFrequency,
+                  ),
+                  if (_frequency == PaymentFrequency.interval) ...[
+                    const SizedBox(height: 12),
+                    _IntervalPicker(
+                      count: _intervalCount ?? 1,
+                      unit: _intervalUnit ?? IntervalUnit.months,
+                      onChanged: _setInterval,
+                    ),
+                  ],
                   const SizedBox(height: 14),
                 ],
                 Center(
@@ -515,8 +575,8 @@ class _NumberKeyboardBottomSheetState
   }
 }
 
-class _FrequencyChips extends StatelessWidget {
-  const _FrequencyChips({required this.value, required this.onChanged});
+class _FrequencyToggle extends StatelessWidget {
+  const _FrequencyToggle({required this.value, required this.onChanged});
 
   final PaymentFrequency value;
   final ValueChanged<PaymentFrequency> onChanged;
@@ -533,14 +593,194 @@ class _FrequencyChips extends StatelessWidget {
           onTap: () => onChanged(PaymentFrequency.oneTime),
         ),
         _FrequencyChip(
-          label: 'Monthly',
-          selected: value == PaymentFrequency.monthly,
-          onTap: () => onChanged(PaymentFrequency.monthly),
+          label: 'Recurring',
+          selected: value == PaymentFrequency.interval,
+          onTap: () => onChanged(PaymentFrequency.interval),
         ),
-        _FrequencyChip(
-          label: 'Yearly',
-          selected: value == PaymentFrequency.yearly,
-          onTap: () => onChanged(PaymentFrequency.yearly),
+      ],
+    );
+  }
+}
+
+class _IntervalPicker extends StatefulWidget {
+  const _IntervalPicker({
+    required this.count,
+    required this.unit,
+    required this.onChanged,
+  });
+
+  final int count;
+  final IntervalUnit unit;
+  final ValueChanged<(int?, IntervalUnit?)> onChanged;
+
+  @override
+  State<_IntervalPicker> createState() => _IntervalPickerState();
+}
+
+class _IntervalPickerState extends State<_IntervalPicker> {
+  late int _count;
+  late IntervalUnit _unit;
+
+  @override
+  void initState() {
+    super.initState();
+    _count = widget.count;
+    _unit = widget.unit;
+  }
+
+  @override
+  void didUpdateWidget(_IntervalPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.count != oldWidget.count) _count = widget.count;
+    if (widget.unit != oldWidget.unit) _unit = widget.unit;
+  }
+
+  void _updateCount(int count) {
+    setState(() => _count = count);
+    widget.onChanged((count, _unit));
+  }
+
+  void _updateUnit(IntervalUnit unit) {
+    setState(() => _unit = unit);
+    widget.onChanged((_count, unit));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          'Every',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(width: 8),
+        _NumberSpinner(
+          value: _count,
+          min: 1,
+          max: 100,
+          onChanged: _updateCount,
+        ),
+        const SizedBox(width: 8),
+        _UnitSpinner(
+          value: _unit,
+          onChanged: _updateUnit,
+        ),
+      ],
+    );
+  }
+}
+
+class _NumberSpinner extends StatelessWidget {
+  const _NumberSpinner({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  final int value;
+  final int min;
+  final int max;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OutlinedSurface(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          borderRadius: BorderRadius.circular(8),
+          child: const Icon(Icons.remove, size: 16, color: Colors.black),
+        ).onTap(
+          onTap: value > min ? () => onChanged(value - 1) : null,
+          behavior: HitTestBehavior.opaque,
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 50,
+          child: Text(
+            value.toString(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        OutlinedSurface(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          borderRadius: BorderRadius.circular(8),
+          child: const Icon(Icons.add, size: 16, color: Colors.black),
+        ).onTap(
+          onTap: value < max ? () => onChanged(value + 1) : null,
+          behavior: HitTestBehavior.opaque,
+        ),
+      ],
+    );
+  }
+}
+
+class _UnitSpinner extends StatelessWidget {
+  const _UnitSpinner({required this.value, required this.onChanged});
+
+  final IntervalUnit value;
+  final ValueChanged<IntervalUnit> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final units = [
+      IntervalUnit.days,
+      IntervalUnit.weeks,
+      IntervalUnit.months,
+      IntervalUnit.years,
+    ];
+    final labels = ['Days', 'Weeks', 'Months', 'Years'];
+    final currentIndex = units.indexOf(value);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OutlinedSurface(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          borderRadius: BorderRadius.circular(8),
+          child: const Icon(Icons.chevron_left, size: 16, color: Colors.black),
+        ).onTap(
+          onTap: currentIndex > 0
+              ? () => onChanged(units[currentIndex - 1])
+              : null,
+          behavior: HitTestBehavior.opaque,
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 80,
+          child: Text(
+            labels[currentIndex],
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        OutlinedSurface(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          borderRadius: BorderRadius.circular(8),
+          child: const Icon(Icons.chevron_right, size: 16, color: Colors.black),
+        ).onTap(
+          onTap: currentIndex < units.length - 1
+              ? () => onChanged(units[currentIndex + 1])
+              : null,
+          behavior: HitTestBehavior.opaque,
         ),
       ],
     );

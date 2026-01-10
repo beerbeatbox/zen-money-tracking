@@ -43,8 +43,6 @@ class ScheduledTransactionTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = this.now ?? DateTime.now();
-    final isDue = !item.scheduledDate.isAfter(now);
-    final canConvert = isDue && item.isActive;
 
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
@@ -69,9 +67,7 @@ class ScheduledTransactionTile extends ConsumerWidget {
               type: type,
             );
 
-    final shouldShowBadges =
-        showRecurrenceBadges &&
-        (item.frequency != PaymentFrequency.oneTime || !item.isActive);
+    final shouldShowBadges = showRecurrenceBadges;
 
     return OutlinedSurface(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 16),
@@ -116,8 +112,13 @@ class ScheduledTransactionTile extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                if (item.frequency != PaymentFrequency.oneTime)
-                  _Badge(label: _recurrenceLabel(item.frequency)),
+                _Badge(
+                  label: _recurrenceLabel(
+                    item.frequency,
+                    item.intervalCount,
+                    item.intervalUnit,
+                  ),
+                ),
                 if (!item.isActive)
                   const _Badge(
                     label: 'Paused',
@@ -133,7 +134,7 @@ class ScheduledTransactionTile extends ConsumerWidget {
                 Expanded(
                   child: OutlinedActionButton(
                     label: primaryLabel,
-                    onPressed: canConvert ? onConvert : null,
+                    onPressed: !item.isActive ? null : onConvert,
                     textColor: Colors.black,
                     borderColor: Colors.black,
                     backgroundColor: Colors.white,
@@ -252,7 +253,11 @@ class _Badge extends StatelessWidget {
   }
 }
 
-String _recurrenceLabel(PaymentFrequency frequency) {
+String _recurrenceLabel(
+  PaymentFrequency frequency,
+  int? intervalCount,
+  IntervalUnit? intervalUnit,
+) {
   switch (frequency) {
     case PaymentFrequency.oneTime:
       return 'One-time';
@@ -260,5 +265,20 @@ String _recurrenceLabel(PaymentFrequency frequency) {
       return 'Monthly';
     case PaymentFrequency.yearly:
       return 'Yearly';
+    case PaymentFrequency.interval:
+      if (intervalCount == null || intervalUnit == null) {
+        // Some legacy/migrated schedules can end up with `interval` frequency
+        // but no interval payload. Treat as one-time for display.
+        return (intervalCount == null && intervalUnit == null)
+            ? 'One-time'
+            : 'Recurring';
+      }
+      final unitLabel = switch (intervalUnit) {
+        IntervalUnit.days => intervalCount == 1 ? 'day' : 'days',
+        IntervalUnit.weeks => intervalCount == 1 ? 'week' : 'weeks',
+        IntervalUnit.months => intervalCount == 1 ? 'month' : 'months',
+        IntervalUnit.years => intervalCount == 1 ? 'year' : 'years',
+      };
+      return 'Every $intervalCount $unitLabel';
   }
 }

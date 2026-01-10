@@ -8,6 +8,8 @@ class ScheduledTransaction {
   final PaymentFrequency frequency;
   final bool isActive;
   final int remindDaysBefore;
+  final int? intervalCount;
+  final IntervalUnit? intervalUnit;
 
   const ScheduledTransaction({
     required this.id,
@@ -19,6 +21,8 @@ class ScheduledTransaction {
     this.frequency = PaymentFrequency.oneTime,
     this.isActive = true,
     this.remindDaysBefore = 0,
+    this.intervalCount,
+    this.intervalUnit,
   });
 
   ScheduledTransaction copyWith({
@@ -31,6 +35,8 @@ class ScheduledTransaction {
     PaymentFrequency? frequency,
     bool? isActive,
     int? remindDaysBefore,
+    int? intervalCount,
+    IntervalUnit? intervalUnit,
   }) {
     return ScheduledTransaction(
       id: id ?? this.id,
@@ -42,8 +48,12 @@ class ScheduledTransaction {
       frequency: frequency ?? this.frequency,
       isActive: isActive ?? this.isActive,
       remindDaysBefore: remindDaysBefore ?? this.remindDaysBefore,
+      intervalCount: intervalCount ?? this.intervalCount,
+      intervalUnit: intervalUnit ?? this.intervalUnit,
     );
   }
 }
 
-enum PaymentFrequency { oneTime, monthly, yearly }
+enum PaymentFrequency { oneTime, monthly, yearly, interval }
+
+enum IntervalUnit { days, weeks, months, years }

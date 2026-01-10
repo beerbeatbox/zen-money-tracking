@@ -108,7 +108,11 @@ class _ScheduledDetailCard extends ConsumerWidget {
     final amountLabel = formatCurrencySigned(item.amount);
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
-    final frequencyLabel = _frequencyLabel(item.frequency);
+    final frequencyLabel = _frequencyLabel(
+      item.frequency,
+      item.intervalCount,
+      item.intervalUnit,
+    );
     final categories = ref
         .watch(categoriesControllerProvider)
         .maybeWhen(data: (value) => value, orElse: () => null);
@@ -176,7 +180,11 @@ class _ScheduledDetailCard extends ConsumerWidget {
     );
   }
 
-  String _frequencyLabel(PaymentFrequency frequency) {
+  String _frequencyLabel(
+    PaymentFrequency frequency,
+    int? intervalCount,
+    IntervalUnit? intervalUnit,
+  ) {
     switch (frequency) {
       case PaymentFrequency.oneTime:
         return 'One-time';
@@ -184,6 +192,17 @@ class _ScheduledDetailCard extends ConsumerWidget {
         return 'Monthly';
       case PaymentFrequency.yearly:
         return 'Yearly';
+      case PaymentFrequency.interval:
+        if (intervalCount == null || intervalUnit == null) {
+          return 'Recurring';
+        }
+        final unitLabel = switch (intervalUnit) {
+          IntervalUnit.days => intervalCount == 1 ? 'day' : 'days',
+          IntervalUnit.weeks => intervalCount == 1 ? 'week' : 'weeks',
+          IntervalUnit.months => intervalCount == 1 ? 'month' : 'months',
+          IntervalUnit.years => intervalCount == 1 ? 'year' : 'years',
+        };
+        return 'Every $intervalCount $unitLabel';
     }
   }
 }
@@ -201,6 +220,8 @@ class _ScheduledActionsRow extends ConsumerWidget {
 
   Future<void> _openEditSheet(BuildContext context, WidgetRef ref) async {
     var frequency = item.frequency;
+    var intervalCount = item.intervalCount;
+    var intervalUnit = item.intervalUnit;
 
     await showNumberKeyboardBottomSheet(
       context,
@@ -210,13 +231,22 @@ class _ScheduledActionsRow extends ConsumerWidget {
       initialCategory: item.category,
       showFrequencyChips: true,
       initialFrequency: frequency,
+      initialIntervalCount: intervalCount,
+      initialIntervalUnit: intervalUnit,
       onFrequencyChanged: (next) => frequency = next,
+      onIntervalChanged: (interval) {
+        intervalCount = interval.$1;
+        intervalUnit = interval.$2;
+      },
       onSubmit: (
         sheetContext,
         rawValue,
         isExpense,
         logDateTime,
         category,
+        freq,
+        count,
+        unit,
       ) async {
         final result = parseAndValidateScheduledPayment(
           rawValue: rawValue,
@@ -234,7 +264,9 @@ class _ScheduledActionsRow extends ConsumerWidget {
           amount: -result.amount!.abs(),
           category: category,
           scheduledDate: logDateTime,
-          frequency: frequency,
+          frequency: freq,
+          intervalCount: count,
+          intervalUnit: unit,
         );
 
         try {
@@ -300,6 +332,45 @@ class _ScheduledActionsRow extends ConsumerWidget {
     }
   }
 
+  String _getDueDateStatusMessage(DateTime scheduledDate, DateTime now) {
+    final today = DateUtils.dateOnly(now);
+    final scheduledDay = DateUtils.dateOnly(scheduledDate);
+
+    if (scheduledDay.isBefore(today)) {
+      return 'This payment is overdue. Mark it as paid?';
+    } else if (scheduledDay == today) {
+      return 'Mark this payment as paid?';
+    } else {
+      final dateLabel = formatDateLabel(scheduledDate);
+      return 'This payment is scheduled for $dateLabel. Mark it as paid now?';
+    }
+  }
+
+  Future<void> _showMarkAsPaidConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final now = DateTime.now();
+    final description = _getDueDateStatusMessage(item.scheduledDate, now);
+
+    final shouldMarkAsPaid = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => OutlinedConfirmationDialog(
+        title: 'Mark as paid?',
+        description: description,
+        primaryLabel: 'Mark as paid',
+        onPrimaryPressed: () => Navigator.of(ctx).pop(true),
+        secondaryLabel: 'Cancel',
+        onSecondaryPressed: () => Navigator.of(ctx).pop(false),
+      ),
+    );
+
+    if (shouldMarkAsPaid != true) return;
+
+    await _handleMarkAsPaid(context, ref);
+  }
+
   Future<void> _handleMarkAsPaid(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -332,9 +403,6 @@ class _ScheduledActionsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
-    final isDue = !item.scheduledDate.isAfter(now);
-    final canMarkAsPaid = isDue && item.isActive;
     final markAsPaidLabel = !item.isActive ? 'Paused' : 'Mark as paid';
 
     return Column(
@@ -344,8 +412,9 @@ class _ScheduledActionsRow extends ConsumerWidget {
             Expanded(
               child: OutlinedActionButton(
                 label: markAsPaidLabel,
-                onPressed:
-                    canMarkAsPaid ? () => _handleMarkAsPaid(context, ref) : null,
+                onPressed: !item.isActive
+                    ? null
+                    : () => _showMarkAsPaidConfirmation(context, ref),
                 textColor: Colors.white,
                 borderColor: Colors.black,
                 backgroundColor: Colors.black,

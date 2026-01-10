@@ -136,7 +136,20 @@ class _AddScheduledTransactionScreenState
           initial == null ? null : _formatInitialAmount(initial.amount.abs()),
       initialLogDateTime: initial?.scheduledDate,
       initialCategory: initial?.category,
-      onSubmit: (sheetContext, rawValue, isExpense, logDateTime, category) async {
+      showFrequencyChips: true,
+      initialFrequency: _frequency,
+      initialIntervalCount: initial?.intervalCount,
+      initialIntervalUnit: initial?.intervalUnit,
+      onSubmit: (
+        sheetContext,
+        rawValue,
+        isExpense,
+        logDateTime,
+        category,
+        freq,
+        count,
+        unit,
+      ) async {
         final result = parseAndValidateScheduledPayment(
           rawValue: rawValue,
           isExpense: isExpense,
@@ -158,7 +171,9 @@ class _AddScheduledTransactionScreenState
           amount: amount,
           scheduledDate: logDateTime,
           createdAt: initial?.createdAt ?? now,
-          frequency: _frequency,
+          frequency: freq,
+          intervalCount: count,
+          intervalUnit: unit,
           isActive: initial?.isActive ?? _isActive,
           remindDaysBefore: initial?.remindDaysBefore ?? 0,
         );

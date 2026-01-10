@@ -1,6 +1,7 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:anti/features/home/domain/utils/recurrence.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
@@ -21,6 +22,7 @@ class DashboardMonthVm {
     required this.income,
     required this.spent,
     required this.scheduledThisMonth,
+    required this.dueNow,
   });
 
   final DateTime selectedMonth;
@@ -33,6 +35,7 @@ class DashboardMonthVm {
   final double income;
   final double spent;
   final List<ScheduledTransaction> scheduledThisMonth;
+  final List<ScheduledTransaction> dueNow;
 }
 
 /// Derived dashboard values for the given month.
@@ -88,6 +91,17 @@ final dashboardMonthVmProvider = Provider.family<
 
     final showProjected = scheduledThisMonth.isNotEmpty;
 
+    final now = DateTime.now();
+    final isCurrentMonth =
+        selectedMonth.year == now.year && selectedMonth.month == now.month;
+    final dueNow =
+        isCurrentMonth
+            ? _dueNowItems(
+              scheduledTransactions: scheduledTransactions,
+              now: now,
+            )
+            : const <ScheduledTransaction>[];
+
     return DashboardMonthVm(
       selectedMonth: selectedMonth,
       monthYearLabel: monthYearLabel,
@@ -99,6 +113,7 @@ final dashboardMonthVmProvider = Provider.family<
       income: income,
       spent: spent,
       scheduledThisMonth: scheduledThisMonth,
+      dueNow: dueNow,
     );
   });
 });
@@ -134,13 +149,38 @@ List<ScheduledTransaction> _scheduledInMonth({
   final startOfMonth = DateTime(selectedMonth.year, selectedMonth.month);
   final endOfMonth = DateTime(selectedMonth.year, selectedMonth.month + 1, 0);
 
-  final items =
-      scheduledTransactions.where((t) {
-        final dateOnly = DateUtils.dateOnly(t.scheduledDate);
-        return !dateOnly.isBefore(startOfMonth) &&
-            !dateOnly.isAfter(endOfMonth);
-      }).toList();
+  final items = <ScheduledTransaction>[];
+
+  for (final schedule in scheduledTransactions) {
+    final occurrences = occurrencesInMonth(
+      schedule: schedule,
+      startOfMonth: startOfMonth,
+      endOfMonth: endOfMonth,
+    );
+
+    for (final occurrenceDate in occurrences) {
+      // Create a virtual scheduled transaction for this occurrence
+      // Keep the original ID so edit/delete actions work correctly
+      items.add(schedule.copyWith(scheduledDate: occurrenceDate));
+    }
+  }
 
   items.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
   return items;
+}
+
+List<ScheduledTransaction> _dueNowItems({
+  required List<ScheduledTransaction> scheduledTransactions,
+  required DateTime now,
+}) {
+  final today = DateUtils.dateOnly(now);
+  final dueItems =
+      scheduledTransactions.where((item) {
+          if (!item.isActive) return false;
+          final scheduledDay = DateUtils.dateOnly(item.scheduledDate);
+          return scheduledDay.isBefore(today) ||
+              scheduledDay.isAtSameMomentAs(today);
+        }).toList()
+        ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+  return dueItems;
 }

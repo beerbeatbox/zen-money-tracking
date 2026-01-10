@@ -7,6 +7,7 @@ import 'package:anti/features/home/presentation/controllers/scheduled_transactio
 import 'package:anti/features/home/presentation/screens/dashboard/dashboard_quick_add_handler.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/providers/dashboard_month_vm_provider.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_balance_section.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_due_now_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_income_spent_row.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
@@ -82,6 +83,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         isExpense,
         logDateTime,
         category,
+        frequency,
+        intervalCount,
+        intervalUnit,
       ) async {
         final parsed = double.tryParse(rawValue);
         if (parsed == null) {
@@ -130,6 +134,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required String itemsLabel,
     required String monthYearLabel,
     required List<ScheduledTransaction> scheduledThisMonth,
+    required List<ScheduledTransaction> dueNow,
   }) {
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
@@ -145,6 +150,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         const SizedBox(height: 16),
         DashboardIncomeSpentRow(income: income, spent: spent),
         const SizedBox(height: 32),
+        DashboardDueNowSection(items: dueNow),
+        const SizedBox(height: 40),
         DashboardRecentLogsSection(
           logs: scopedLogs,
           itemsLabel: itemsLabel,
@@ -222,6 +229,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 itemsLabel: vm.itemsLabel,
                 monthYearLabel: vm.monthYearLabel,
                 scheduledThisMonth: vm.scheduledThisMonth,
+                dueNow: vm.dueNow,
               ),
               onSwipeToPreviousMonth:
                   () =>
