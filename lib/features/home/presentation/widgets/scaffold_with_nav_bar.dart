@@ -76,18 +76,9 @@ class ScaffoldWithNavBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Use ValueKey based on currentIndex to force immediate rebuild
-    // and prevent screen overlap during tab switching.
-    // The key change forces Flutter to rebuild the widget tree immediately
-    // when the index changes, preventing the old screen from being visible.
-    final currentIndex = navigationShell.currentIndex;
-
     return Scaffold(
       backgroundColor: Colors.white,
-      body: RepaintBoundary(
-        key: ValueKey('nav_shell_$currentIndex'),
-        child: navigationShell,
-      ),
+      body: navigationShell,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openKeyboard(context, ref),
         backgroundColor: Colors.white,

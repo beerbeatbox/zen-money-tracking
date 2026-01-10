@@ -71,7 +71,6 @@ enum AppRouter {
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
@@ -99,7 +98,6 @@ GoRouter appRouter(Ref ref) {
         },
         branches: [
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorKey,
             routes: [
               GoRoute(
                 path: AppRouter.dashboard.path,
