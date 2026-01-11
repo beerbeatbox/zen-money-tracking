@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
@@ -58,13 +56,14 @@ class DashboardController extends _$DashboardController {
     ref.watch(expenseLogsProvider);
     final scheduledAsync = ref.watch(scheduledTransactionsProvider);
     final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
-    
+
     final allLogs = await ref.read(expenseLogsProvider.future);
     final scheduledTransactions =
         scheduledAsync.value ?? const <ScheduledTransaction>[];
     final carryEnabled = carryAsync.value ?? false;
 
-    final sortedLogs = [...allLogs]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final sortedLogs = [...allLogs]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
     final scopedLogs = filterLogsByMonth(sortedLogs, selectedMonth);
     final scheduledThisMonth = _scheduledInMonth(
@@ -144,17 +143,13 @@ double _calculateProjectedBalance({
   required double balanceWithCarry,
   required List<ScheduledTransaction> scheduledThisMonth,
 }) {
-  final scheduledSum = scheduledThisMonth.fold<double>(
-    0.0,
-    (sum, t) {
-      // Use budgetAmount for dynamic scheduled transactions, amount for fixed
-      // budgetAmount should be negated since it's an expense
-      final amountToUse = t.isDynamicAmount
-          ? -(t.budgetAmount ?? t.amount.abs())
-          : t.amount;
-      return sum + amountToUse;
-    },
-  );
+  final scheduledSum = scheduledThisMonth.fold<double>(0.0, (sum, t) {
+    // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+    // budgetAmount should be negated since it's an expense
+    final amountToUse =
+        t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
+    return sum + amountToUse;
+  });
   return balanceWithCarry + scheduledSum;
 }
 
@@ -226,8 +221,7 @@ List<ScheduledTransaction> _dueNowItems({
   final daysRemaining = endOfMonth.difference(today).inDays + 1;
 
   // Calculate average daily spending
-  final averageDailySpending =
-      daysPassed > 0 ? spent.abs() / daysPassed : 0.0;
+  final averageDailySpending = daysPassed > 0 ? spent.abs() / daysPassed : 0.0;
 
   // Calculate remaining scheduled transactions (not yet due)
   final remainingScheduled = scheduledThisMonth
@@ -235,17 +229,13 @@ List<ScheduledTransaction> _dueNowItems({
         final scheduledDay = DateUtils.dateOnly(t.scheduledDate);
         return scheduledDay.isAfter(today);
       })
-      .fold<double>(
-        0.0,
-        (sum, t) {
-          // Use budgetAmount for dynamic scheduled transactions, amount for fixed
-          // budgetAmount should be negated since it's an expense
-          final amountToUse = t.isDynamicAmount
-              ? -(t.budgetAmount ?? t.amount.abs())
-              : t.amount;
-          return sum + amountToUse;
-        },
-      );
+      .fold<double>(0.0, (sum, t) {
+        // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+        // budgetAmount should be negated since it's an expense
+        final amountToUse =
+            t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
+        return sum + amountToUse;
+      });
 
   // Calculate due now scheduled transactions (due today or before, not yet paid)
   final dueNowScheduled = scheduledThisMonth
@@ -254,24 +244,23 @@ List<ScheduledTransaction> _dueNowItems({
         return scheduledDay.isBefore(today) ||
             scheduledDay.isAtSameMomentAs(today);
       })
-      .fold<double>(
-        0.0,
-        (sum, t) {
-          // Use budgetAmount for dynamic scheduled transactions, amount for fixed
-          // budgetAmount should be negated since it's an expense
-          final amountToUse = t.isDynamicAmount
-              ? -(t.budgetAmount ?? t.amount.abs())
-              : t.amount;
-          return sum + amountToUse;
-        },
-      );
+      .fold<double>(0.0, (sum, t) {
+        // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+        // budgetAmount should be negated since it's an expense
+        final amountToUse =
+            t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
+        return sum + amountToUse;
+      });
 
   // Calculate projected daily spending for remaining days
   final projectedDailySpending = averageDailySpending * daysRemaining;
 
   // Calculate month-end balance
   final monthEndBalance =
-      netBalance + remainingScheduled + dueNowScheduled - projectedDailySpending;
+      netBalance +
+      remainingScheduled +
+      dueNowScheduled -
+      projectedDailySpending;
 
   // Check if sufficient
   final isSufficient = monthEndBalance >= 0;
