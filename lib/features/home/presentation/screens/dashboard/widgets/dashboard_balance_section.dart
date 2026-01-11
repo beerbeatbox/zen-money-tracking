@@ -91,11 +91,10 @@ class _DashboardNetBalanceSectionState extends State<DashboardNetBalanceSection>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16),
-                          _ScheduledTotalRow(
-                            total: widget.scheduledThisMonth.fold<double>(
-                              0.0,
-                              (sum, t) => sum + t.amount,
-                            ),
+                          _AvailableAfterScheduledRow(
+                            netBalance: widget.netBalance,
+                            scheduledTotal: widget.scheduledThisMonth
+                                .fold<double>(0.0, (sum, t) => sum + t.amount),
                           ),
                           const SizedBox(height: 12),
                           DashboardScheduleSection(
@@ -111,39 +110,6 @@ class _DashboardNetBalanceSectionState extends State<DashboardNetBalanceSection>
                     ),
           ),
         ],
-      ],
-    );
-  }
-}
-
-class _ScheduledTotalRow extends StatelessWidget {
-  const _ScheduledTotalRow({required this.total});
-
-  final double total;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Scheduled total',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-            color: Colors.grey[700],
-          ),
-        ),
-        Text(
-          formatNetBalance(total),
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.2,
-            color: Colors.black,
-          ),
-        ),
       ],
     );
   }
@@ -189,7 +155,7 @@ class _ProjectedBalanceRow extends StatelessWidget {
                   const SizedBox(width: 20),
                 const SizedBox(width: 6),
                 Text(
-                  'Projected balance',
+                  'Scheduled this month',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -211,6 +177,44 @@ class _ProjectedBalanceRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AvailableAfterScheduledRow extends StatelessWidget {
+  const _AvailableAfterScheduledRow({
+    required this.netBalance,
+    required this.scheduledTotal,
+  });
+
+  final double netBalance;
+  final double scheduledTotal;
+
+  @override
+  Widget build(BuildContext context) {
+    final availableBalance = netBalance + scheduledTotal;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Available after scheduled',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+            color: Colors.grey[700],
+          ),
+        ),
+        Text(
+          formatNetBalance(availableBalance),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+            color: Colors.black,
+          ),
+        ),
+      ],
     );
   }
 }

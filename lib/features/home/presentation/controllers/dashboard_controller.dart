@@ -150,7 +150,7 @@ double _calculateProjectedBalance({
         t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
     return sum + amountToUse;
   });
-  return balanceWithCarry + scheduledSum;
+  return scheduledSum;
 }
 
 String _logsCountLabel(int count) => '$count Items';
