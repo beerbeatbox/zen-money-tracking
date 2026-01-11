@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
@@ -28,8 +26,9 @@ class InsightMonthController extends _$InsightMonthController {
   FutureOr<InsightMonth> build(DateTime selectedMonth) async {
     ref.watch(expenseLogsProvider);
     final allLogs = await ref.read(expenseLogsProvider.future);
-    
-    final sortedLogs = [...allLogs]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    final sortedLogs = [...allLogs]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
     final scopedLogs = filterLogsByMonth(sortedLogs, selectedMonth);
 

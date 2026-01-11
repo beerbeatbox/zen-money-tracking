@@ -50,9 +50,9 @@ class _DashboardNetBalanceSectionState extends State<DashboardNetBalanceSection>
           ),
         ),
         const SizedBox(height: 8),
-        _AnimatedBalanceText(
-          value: widget.netBalance,
-          textStyle: const TextStyle(
+        Text(
+          formatNetBalance(widget.netBalance),
+          style: const TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.4,
@@ -212,43 +212,5 @@ class _ProjectedBalanceRow extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _AnimatedBalanceText extends ImplicitlyAnimatedWidget {
-  const _AnimatedBalanceText({
-    required this.value,
-    required this.textStyle,
-    super.duration = const Duration(milliseconds: 600),
-  });
-
-  final double value;
-  final TextStyle textStyle;
-
-  @override
-  AnimatedWidgetBaseState<_AnimatedBalanceText> createState() =>
-      _AnimatedBalanceTextState();
-}
-
-class _AnimatedBalanceTextState
-    extends AnimatedWidgetBaseState<_AnimatedBalanceText> {
-  Tween<double>? _valueTween;
-
-  @override
-  void forEachTween(TweenVisitor<dynamic> visitor) {
-    _valueTween =
-        visitor(
-              _valueTween,
-              widget.value,
-              (dynamic value) =>
-                  Tween<double>(begin: value as double, end: widget.value),
-            )
-            as Tween<double>?;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final animatedValue = _valueTween?.evaluate(animation) ?? widget.value;
-    return Text(formatNetBalance(animatedValue), style: widget.textStyle);
   }
 }
