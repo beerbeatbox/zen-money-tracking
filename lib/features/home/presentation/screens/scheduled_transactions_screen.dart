@@ -102,23 +102,35 @@ class _ScheduledTransactionsScreenState
     var frequency = initial?.frequency ?? PaymentFrequency.oneTime;
     var intervalCount = initial?.intervalCount;
     var intervalUnit = initial?.intervalUnit;
+    var isDynamicAmount = initial?.isDynamicAmount ?? false;
+    var budgetAmount = initial?.budgetAmount;
 
     await showNumberKeyboardBottomSheet(
       context,
       initialIsExpense: true,
       initialValue:
-          initial == null ? null : _formatInitialAmount(initial.amount.abs()),
+          initial == null
+              ? null
+              : _formatInitialAmount(
+                  (isDynamicAmount && budgetAmount != null)
+                      ? budgetAmount.abs()
+                      : initial.amount.abs(),
+                ),
       initialLogDateTime: initial?.scheduledDate,
       initialCategory: initial?.category,
       showFrequencyChips: true,
       initialFrequency: frequency,
       initialIntervalCount: intervalCount,
       initialIntervalUnit: intervalUnit,
+      initialIsDynamicAmount: isDynamicAmount,
+      initialBudgetAmount: budgetAmount,
       onFrequencyChanged: (next) => frequency = next,
       onIntervalChanged: (interval) {
         intervalCount = interval.$1;
         intervalUnit = interval.$2;
       },
+      onDynamicAmountChanged: (value) => isDynamicAmount = value,
+      onBudgetAmountChanged: (value) => budgetAmount = value,
       onSubmit: (
         sheetContext,
         rawValue,
@@ -128,6 +140,8 @@ class _ScheduledTransactionsScreenState
         freq,
         count,
         unit,
+        isDynamicAmount,
+        budgetAmount,
       ) async {
         final result = parseAndValidateScheduledPayment(
           rawValue: rawValue,
@@ -155,6 +169,8 @@ class _ScheduledTransactionsScreenState
           intervalUnit: unit,
           isActive: initial?.isActive ?? true,
           remindDaysBefore: initial?.remindDaysBefore ?? 0,
+          isDynamicAmount: isDynamicAmount,
+          budgetAmount: budgetAmount,
         );
 
         try {

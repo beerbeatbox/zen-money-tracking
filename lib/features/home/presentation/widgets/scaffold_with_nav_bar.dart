@@ -37,6 +37,8 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         frequency,
         intervalCount,
         intervalUnit,
+        isDynamicAmount,
+        budgetAmount,
       ) async {
         final parsed = double.tryParse(rawValue);
         if (parsed == null) {

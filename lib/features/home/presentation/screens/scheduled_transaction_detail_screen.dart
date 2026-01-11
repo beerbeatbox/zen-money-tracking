@@ -6,6 +6,7 @@ import 'package:anti/features/categories/presentation/widgets/category_name_with
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
+import 'package:anti/features/home/presentation/widgets/dynamic_amount_paid_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
@@ -105,7 +106,15 @@ class _ScheduledDetailCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final amountLabel = formatCurrencySigned(item.amount);
+    // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+    final amountToDisplay =
+        item.isDynamicAmount
+            ? (item.budgetAmount ?? item.amount.abs())
+            : item.amount.abs();
+    final amountLabel =
+        item.isDynamicAmount
+            ? 'Budget: ${formatNetBalance(amountToDisplay)}'
+            : formatCurrencySigned(item.amount);
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
     final frequencyLabel = _frequencyLabel(
@@ -142,14 +151,44 @@ class _ScheduledDetailCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            amountLabel,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
-              color: Colors.black,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  amountLabel,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              if (item.isDynamicAmount)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F4FD),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.black.withValues(alpha: 0.10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Dynamic',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
           _MetaRow(
@@ -222,22 +261,32 @@ class _ScheduledActionsRow extends ConsumerWidget {
     var frequency = item.frequency;
     var intervalCount = item.intervalCount;
     var intervalUnit = item.intervalUnit;
+    var isDynamicAmount = item.isDynamicAmount;
+    var budgetAmount = item.budgetAmount;
 
     await showNumberKeyboardBottomSheet(
       context,
       initialIsExpense: true,
-      initialValue: _formatInitialAmount(item.amount.abs()),
+      initialValue: _formatInitialAmount(
+        (isDynamicAmount && budgetAmount != null)
+            ? budgetAmount.abs()
+            : item.amount.abs(),
+      ),
       initialLogDateTime: item.scheduledDate,
       initialCategory: item.category,
       showFrequencyChips: true,
       initialFrequency: frequency,
       initialIntervalCount: intervalCount,
       initialIntervalUnit: intervalUnit,
+      initialIsDynamicAmount: isDynamicAmount,
+      initialBudgetAmount: budgetAmount,
       onFrequencyChanged: (next) => frequency = next,
       onIntervalChanged: (interval) {
         intervalCount = interval.$1;
         intervalUnit = interval.$2;
       },
+      onDynamicAmountChanged: (value) => isDynamicAmount = value,
+      onBudgetAmountChanged: (value) => budgetAmount = value,
       onSubmit: (
         sheetContext,
         rawValue,
@@ -247,6 +296,8 @@ class _ScheduledActionsRow extends ConsumerWidget {
         freq,
         count,
         unit,
+        dynamicAmount,
+        budget,
       ) async {
         final result = parseAndValidateScheduledPayment(
           rawValue: rawValue,
@@ -267,6 +318,8 @@ class _ScheduledActionsRow extends ConsumerWidget {
           frequency: freq,
           intervalCount: count,
           intervalUnit: unit,
+          isDynamicAmount: dynamicAmount,
+          budgetAmount: budget,
         );
 
         try {
@@ -356,14 +409,15 @@ class _ScheduledActionsRow extends ConsumerWidget {
     final shouldMarkAsPaid = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => OutlinedConfirmationDialog(
-        title: 'Mark as paid?',
-        description: description,
-        primaryLabel: 'Mark as paid',
-        onPrimaryPressed: () => Navigator.of(ctx).pop(true),
-        secondaryLabel: 'Cancel',
-        onSecondaryPressed: () => Navigator.of(ctx).pop(false),
-      ),
+      builder:
+          (ctx) => OutlinedConfirmationDialog(
+            title: 'Mark as paid?',
+            description: description,
+            primaryLabel: 'Mark as paid',
+            onPrimaryPressed: () => Navigator.of(ctx).pop(true),
+            secondaryLabel: 'Cancel',
+            onSecondaryPressed: () => Navigator.of(ctx).pop(false),
+          ),
     );
 
     if (shouldMarkAsPaid != true) return;
@@ -373,10 +427,27 @@ class _ScheduledActionsRow extends ConsumerWidget {
 
   Future<void> _handleMarkAsPaid(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(
-        convertScheduledTransactionToLogActionProvider(item).future,
+
+    // If dynamic amount, show dialog to enter actual amount
+    double? actualAmount;
+    if (item.isDynamicAmount) {
+      final amount = await showDynamicAmountPaidDialog(
+        context,
+        category: item.category,
+        budgetAmount: item.budgetAmount ?? item.amount.abs(),
+        previousAmount: item.budgetAmount,
       );
+
+      // User cancelled
+      if (amount == null) return;
+      actualAmount = amount;
+    }
+
+    try {
+      final controller = ref.read(
+        scheduledTransactionControllerProvider.notifier,
+      );
+      await controller.convertToLog(item, actualAmount: actualAmount);
       messenger.showSnackBar(
         const SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -412,9 +483,10 @@ class _ScheduledActionsRow extends ConsumerWidget {
             Expanded(
               child: OutlinedActionButton(
                 label: markAsPaidLabel,
-                onPressed: !item.isActive
-                    ? null
-                    : () => _showMarkAsPaidConfirmation(context, ref),
+                onPressed:
+                    !item.isActive
+                        ? null
+                        : () => _showMarkAsPaidConfirmation(context, ref),
                 textColor: Colors.white,
                 borderColor: Colors.black,
                 backgroundColor: Colors.black,

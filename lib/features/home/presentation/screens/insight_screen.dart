@@ -4,7 +4,7 @@ import 'package:anti/features/home/presentation/controllers/dashboard_selected_m
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
-import 'package:anti/features/home/presentation/screens/insight/providers/insight_month_vm_provider.dart';
+import 'package:anti/features/home/presentation/controllers/insight_month_controller.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class InsightScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
-    final vmAsync = ref.watch(insightMonthVmProvider(selectedMonth));
+    final vmAsync = ref.watch(insightMonthControllerProvider(selectedMonth));
     final fallbackMonthYearLabel = formatMonthYearLabel(selectedMonth);
 
     Future<void> refreshLogs() async {

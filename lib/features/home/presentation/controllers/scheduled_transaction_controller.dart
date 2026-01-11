@@ -47,12 +47,16 @@ class ScheduledTransactionController extends _$ScheduledTransactionController {
     await ref.read(scheduledTransactionsProvider.future);
   }
 
-  Future<void> convertToLog(ScheduledTransaction item) async {
+  Future<void> convertToLog(
+    ScheduledTransaction item, {
+    double? actualAmount,
+  }) async {
     final scheduledService = ref.read(scheduledTransactionServiceProvider);
     final expenseLogService = ref.read(expenseLogServiceProvider);
     await scheduledService.convertToExpenseLog(
       scheduled: item,
       expenseLogService: expenseLogService,
+      actualAmount: actualAmount,
     );
 
     if (!ref.mounted) return;

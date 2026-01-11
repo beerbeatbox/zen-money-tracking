@@ -10,6 +10,8 @@ class ScheduledTransaction {
   final int remindDaysBefore;
   final int? intervalCount;
   final IntervalUnit? intervalUnit;
+  final bool isDynamicAmount;
+  final double? budgetAmount;
 
   const ScheduledTransaction({
     required this.id,
@@ -23,6 +25,8 @@ class ScheduledTransaction {
     this.remindDaysBefore = 0,
     this.intervalCount,
     this.intervalUnit,
+    this.isDynamicAmount = false,
+    this.budgetAmount,
   });
 
   ScheduledTransaction copyWith({
@@ -37,6 +41,8 @@ class ScheduledTransaction {
     int? remindDaysBefore,
     int? intervalCount,
     IntervalUnit? intervalUnit,
+    bool? isDynamicAmount,
+    double? budgetAmount,
   }) {
     return ScheduledTransaction(
       id: id ?? this.id,
@@ -50,6 +56,8 @@ class ScheduledTransaction {
       remindDaysBefore: remindDaysBefore ?? this.remindDaysBefore,
       intervalCount: intervalCount ?? this.intervalCount,
       intervalUnit: intervalUnit ?? this.intervalUnit,
+      isDynamicAmount: isDynamicAmount ?? this.isDynamicAmount,
+      budgetAmount: budgetAmount ?? this.budgetAmount,
     );
   }
 }
