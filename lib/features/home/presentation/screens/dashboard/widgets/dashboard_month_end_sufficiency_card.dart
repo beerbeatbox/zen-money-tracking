@@ -91,6 +91,56 @@ class _DashboardMonthEndSufficiencyCardState
                           color: Colors.grey[700],
                         ),
                       ),
+                      if (breakdown.daysRemaining > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _getComparisonColor(
+                                  breakdown.currentVsRecommended,
+                                ).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: _getComparisonColor(
+                                    breakdown.currentVsRecommended,
+                                  ),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _getComparisonIcon(
+                                      breakdown.currentVsRecommended,
+                                    ),
+                                    size: 14,
+                                    color: _getComparisonColor(
+                                      breakdown.currentVsRecommended,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Aim to spend around ${formatNetBalance(breakdown.recommendedDailyBudget)} per day',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: _getComparisonColor(
+                                        breakdown.currentVsRecommended,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -165,6 +215,64 @@ class _BreakdownSection extends StatelessWidget {
           icon: Icons.trending_down,
         ),
         const SizedBox(height: 12),
+        if (breakdown.daysRemaining > 0) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _getComparisonColor(breakdown.currentVsRecommended)
+                  .withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _getComparisonColor(breakdown.currentVsRecommended),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      size: 18,
+                      color: _getComparisonColor(
+                        breakdown.currentVsRecommended,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Daily budget recommendation',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[900],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _DailyBudgetRecommendationRow(
+                  label: 'Balanced',
+                  value: formatNetBalance(breakdown.recommendedDailyBudget),
+                  description: 'To reach month end comfortably',
+                  icon: Icons.balance,
+                ),
+                const SizedBox(height: 8),
+                _DailyBudgetRecommendationRow(
+                  label: 'Conservative',
+                  value: formatNetBalance(
+                    breakdown.recommendedDailyBudgetWithBuffer,
+                  ),
+                  description: 'With 10% safety buffer',
+                  icon: Icons.shield,
+                ),
+                const SizedBox(height: 8),
+                _ComparisonIndicator(breakdown: breakdown),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         _BreakdownRow(
           label: 'Days remaining',
           value: '${breakdown.daysRemaining} days',
@@ -379,6 +487,147 @@ class _CalculationLine extends StatelessWidget {
               fontSize: 12,
               fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
               color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Color _getComparisonColor(DailyBudgetComparison comparison) {
+  switch (comparison) {
+    case DailyBudgetComparison.under:
+      return const Color(0xFF4CAF50); // Green
+    case DailyBudgetComparison.onTrack:
+      return const Color(0xFF2196F3); // Blue
+    case DailyBudgetComparison.over:
+      return const Color(0xFFFF9800); // Orange
+  }
+}
+
+IconData _getComparisonIcon(DailyBudgetComparison comparison) {
+  switch (comparison) {
+    case DailyBudgetComparison.under:
+      return Icons.trending_down;
+    case DailyBudgetComparison.onTrack:
+      return Icons.check_circle;
+    case DailyBudgetComparison.over:
+      return Icons.trending_up;
+  }
+}
+
+class _DailyBudgetRecommendationRow extends StatelessWidget {
+  const _DailyBudgetRecommendationRow({
+    required this.label,
+    required this.value,
+    required this.description,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final String description;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: Colors.grey[700],
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[900],
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ComparisonIndicator extends StatelessWidget {
+  const _ComparisonIndicator({
+    required this.breakdown,
+  });
+
+  final MonthEndSufficiencyBreakdown breakdown;
+
+  String _getComparisonMessage() {
+    final diff = breakdown.averageDailySpending -
+        breakdown.recommendedDailyBudget;
+
+    switch (breakdown.currentVsRecommended) {
+      case DailyBudgetComparison.under:
+        return 'You\'re spending ${formatNetBalance(diff.abs())} less per day than recommended. Great job!';
+      case DailyBudgetComparison.onTrack:
+        return 'You\'re on track! Your spending aligns with the recommendation.';
+      case DailyBudgetComparison.over:
+        return 'You\'re spending ${formatNetBalance(diff.abs())} more per day than recommended. Consider reducing spending to stay on track.';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _getComparisonIcon(breakdown.currentVsRecommended),
+            size: 16,
+            color: _getComparisonColor(breakdown.currentVsRecommended),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _getComparisonMessage(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
             ),
           ),
         ],

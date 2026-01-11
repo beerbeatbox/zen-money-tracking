@@ -11,6 +11,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dashboard_controller.g.dart';
 
+enum DailyBudgetComparison { under, onTrack, over }
+
 @immutable
 class MonthEndSufficiencyBreakdown {
   const MonthEndSufficiencyBreakdown({
@@ -23,6 +25,9 @@ class MonthEndSufficiencyBreakdown {
     required this.projectedDailySpending,
     required this.monthEndBalance,
     required this.isSufficient,
+    required this.recommendedDailyBudget,
+    required this.recommendedDailyBudgetWithBuffer,
+    required this.currentVsRecommended,
   });
 
   final double currentBalance;
@@ -34,6 +39,9 @@ class MonthEndSufficiencyBreakdown {
   final double projectedDailySpending;
   final double monthEndBalance;
   final bool isSufficient;
+  final double recommendedDailyBudget;
+  final double recommendedDailyBudgetWithBuffer;
+  final DailyBudgetComparison currentVsRecommended;
 }
 
 @immutable
@@ -293,6 +301,28 @@ MonthEndSufficiencyBreakdown? _calculateMonthEndSufficiency({
   // Check if sufficient
   final isSufficient = monthEndBalance >= 0;
 
+  // Calculate available balance after scheduled transactions
+  final availableBalance = netBalance + remainingScheduled + dueNowScheduled;
+
+  // Calculate recommended daily budget (balanced approach)
+  final recommendedDailyBudget =
+      daysRemaining > 0 ? availableBalance / daysRemaining : 0.0;
+
+  // Conservative approach with 10% buffer
+  final recommendedDailyBudgetWithBuffer = recommendedDailyBudget * 0.9;
+
+  // Compare current average spending with recommended budget
+  // Use ±10% tolerance for "on track"
+  final tolerance = recommendedDailyBudget * 0.1;
+  final DailyBudgetComparison currentVsRecommended;
+  if (averageDailySpending < recommendedDailyBudget - tolerance) {
+    currentVsRecommended = DailyBudgetComparison.under;
+  } else if (averageDailySpending <= recommendedDailyBudget + tolerance) {
+    currentVsRecommended = DailyBudgetComparison.onTrack;
+  } else {
+    currentVsRecommended = DailyBudgetComparison.over;
+  }
+
   return MonthEndSufficiencyBreakdown(
     currentBalance: netBalance,
     averageDailySpending: averageDailySpending,
@@ -303,5 +333,8 @@ MonthEndSufficiencyBreakdown? _calculateMonthEndSufficiency({
     projectedDailySpending: projectedDailySpending,
     monthEndBalance: monthEndBalance,
     isSufficient: isSufficient,
+    recommendedDailyBudget: recommendedDailyBudget,
+    recommendedDailyBudgetWithBuffer: recommendedDailyBudgetWithBuffer,
+    currentVsRecommended: currentVsRecommended,
   );
 }
