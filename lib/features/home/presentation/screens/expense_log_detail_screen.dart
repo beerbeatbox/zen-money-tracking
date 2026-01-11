@@ -304,6 +304,8 @@ class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
                   frequency,
                   intervalCount,
                   intervalUnit,
+                  isDynamicAmount,
+                  budgetAmount,
                 ) async {
                   final parsed = double.tryParse(rawValue);
                   if (parsed == null) {

@@ -12,6 +12,8 @@ class ScheduledTransactionModel {
   final int remindDaysBefore;
   final int? intervalCount;
   final String? intervalUnit;
+  final bool isDynamicAmount;
+  final double? budgetAmount;
 
   const ScheduledTransactionModel({
     required this.id,
@@ -25,6 +27,8 @@ class ScheduledTransactionModel {
     required this.remindDaysBefore,
     this.intervalCount,
     this.intervalUnit,
+    this.isDynamicAmount = false,
+    this.budgetAmount,
   });
 
   factory ScheduledTransactionModel.fromEntity(ScheduledTransaction entity) {
@@ -42,6 +46,8 @@ class ScheduledTransactionModel {
       intervalUnit: entity.intervalUnit != null
           ? _intervalUnitToString(entity.intervalUnit!)
           : null,
+      isDynamicAmount: entity.isDynamicAmount,
+      budgetAmount: entity.budgetAmount,
     );
   }
 
@@ -66,6 +72,8 @@ class ScheduledTransactionModel {
       remindDaysBefore: remindDaysBefore,
       intervalCount: migratedCount,
       intervalUnit: migratedUnit,
+      isDynamicAmount: isDynamicAmount,
+      budgetAmount: budgetAmount,
     );
   }
 
@@ -82,6 +90,8 @@ class ScheduledTransactionModel {
       'remindDaysBefore': remindDaysBefore,
       if (intervalCount != null) 'intervalCount': intervalCount,
       if (intervalUnit != null) 'intervalUnit': intervalUnit,
+      'isDynamicAmount': isDynamicAmount,
+      if (budgetAmount != null) 'budgetAmount': budgetAmount,
     };
   }
 
@@ -98,6 +108,10 @@ class ScheduledTransactionModel {
       remindDaysBefore: _parseInt(json['remindDaysBefore'], fallback: 0),
       intervalCount: _parseIntNullable(json['intervalCount']),
       intervalUnit: json['intervalUnit']?.toString(),
+      isDynamicAmount: _parseBool(json['isDynamicAmount'], fallback: false),
+      budgetAmount: json['budgetAmount'] != null
+          ? double.tryParse(json['budgetAmount']?.toString() ?? '')
+          : null,
     );
   }
 }

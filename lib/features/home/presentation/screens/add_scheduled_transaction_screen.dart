@@ -22,6 +22,8 @@ class _AddScheduledTransactionScreenState
     extends ConsumerState<AddScheduledTransactionScreen> {
   late PaymentFrequency _frequency;
   late bool _isActive;
+  bool _isDynamicAmount = false;
+  double? _budgetAmount;
 
   ScheduledTransaction? get _initial => widget.initial;
 
@@ -32,6 +34,8 @@ class _AddScheduledTransactionScreenState
     super.initState();
     _frequency = _initial?.frequency ?? PaymentFrequency.oneTime;
     _isActive = _initial?.isActive ?? true;
+    _isDynamicAmount = _initial?.isDynamicAmount ?? false;
+    _budgetAmount = _initial?.budgetAmount;
   }
 
   @override
@@ -133,13 +137,31 @@ class _AddScheduledTransactionScreenState
       context,
       initialIsExpense: true,
       initialValue:
-          initial == null ? null : _formatInitialAmount(initial.amount.abs()),
+          initial == null
+              ? null
+              : _formatInitialAmount(
+                  (_isDynamicAmount && _budgetAmount != null)
+                      ? _budgetAmount!.abs()
+                      : initial.amount.abs(),
+                ),
       initialLogDateTime: initial?.scheduledDate,
       initialCategory: initial?.category,
       showFrequencyChips: true,
       initialFrequency: _frequency,
       initialIntervalCount: initial?.intervalCount,
       initialIntervalUnit: initial?.intervalUnit,
+      initialIsDynamicAmount: _isDynamicAmount,
+      initialBudgetAmount: _budgetAmount,
+      onDynamicAmountChanged: (value) {
+        setState(() {
+          _isDynamicAmount = value;
+        });
+      },
+      onBudgetAmountChanged: (value) {
+        setState(() {
+          _budgetAmount = value;
+        });
+      },
       onSubmit: (
         sheetContext,
         rawValue,
@@ -149,6 +171,8 @@ class _AddScheduledTransactionScreenState
         freq,
         count,
         unit,
+        isDynamicAmount,
+        budgetAmount,
       ) async {
         final result = parseAndValidateScheduledPayment(
           rawValue: rawValue,
@@ -176,6 +200,8 @@ class _AddScheduledTransactionScreenState
           intervalUnit: unit,
           isActive: initial?.isActive ?? _isActive,
           remindDaysBefore: initial?.remindDaysBefore ?? 0,
+          isDynamicAmount: isDynamicAmount,
+          budgetAmount: budgetAmount,
         );
 
         try {

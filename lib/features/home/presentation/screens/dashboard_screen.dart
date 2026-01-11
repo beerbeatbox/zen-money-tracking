@@ -5,11 +5,12 @@ import 'package:anti/features/home/presentation/controllers/dashboard_selected_m
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/dashboard_quick_add_handler.dart';
-import 'package:anti/features/home/presentation/screens/dashboard/providers/dashboard_month_vm_provider.dart';
+import 'package:anti/features/home/presentation/controllers/dashboard_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_balance_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_due_now_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_income_spent_row.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_end_sufficiency_card.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_recent_logs_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
@@ -86,6 +87,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         frequency,
         intervalCount,
         intervalUnit,
+        isDynamicAmount,
+        budgetAmount,
       ) async {
         final parsed = double.tryParse(rawValue);
         if (parsed == null) {
@@ -135,6 +138,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required String monthYearLabel,
     required List<ScheduledTransaction> scheduledThisMonth,
     required List<ScheduledTransaction> dueNow,
+    required bool isSufficientUntilMonthEnd,
+    required double? monthEndBalance,
   }) {
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
@@ -149,6 +154,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         ),
         const SizedBox(height: 16),
         DashboardIncomeSpentRow(income: income, spent: spent),
+        const SizedBox(height: 16),
+        DashboardMonthEndSufficiencyCard(
+          isSufficient: isSufficientUntilMonthEnd,
+          monthEndBalance: monthEndBalance,
+        ),
         const SizedBox(height: 32),
         DashboardDueNowSection(items: dueNow),
         const SizedBox(height: 40),
@@ -167,7 +177,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Widget build(BuildContext context) {
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
-    final vmAsync = ref.watch(dashboardMonthVmProvider(selectedMonth));
+    final vmAsync = ref.watch(dashboardControllerProvider(selectedMonth));
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -244,6 +254,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 monthYearLabel: vm.monthYearLabel,
                 scheduledThisMonth: vm.scheduledThisMonth,
                 dueNow: vm.dueNow,
+                isSufficientUntilMonthEnd: vm.isSufficientUntilMonthEnd,
+                monthEndBalance: vm.monthEndBalance,
               ),
               onSwipeToPreviousMonth:
                   () =>

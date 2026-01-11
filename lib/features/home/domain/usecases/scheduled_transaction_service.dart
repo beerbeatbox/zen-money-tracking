@@ -38,13 +38,25 @@ class ScheduledTransactionService {
   Future<void> convertToExpenseLog({
     required ScheduledTransaction scheduled,
     required ExpenseLogService expenseLogService,
+    double? actualAmount,
   }) async {
     final createdAt = DateTime.now();
+    
+    // Determine amount to use:
+    // - If dynamic and actualAmount provided: use actualAmount
+    // - If dynamic but no actualAmount: use budgetAmount or amount as fallback
+    // - If fixed: use scheduled.amount
+    final amountToUse = scheduled.isDynamicAmount && actualAmount != null
+        ? -actualAmount.abs()
+        : scheduled.isDynamicAmount
+            ? -(scheduled.budgetAmount ?? scheduled.amount.abs())
+            : scheduled.amount;
+    
     final log = ExpenseLog(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       timeLabel: formatTimeHm(createdAt),
       category: scheduled.category,
-      amount: scheduled.amount,
+      amount: amountToUse,
       createdAt: createdAt,
     );
 

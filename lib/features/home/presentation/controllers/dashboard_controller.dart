@@ -7,11 +7,13 @@ import 'package:anti/features/home/presentation/controllers/scheduled_transactio
 import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'dashboard_controller.g.dart';
 
 @immutable
-class DashboardMonthVm {
-  const DashboardMonthVm({
+class DashboardMonth {
+  const DashboardMonth({
     required this.selectedMonth,
     required this.monthYearLabel,
     required this.logs,
@@ -23,6 +25,8 @@ class DashboardMonthVm {
     required this.spent,
     required this.scheduledThisMonth,
     required this.dueNow,
+    required this.isSufficientUntilMonthEnd,
+    this.monthEndBalance,
   });
 
   final DateTime selectedMonth;
@@ -36,6 +40,8 @@ class DashboardMonthVm {
   final double spent;
   final List<ScheduledTransaction> scheduledThisMonth;
   final List<ScheduledTransaction> dueNow;
+  final bool isSufficientUntilMonthEnd;
+  final double? monthEndBalance;
 }
 
 /// Derived dashboard values for the given month.
@@ -43,31 +49,30 @@ class DashboardMonthVm {
 /// Loading/error states are driven solely by `expenseLogsProvider` (same as the
 /// previous implementation in `DashboardScreen`). Scheduled transactions and
 /// carry-balance setting are treated as optional values while loading.
-final dashboardMonthVmProvider = Provider.family<
-  AsyncValue<DashboardMonthVm>,
-  DateTime
->((ref, selectedMonth) {
-  final logsAsync = ref.watch(expenseLogsProvider).whenData((logs) {
-    return [...logs]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-  });
+@riverpod
+class DashboardController extends _$DashboardController {
+  @override
+  FutureOr<DashboardMonth> build(DateTime selectedMonth) async {
+    ref.watch(expenseLogsProvider);
+    final scheduledAsync = ref.watch(scheduledTransactionsProvider);
+    final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
 
-  final scheduledAsync = ref.watch(scheduledTransactionsProvider);
-  final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
-  final scheduledTransactions =
-      scheduledAsync.value ?? const <ScheduledTransaction>[];
-  final carryEnabled = carryAsync.value ?? false;
+    final allLogs = await ref.read(expenseLogsProvider.future);
+    final scheduledTransactions =
+        scheduledAsync.value ?? const <ScheduledTransaction>[];
+    final carryEnabled = carryAsync.value ?? false;
 
-  return logsAsync.whenData((allLogs) {
+    final sortedLogs = [...allLogs]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
-
-    final scopedLogs = filterLogsByMonth(allLogs, selectedMonth);
+    final scopedLogs = filterLogsByMonth(sortedLogs, selectedMonth);
     final scheduledThisMonth = _scheduledInMonth(
       selectedMonth: selectedMonth,
       scheduledTransactions: scheduledTransactions,
     );
 
     final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
-    final previousLogs = filterLogsByMonth(allLogs, previousMonth);
+    final previousLogs = filterLogsByMonth(sortedLogs, previousMonth);
 
     final canCarry =
         !DateTime(
@@ -97,7 +102,15 @@ final dashboardMonthVmProvider = Provider.family<
       now: now,
     );
 
-    return DashboardMonthVm(
+    final (isSufficient, monthEndBalance) = _calculateMonthEndSufficiency(
+      selectedMonth: selectedMonth,
+      netBalance: netBalance,
+      spent: spent,
+      scheduledThisMonth: scheduledThisMonth,
+      now: now,
+    );
+
+    return DashboardMonth(
       selectedMonth: selectedMonth,
       monthYearLabel: monthYearLabel,
       logs: scopedLogs,
@@ -109,9 +122,11 @@ final dashboardMonthVmProvider = Provider.family<
       spent: spent,
       scheduledThisMonth: scheduledThisMonth,
       dueNow: dueNow,
+      isSufficientUntilMonthEnd: isSufficient,
+      monthEndBalance: monthEndBalance,
     );
-  });
-});
+  }
+}
 
 double _calculateNetBalance(List<ExpenseLog> logs) =>
     logs.fold<double>(0.0, (total, log) => total + log.amount);
@@ -128,10 +143,13 @@ double _calculateProjectedBalance({
   required double balanceWithCarry,
   required List<ScheduledTransaction> scheduledThisMonth,
 }) {
-  final scheduledSum = scheduledThisMonth.fold<double>(
-    0.0,
-    (sum, t) => sum + t.amount,
-  );
+  final scheduledSum = scheduledThisMonth.fold<double>(0.0, (sum, t) {
+    // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+    // budgetAmount should be negated since it's an expense
+    final amountToUse =
+        t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
+    return sum + amountToUse;
+  });
   return balanceWithCarry + scheduledSum;
 }
 
@@ -178,4 +196,74 @@ List<ScheduledTransaction> _dueNowItems({
         }).toList()
         ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
   return dueItems;
+}
+
+(bool, double?) _calculateMonthEndSufficiency({
+  required DateTime selectedMonth,
+  required double netBalance,
+  required double spent,
+  required List<ScheduledTransaction> scheduledThisMonth,
+  required DateTime now,
+}) {
+  // Only calculate for current month
+  final isCurrentMonth =
+      selectedMonth.year == now.year && selectedMonth.month == now.month;
+  if (!isCurrentMonth) {
+    return (false, null);
+  }
+
+  final today = DateUtils.dateOnly(now);
+  final startOfMonth = DateTime(selectedMonth.year, selectedMonth.month);
+  final endOfMonth = DateTime(selectedMonth.year, selectedMonth.month + 1, 0);
+
+  // Calculate days passed and remaining
+  final daysPassed = today.difference(startOfMonth).inDays + 1;
+  final daysRemaining = endOfMonth.difference(today).inDays + 1;
+
+  // Calculate average daily spending
+  final averageDailySpending = daysPassed > 0 ? spent.abs() / daysPassed : 0.0;
+
+  // Calculate remaining scheduled transactions (not yet due)
+  final remainingScheduled = scheduledThisMonth
+      .where((t) {
+        final scheduledDay = DateUtils.dateOnly(t.scheduledDate);
+        return scheduledDay.isAfter(today);
+      })
+      .fold<double>(0.0, (sum, t) {
+        // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+        // budgetAmount should be negated since it's an expense
+        final amountToUse =
+            t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
+        return sum + amountToUse;
+      });
+
+  // Calculate due now scheduled transactions (due today or before, not yet paid)
+  final dueNowScheduled = scheduledThisMonth
+      .where((t) {
+        final scheduledDay = DateUtils.dateOnly(t.scheduledDate);
+        return scheduledDay.isBefore(today) ||
+            scheduledDay.isAtSameMomentAs(today);
+      })
+      .fold<double>(0.0, (sum, t) {
+        // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+        // budgetAmount should be negated since it's an expense
+        final amountToUse =
+            t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
+        return sum + amountToUse;
+      });
+
+  // Calculate projected daily spending for remaining days
+  final projectedDailySpending = averageDailySpending * daysRemaining;
+
+  // Calculate month-end balance
+  final monthEndBalance =
+      netBalance +
+      remainingScheduled +
+      dueNowScheduled -
+      projectedDailySpending;
+
+  // Check if sufficient
+  final isSufficient = monthEndBalance >= 0;
+
+  return (isSufficient, monthEndBalance);
 }

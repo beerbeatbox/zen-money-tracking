@@ -46,7 +46,13 @@ class ScheduledTransactionTile extends ConsumerWidget {
 
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
-    final amountLabel = formatCurrencySigned(item.amount);
+    // Use budgetAmount for dynamic scheduled transactions, amount for fixed
+    final amountToDisplay = item.isDynamicAmount
+        ? (item.budgetAmount ?? item.amount.abs())
+        : item.amount.abs();
+    final amountLabel = item.isDynamicAmount
+        ? 'Budget: ${formatNetBalance(amountToDisplay)}'
+        : formatCurrencySigned(item.amount);
 
     final subtitle =
         showStatusLabel
@@ -119,6 +125,11 @@ class ScheduledTransactionTile extends ConsumerWidget {
                     item.intervalUnit,
                   ),
                 ),
+                if (item.isDynamicAmount)
+                  const _Badge(
+                    label: 'Dynamic',
+                    backgroundColor: Color(0xFFE8F4FD),
+                  ),
                 if (!item.isActive)
                   const _Badge(
                     label: 'Paused',

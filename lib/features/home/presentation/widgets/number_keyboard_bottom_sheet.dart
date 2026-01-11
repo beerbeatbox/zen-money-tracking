@@ -26,6 +26,8 @@ Future<void> showNumberKeyboardBottomSheet(
     PaymentFrequency frequency,
     int? intervalCount,
     IntervalUnit? intervalUnit,
+    bool isDynamicAmount,
+    double? budgetAmount,
   )
   onSubmit,
   bool useRootNavigator = true,
@@ -39,6 +41,10 @@ Future<void> showNumberKeyboardBottomSheet(
   IntervalUnit? initialIntervalUnit,
   ValueChanged<PaymentFrequency>? onFrequencyChanged,
   ValueChanged<(int?, IntervalUnit?)>? onIntervalChanged,
+  bool? initialIsDynamicAmount,
+  double? initialBudgetAmount,
+  ValueChanged<bool>? onDynamicAmountChanged,
+  ValueChanged<double?>? onBudgetAmountChanged,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -58,6 +64,10 @@ Future<void> showNumberKeyboardBottomSheet(
           initialIntervalUnit: initialIntervalUnit,
           onFrequencyChanged: onFrequencyChanged,
           onIntervalChanged: onIntervalChanged,
+          initialIsDynamicAmount: initialIsDynamicAmount,
+          initialBudgetAmount: initialBudgetAmount,
+          onDynamicAmountChanged: onDynamicAmountChanged,
+          onBudgetAmountChanged: onBudgetAmountChanged,
         ),
   );
 }
@@ -76,6 +86,10 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
     this.initialIntervalUnit,
     this.onFrequencyChanged,
     this.onIntervalChanged,
+    this.initialIsDynamicAmount,
+    this.initialBudgetAmount,
+    this.onDynamicAmountChanged,
+    this.onBudgetAmountChanged,
   });
 
   final Future<bool> Function(
@@ -87,6 +101,8 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
     PaymentFrequency frequency,
     int? intervalCount,
     IntervalUnit? intervalUnit,
+    bool isDynamicAmount,
+    double? budgetAmount,
   )
   onSubmit;
   final bool initialIsExpense;
@@ -99,6 +115,10 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
   final IntervalUnit? initialIntervalUnit;
   final ValueChanged<PaymentFrequency>? onFrequencyChanged;
   final ValueChanged<(int?, IntervalUnit?)>? onIntervalChanged;
+  final bool? initialIsDynamicAmount;
+  final double? initialBudgetAmount;
+  final ValueChanged<bool>? onDynamicAmountChanged;
+  final ValueChanged<double?>? onBudgetAmountChanged;
 
   @override
   ConsumerState<NumberKeyboardBottomSheet> createState() =>
@@ -118,6 +138,7 @@ class _NumberKeyboardBottomSheetState
   late PaymentFrequency _frequency;
   late int? _intervalCount;
   late IntervalUnit? _intervalUnit;
+  late bool _isDynamicAmount;
 
   String get _displayValue => _value.isEmpty ? '0' : _value;
   List<Category> get _availableCategories {
@@ -177,6 +198,7 @@ class _NumberKeyboardBottomSheetState
     _frequency = widget.initialFrequency;
     _intervalCount = widget.initialIntervalCount ?? 1;
     _intervalUnit = widget.initialIntervalUnit ?? IntervalUnit.months;
+    _isDynamicAmount = widget.initialIsDynamicAmount ?? false;
     final initial =
         (widget.initialCategory ?? '').trim().isEmpty
             ? null
@@ -270,11 +292,16 @@ class _NumberKeyboardBottomSheetState
       );
       return;
     }
-    final freq = _frequency == PaymentFrequency.interval
-        ? PaymentFrequency.interval
-        : _frequency;
+    final freq =
+        _frequency == PaymentFrequency.interval
+            ? PaymentFrequency.interval
+            : _frequency;
     final count = freq == PaymentFrequency.interval ? _intervalCount : null;
     final unit = freq == PaymentFrequency.interval ? _intervalUnit : null;
+    final budgetAmount =
+        _isDynamicAmount && _value.isNotEmpty
+            ? double.tryParse(_displayValue)
+            : null;
 
     final shouldClose = await widget.onSubmit(
       context,
@@ -285,9 +312,22 @@ class _NumberKeyboardBottomSheetState
       freq,
       count,
       unit,
+      _isDynamicAmount,
+      budgetAmount,
     );
     if (!mounted || !shouldClose) return;
     Navigator.of(context).pop();
+  }
+
+  void _setDynamicAmount(bool value) {
+    if (_isDynamicAmount == value) return;
+    setState(() {
+      _isDynamicAmount = value;
+    });
+    widget.onDynamicAmountChanged?.call(value);
+    final budgetAmount =
+        value && _value.isNotEmpty ? double.tryParse(_displayValue) : null;
+    widget.onBudgetAmountChanged?.call(budgetAmount);
   }
 
   void _setCtaPressed(bool value) {
@@ -331,9 +371,10 @@ class _NumberKeyboardBottomSheetState
       // Switching type should pick the first option if we haven't locked in a
       // user choice yet.
       final categories = _availableCategories;
-      final mains =
-          categories.where((c) => c.parentId == null).toList(growable: false)
-            ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+      final mains = categories
+          .where((c) => c.parentId == null)
+          .toList(growable: false)
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
       if (categories.isEmpty) {
         _selectedCategory = '';
       } else if (mains.isEmpty) {
@@ -341,23 +382,23 @@ class _NumberKeyboardBottomSheetState
       } else {
         final parts = _selectedCategory.split(CategoryService.labelSeparator);
         final currentMain = parts.first.trim();
-        final hasMain =
-            mains.any((c) => c.label.trim().toLowerCase() == currentMain.toLowerCase());
+        final hasMain = mains.any(
+          (c) => c.label.trim().toLowerCase() == currentMain.toLowerCase(),
+        );
         if (!hasMain) {
           _selectedCategory = mains.first.label;
         } else if (parts.length == 2) {
-          final main =
-              mains.firstWhere(
-                (c) => c.label.trim().toLowerCase() == currentMain.toLowerCase(),
-              );
-          final subs =
-              categories
-                  .where((c) => c.parentId == main.id)
-                  .toList(growable: false)
-                ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+          final main = mains.firstWhere(
+            (c) => c.label.trim().toLowerCase() == currentMain.toLowerCase(),
+          );
+          final subs = categories
+              .where((c) => c.parentId == main.id)
+              .toList(growable: false)
+            ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
           final currentSub = parts[1].trim();
-          final hasSub =
-              subs.any((c) => c.label.trim().toLowerCase() == currentSub.toLowerCase());
+          final hasSub = subs.any(
+            (c) => c.label.trim().toLowerCase() == currentSub.toLowerCase(),
+          );
           if (!hasSub) {
             _selectedCategory = main.label;
           }
@@ -395,11 +436,13 @@ class _NumberKeyboardBottomSheetState
       if (categories == null) return;
 
       final type = _isExpense ? CategoryType.expense : CategoryType.income;
-      final available =
-          categories.where((c) => c.type == type).toList(growable: false);
-      final mains =
-          available.where((c) => c.parentId == null).toList(growable: false)
-            ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+      final available = categories
+          .where((c) => c.type == type)
+          .toList(growable: false);
+      final mains = available
+          .where((c) => c.parentId == null)
+          .toList(growable: false)
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
 
       if (mains.isEmpty) {
         // Keep the existing value when editing (even if deleted). For new logs,
@@ -409,7 +452,8 @@ class _NumberKeyboardBottomSheetState
 
       if (_shouldDefaultToFirstCategory) {
         final firstMain = mains.first.label;
-        if (_selectedCategory.trim().isEmpty || _selectedCategory != firstMain) {
+        if (_selectedCategory.trim().isEmpty ||
+            _selectedCategory != firstMain) {
           setState(() => _selectedCategory = firstMain);
         }
         return;
@@ -421,20 +465,23 @@ class _NumberKeyboardBottomSheetState
       final parts = _selectedCategory.split(CategoryService.labelSeparator);
       final currentMain = parts.first.trim();
       final main =
-          mains.where(
-            (c) => c.label.trim().toLowerCase() == currentMain.toLowerCase(),
-          ).toList();
+          mains
+              .where(
+                (c) =>
+                    c.label.trim().toLowerCase() == currentMain.toLowerCase(),
+              )
+              .toList();
       if (main.isEmpty) return;
 
       if (parts.length == 2) {
-        final subs =
-            available
-                .where((c) => c.parentId == main.first.id)
-                .toList(growable: false)
-              ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+        final subs = available
+            .where((c) => c.parentId == main.first.id)
+            .toList(growable: false)
+          ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
         final currentSub = parts[1].trim();
-        final hasSub =
-            subs.any((c) => c.label.trim().toLowerCase() == currentSub.toLowerCase());
+        final hasSub = subs.any(
+          (c) => c.label.trim().toLowerCase() == currentSub.toLowerCase(),
+        );
         if (!hasSub) {
           setState(() => _selectedCategory = main.first.label);
         }
@@ -465,16 +512,33 @@ class _NumberKeyboardBottomSheetState
               children: [
                 const Spacer(),
                 if (widget.showFrequencyChips) ...[
-                  _FrequencyToggle(
-                    value: _frequency,
-                    onChanged: _setFrequency,
-                  ),
+                  _FrequencyToggle(value: _frequency, onChanged: _setFrequency),
                   if (_frequency == PaymentFrequency.interval) ...[
                     const SizedBox(height: 12),
                     _IntervalPicker(
                       count: _intervalCount ?? 1,
                       unit: _intervalUnit ?? IntervalUnit.months,
                       onChanged: _setInterval,
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  _AmountTypeToggle(
+                    value: _isDynamicAmount,
+                    onChanged: _setDynamicAmount,
+                  ),
+                  if (_isDynamicAmount) ...[
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        'This amount will be used for calculations. You\'ll enter the actual amount when you mark it as paid.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 14),
@@ -602,6 +666,69 @@ class _FrequencyToggle extends StatelessWidget {
   }
 }
 
+class _AmountTypeToggle extends StatelessWidget {
+  const _AmountTypeToggle({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _AmountTypeChip(
+          label: 'Fixed',
+          selected: !value,
+          onTap: () => onChanged(false),
+        ),
+        _AmountTypeChip(
+          label: 'Dynamic',
+          selected: value,
+          onTap: () => onChanged(true),
+        ),
+      ],
+    );
+  }
+}
+
+class _AmountTypeChip extends StatelessWidget {
+  const _AmountTypeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected ? Colors.black : Colors.white;
+    final fg = selected ? Colors.white : Colors.black;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.black, width: 2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: fg,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+        ),
+      ),
+    ).onTap(onTap: onTap);
+  }
+}
+
 class _IntervalPicker extends StatefulWidget {
   const _IntervalPicker({
     required this.count,
@@ -666,10 +793,7 @@ class _IntervalPickerState extends State<_IntervalPicker> {
           onChanged: _updateCount,
         ),
         const SizedBox(width: 8),
-        _UnitSpinner(
-          value: _unit,
-          onChanged: _updateUnit,
-        ),
+        _UnitSpinner(value: _unit, onChanged: _updateUnit),
       ],
     );
   }
@@ -753,9 +877,10 @@ class _UnitSpinner extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: const Icon(Icons.chevron_left, size: 16, color: Colors.black),
         ).onTap(
-          onTap: currentIndex > 0
-              ? () => onChanged(units[currentIndex - 1])
-              : null,
+          onTap:
+              currentIndex > 0
+                  ? () => onChanged(units[currentIndex - 1])
+                  : null,
           behavior: HitTestBehavior.opaque,
         ),
         const SizedBox(width: 12),
@@ -777,9 +902,10 @@ class _UnitSpinner extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: const Icon(Icons.chevron_right, size: 16, color: Colors.black),
         ).onTap(
-          onTap: currentIndex < units.length - 1
-              ? () => onChanged(units[currentIndex + 1])
-              : null,
+          onTap:
+              currentIndex < units.length - 1
+                  ? () => onChanged(units[currentIndex + 1])
+                  : null,
           behavior: HitTestBehavior.opaque,
         ),
       ],
@@ -941,17 +1067,22 @@ class _CategorySection extends StatelessWidget {
       );
     }
 
-    final mains =
-        categories.where((c) => c.parentId == null).toList(growable: false)
-          ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    final mains = categories
+        .where((c) => c.parentId == null)
+        .toList(growable: false)
+      ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
     final parts = selected.split(CategoryService.labelSeparator);
     final selectedMainLabel = parts.first.trim();
     final selectedSubLabel = parts.length == 2 ? parts[1].trim() : null;
 
     final selectedMain =
-        mains.where(
-          (c) => c.label.trim().toLowerCase() == selectedMainLabel.toLowerCase(),
-        ).toList();
+        mains
+            .where(
+              (c) =>
+                  c.label.trim().toLowerCase() ==
+                  selectedMainLabel.toLowerCase(),
+            )
+            .toList();
 
     final subOptions =
         selectedMain.isEmpty
@@ -1010,9 +1141,13 @@ class _CategorySection extends StatelessWidget {
                               selectedSubLabel.toLowerCase(),
                       onTap: () {
                         final mainLabel =
-                            selectedMain.isEmpty ? '' : selectedMain.first.label;
+                            selectedMain.isEmpty
+                                ? ''
+                                : selectedMain.first.label;
                         if (mainLabel.trim().isEmpty) return;
-                        onChanged('$mainLabel${CategoryService.labelSeparator}${sub.label}');
+                        onChanged(
+                          '$mainLabel${CategoryService.labelSeparator}${sub.label}',
+                        );
                       },
                     ),
                   ),
