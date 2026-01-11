@@ -11,9 +11,11 @@ import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/core/router/app_router.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 Future<void> showNumberKeyboardBottomSheet(
   BuildContext context, {
@@ -510,50 +512,57 @@ class _NumberKeyboardBottomSheetState
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                const Spacer(),
-                if (widget.showFrequencyChips) ...[
-                  _FrequencyToggle(value: _frequency, onChanged: _setFrequency),
-                  if (_frequency == PaymentFrequency.interval) ...[
-                    const SizedBox(height: 12),
-                    _IntervalPicker(
-                      count: _intervalCount ?? 1,
-                      unit: _intervalUnit ?? IntervalUnit.months,
-                      onChanged: _setInterval,
-                    ),
-                  ],
-                  const SizedBox(height: 14),
-                  _AmountTypeToggle(
-                    value: _isDynamicAmount,
-                    onChanged: _setDynamicAmount,
-                  ),
-                  if (_isDynamicAmount) ...[
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        'This amount will be used for calculations. You\'ll enter the actual amount when you mark it as paid.',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        if (widget.showFrequencyChips) ...[
+                          _FrequencyToggle(value: _frequency, onChanged: _setFrequency),
+                          if (_frequency == PaymentFrequency.interval) ...[
+                            const SizedBox(height: 12),
+                            _IntervalPicker(
+                              count: _intervalCount ?? 1,
+                              unit: _intervalUnit ?? IntervalUnit.months,
+                              onChanged: _setInterval,
+                            ),
+                          ],
+                          const SizedBox(height: 14),
+                          _AmountTypeToggle(
+                            value: _isDynamicAmount,
+                            onChanged: _setDynamicAmount,
+                          ),
+                          if (_isDynamicAmount) ...[
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                'This amount will be used for calculations. You\'ll enter the actual amount when you mark it as paid.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[600],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 14),
+                        ],
+                        Center(
+                          child: ExpenseTypeToggle(
+                            isExpense: _isExpense,
+                            onChanged: _updateExpenseType,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
+                        const SizedBox(height: 12),
+                        _CategorySection(
+                          selected: _selectedCategory,
+                          onChanged: _setCategory,
+                          categories: _availableCategories,
+                        ),
+                      ],
                     ),
-                  ],
-                  const SizedBox(height: 14),
-                ],
-                Center(
-                  child: ExpenseTypeToggle(
-                    isExpense: _isExpense,
-                    onChanged: _updateExpenseType,
                   ),
-                ),
-                const SizedBox(height: 12),
-                _CategorySection(
-                  selected: _selectedCategory,
-                  onChanged: _setCategory,
-                  categories: _availableCategories,
                 ),
                 const SizedBox(height: 16),
                 Center(
@@ -1124,7 +1133,7 @@ class _CategorySection extends StatelessWidget {
             ],
           ),
         ),
-        if (subOptions.isNotEmpty) ...[
+        if (selectedMain.isNotEmpty) ...[
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -1151,8 +1160,14 @@ class _CategorySection extends StatelessWidget {
                       },
                     ),
                   ),
-                  if (sub != subOptions.last) const SizedBox(width: 10),
+                  const SizedBox(width: 10),
                 ],
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _AddSubCategoryChip(
+                    onTap: () => context.push(AppRouter.categoryManagement.path),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1188,6 +1203,46 @@ class _CategoryChip extends StatelessWidget {
           fontWeight: FontWeight.w700,
           color: selected ? Colors.white : Colors.black,
         ),
+      ),
+    ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
+  }
+}
+
+class _AddSubCategoryChip extends StatelessWidget {
+  const _AddSubCategoryChip({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.grey[400]!,
+          width: 2,
+          style: BorderStyle.solid,
+        ),
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.add,
+            size: 16,
+            color: Colors.grey[600],
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Add Sub-category',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.grey[700],
+            ),
+          ),
+        ],
       ),
     ).onTap(onTap: onTap, behavior: HitTestBehavior.opaque);
   }
