@@ -1,11 +1,11 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:anti/features/home/presentation/controllers/dashboard_controller.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/dashboard_quick_add_handler.dart';
-import 'package:anti/features/home/presentation/controllers/dashboard_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_balance_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_due_now_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_income_spent_row.dart';
@@ -138,8 +138,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required String monthYearLabel,
     required List<ScheduledTransaction> scheduledThisMonth,
     required List<ScheduledTransaction> dueNow,
-    required bool isSufficientUntilMonthEnd,
-    required double? monthEndBalance,
+    required MonthEndSufficiencyBreakdown? sufficiencyBreakdown,
   }) {
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
@@ -156,8 +155,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         DashboardIncomeSpentRow(income: income, spent: spent),
         const SizedBox(height: 16),
         DashboardMonthEndSufficiencyCard(
-          isSufficient: isSufficientUntilMonthEnd,
-          monthEndBalance: monthEndBalance,
+          sufficiencyBreakdown: sufficiencyBreakdown,
         ),
         const SizedBox(height: 32),
         DashboardDueNowSection(items: dueNow),
@@ -254,8 +252,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 monthYearLabel: vm.monthYearLabel,
                 scheduledThisMonth: vm.scheduledThisMonth,
                 dueNow: vm.dueNow,
-                isSufficientUntilMonthEnd: vm.isSufficientUntilMonthEnd,
-                monthEndBalance: vm.monthEndBalance,
+                sufficiencyBreakdown: vm.sufficiencyBreakdown,
               ),
               onSwipeToPreviousMonth:
                   () =>

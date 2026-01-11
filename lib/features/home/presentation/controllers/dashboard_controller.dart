@@ -12,6 +12,31 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'dashboard_controller.g.dart';
 
 @immutable
+class MonthEndSufficiencyBreakdown {
+  const MonthEndSufficiencyBreakdown({
+    required this.currentBalance,
+    required this.averageDailySpending,
+    required this.daysPassed,
+    required this.daysRemaining,
+    required this.remainingScheduledTotal,
+    required this.dueNowScheduledTotal,
+    required this.projectedDailySpending,
+    required this.monthEndBalance,
+    required this.isSufficient,
+  });
+
+  final double currentBalance;
+  final double averageDailySpending;
+  final int daysPassed;
+  final int daysRemaining;
+  final double remainingScheduledTotal;
+  final double dueNowScheduledTotal;
+  final double projectedDailySpending;
+  final double monthEndBalance;
+  final bool isSufficient;
+}
+
+@immutable
 class DashboardMonth {
   const DashboardMonth({
     required this.selectedMonth,
@@ -27,6 +52,7 @@ class DashboardMonth {
     required this.dueNow,
     required this.isSufficientUntilMonthEnd,
     this.monthEndBalance,
+    this.sufficiencyBreakdown,
   });
 
   final DateTime selectedMonth;
@@ -42,6 +68,7 @@ class DashboardMonth {
   final List<ScheduledTransaction> dueNow;
   final bool isSufficientUntilMonthEnd;
   final double? monthEndBalance;
+  final MonthEndSufficiencyBreakdown? sufficiencyBreakdown;
 }
 
 /// Derived dashboard values for the given month.
@@ -102,7 +129,7 @@ class DashboardController extends _$DashboardController {
       now: now,
     );
 
-    final (isSufficient, monthEndBalance) = _calculateMonthEndSufficiency(
+    final sufficiencyBreakdown = _calculateMonthEndSufficiency(
       selectedMonth: selectedMonth,
       netBalance: netBalance,
       spent: spent,
@@ -122,8 +149,9 @@ class DashboardController extends _$DashboardController {
       spent: spent,
       scheduledThisMonth: scheduledThisMonth,
       dueNow: dueNow,
-      isSufficientUntilMonthEnd: isSufficient,
-      monthEndBalance: monthEndBalance,
+      isSufficientUntilMonthEnd: sufficiencyBreakdown?.isSufficient ?? false,
+      monthEndBalance: sufficiencyBreakdown?.monthEndBalance,
+      sufficiencyBreakdown: sufficiencyBreakdown,
     );
   }
 }
@@ -198,7 +226,7 @@ List<ScheduledTransaction> _dueNowItems({
   return dueItems;
 }
 
-(bool, double?) _calculateMonthEndSufficiency({
+MonthEndSufficiencyBreakdown? _calculateMonthEndSufficiency({
   required DateTime selectedMonth,
   required double netBalance,
   required double spent,
@@ -209,7 +237,7 @@ List<ScheduledTransaction> _dueNowItems({
   final isCurrentMonth =
       selectedMonth.year == now.year && selectedMonth.month == now.month;
   if (!isCurrentMonth) {
-    return (false, null);
+    return null;
   }
 
   final today = DateUtils.dateOnly(now);
@@ -265,5 +293,15 @@ List<ScheduledTransaction> _dueNowItems({
   // Check if sufficient
   final isSufficient = monthEndBalance >= 0;
 
-  return (isSufficient, monthEndBalance);
+  return MonthEndSufficiencyBreakdown(
+    currentBalance: netBalance,
+    averageDailySpending: averageDailySpending,
+    daysPassed: daysPassed,
+    daysRemaining: daysRemaining,
+    remainingScheduledTotal: remainingScheduled,
+    dueNowScheduledTotal: dueNowScheduled,
+    projectedDailySpending: projectedDailySpending,
+    monthEndBalance: monthEndBalance,
+    isSufficient: isSufficient,
+  );
 }
