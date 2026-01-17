@@ -139,6 +139,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required List<ScheduledTransaction> scheduledThisMonth,
     required List<ScheduledTransaction> dueNow,
     required MonthEndSufficiencyBreakdown? sufficiencyBreakdown,
+    double? todayBudgetRemaining,
+    double? todaySpending,
+    double? recommendedDailyBudgetWithBuffer,
   }) {
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
@@ -150,6 +153,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           showProjected: showProjected,
           selectedMonth: selectedMonth,
           scheduledThisMonth: scheduledThisMonth,
+          todayBudgetRemaining: todayBudgetRemaining,
+          todaySpending: todaySpending,
+          recommendedDailyBudgetWithBuffer: recommendedDailyBudgetWithBuffer,
         ),
         const SizedBox(height: 16),
         DashboardIncomeSpentRow(income: income, spent: spent),
@@ -253,6 +259,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 scheduledThisMonth: vm.scheduledThisMonth,
                 dueNow: vm.dueNow,
                 sufficiencyBreakdown: vm.sufficiencyBreakdown,
+                todayBudgetRemaining: vm.todayBudgetRemaining,
+                todaySpending: vm.todaySpending,
+                recommendedDailyBudgetWithBuffer: vm.sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
               ),
               onSwipeToPreviousMonth:
                   () =>

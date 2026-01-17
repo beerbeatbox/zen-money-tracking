@@ -61,6 +61,8 @@ class DashboardMonth {
     required this.isSufficientUntilMonthEnd,
     this.monthEndBalance,
     this.sufficiencyBreakdown,
+    this.todayBudgetRemaining,
+    this.todaySpending,
   });
 
   final DateTime selectedMonth;
@@ -77,6 +79,8 @@ class DashboardMonth {
   final bool isSufficientUntilMonthEnd;
   final double? monthEndBalance;
   final MonthEndSufficiencyBreakdown? sufficiencyBreakdown;
+  final double? todayBudgetRemaining;
+  final double? todaySpending;
 }
 
 /// Derived dashboard values for the given month.
@@ -145,6 +149,12 @@ class DashboardController extends _$DashboardController {
       now: now,
     );
 
+    final todaySpending = _calculateTodaySpending(scopedLogs, now);
+    final todayBudgetRemaining = _calculateTodayBudgetRemaining(
+      sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
+      todaySpending,
+    );
+
     return DashboardMonth(
       selectedMonth: selectedMonth,
       monthYearLabel: monthYearLabel,
@@ -160,6 +170,8 @@ class DashboardController extends _$DashboardController {
       isSufficientUntilMonthEnd: sufficiencyBreakdown?.isSufficient ?? false,
       monthEndBalance: sufficiencyBreakdown?.monthEndBalance,
       sufficiencyBreakdown: sufficiencyBreakdown,
+      todayBudgetRemaining: todayBudgetRemaining,
+      todaySpending: todaySpending,
     );
   }
 }
@@ -174,6 +186,26 @@ double _calculateIncome(List<ExpenseLog> logs) => logs
 double _calculateSpent(List<ExpenseLog> logs) => logs
     .where((log) => log.amount < 0)
     .fold<double>(0.0, (total, log) => total + log.amount);
+
+double _calculateTodaySpending(List<ExpenseLog> logs, DateTime now) {
+  final today = DateUtils.dateOnly(now);
+  return logs
+      .where((log) {
+        final logDate = DateUtils.dateOnly(log.createdAt);
+        return logDate.isAtSameMomentAs(today) && log.amount < 0;
+      })
+      .fold<double>(0.0, (total, log) => total + log.amount.abs());
+}
+
+double? _calculateTodayBudgetRemaining(
+  double? recommendedDailyBudgetWithBuffer,
+  double todaySpending,
+) {
+  if (recommendedDailyBudgetWithBuffer == null) {
+    return null;
+  }
+  return recommendedDailyBudgetWithBuffer - todaySpending;
+}
 
 double _calculateProjectedBalance({
   required double balanceWithCarry,
