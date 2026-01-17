@@ -34,7 +34,7 @@ class DashboardScheduleSection extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Schedule',
+                'Scheduled this month',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,

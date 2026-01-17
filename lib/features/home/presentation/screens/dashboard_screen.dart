@@ -1,24 +1,30 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
+import 'package:anti/features/home/domain/entities/dashboard_layout.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_controller.dart';
+import 'package:anti/features/home/presentation/controllers/dashboard_layout_controller.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/dashboard_quick_add_handler.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_balance_section.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_budget_left_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_due_now_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_income_spent_row.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_end_sufficiency_card.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_recent_logs_section.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/edit_dashboard_drawer.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:heroicons/heroicons.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget with DashboardEvents {
   const DashboardScreen({super.key});
@@ -127,6 +133,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Widget _buildMonthContent({
+    required DashboardLayout layout,
     required double netBalance,
     required double projectedBalance,
     required bool showProjected,
@@ -143,38 +150,107 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     double? todaySpending,
     double? recommendedDailyBudgetWithBuffer,
   }) {
+    final sections = <DashboardSectionId>[];
+    final widgets = <Widget>[];
+
+    for (final section in layout.active) {
+      switch (section) {
+        case DashboardSectionId.budgetLeftToday:
+          if (todayBudgetRemaining == null) continue;
+          sections.add(section);
+          widgets.add(
+            DashboardBudgetLeftSection(
+              todayBudgetRemaining: todayBudgetRemaining,
+              todaySpending: todaySpending,
+              recommendedDailyBudgetWithBuffer:
+                  recommendedDailyBudgetWithBuffer,
+            ),
+          );
+        case DashboardSectionId.balance:
+          sections.add(section);
+          widgets.add(
+            DashboardBalanceSection(
+              netBalance: netBalance,
+              projectedBalance: projectedBalance,
+              showProjected: showProjected,
+            ),
+          );
+        case DashboardSectionId.incomeSpent:
+          sections.add(section);
+          widgets.add(DashboardIncomeSpentRow(income: income, spent: spent));
+        case DashboardSectionId.monthEndSufficiency:
+          if (sufficiencyBreakdown == null) continue;
+          sections.add(section);
+          widgets.add(
+            DashboardMonthEndSufficiencyCard(
+              sufficiencyBreakdown: sufficiencyBreakdown,
+            ),
+          );
+        case DashboardSectionId.scheduledThisMonth:
+          if (scheduledThisMonth.isEmpty) continue;
+          sections.add(section);
+          widgets.add(
+            DashboardScheduleSection(
+              items: scheduledThisMonth,
+              selectedMonth: selectedMonth,
+            ),
+          );
+        case DashboardSectionId.dueNow:
+          if (dueNow.isEmpty) continue;
+          sections.add(section);
+          widgets.add(DashboardDueNowSection(items: dueNow));
+        case DashboardSectionId.recentActivity:
+          sections.add(section);
+          widgets.add(
+            DashboardRecentLogsSection(
+              logs: scopedLogs,
+              itemsLabel: itemsLabel,
+              monthYearLabel: monthYearLabel,
+              onRetry: () => refreshExpenseLogs(ref),
+            ),
+          );
+      }
+    }
+
     return Column(
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DashboardNetBalanceSection(
-          netBalance: netBalance,
-          projectedBalance: projectedBalance,
-          showProjected: showProjected,
-          selectedMonth: selectedMonth,
-          scheduledThisMonth: scheduledThisMonth,
-          todayBudgetRemaining: todayBudgetRemaining,
-          todaySpending: todaySpending,
-          recommendedDailyBudgetWithBuffer: recommendedDailyBudgetWithBuffer,
-        ),
-        const SizedBox(height: 16),
-        DashboardIncomeSpentRow(income: income, spent: spent),
-        const SizedBox(height: 16),
-        DashboardMonthEndSufficiencyCard(
-          sufficiencyBreakdown: sufficiencyBreakdown,
-        ),
-        const SizedBox(height: 32),
-        DashboardDueNowSection(items: dueNow),
-        const SizedBox(height: 40),
-        DashboardRecentLogsSection(
-          logs: scopedLogs,
-          itemsLabel: itemsLabel,
-          monthYearLabel: monthYearLabel,
-          onRetry: () => refreshExpenseLogs(ref),
-        ),
-        const SizedBox(height: 12),
-      ],
+      children: _applySectionSpacing(sections, widgets),
     );
+  }
+
+  List<Widget> _applySectionSpacing(
+    List<DashboardSectionId> sections,
+    List<Widget> widgets,
+  ) {
+    final spaced = <Widget>[];
+
+    for (var index = 0; index < widgets.length; index++) {
+      spaced.add(widgets[index]);
+      if (index == widgets.length - 1) continue;
+      spaced.add(SizedBox(height: _spacingAfterSection(sections[index])));
+    }
+
+    return spaced;
+  }
+
+  double _spacingAfterSection(DashboardSectionId section) {
+    switch (section) {
+      case DashboardSectionId.budgetLeftToday:
+        return 16;
+      case DashboardSectionId.balance:
+        return 16;
+      case DashboardSectionId.incomeSpent:
+        return 16;
+      case DashboardSectionId.monthEndSufficiency:
+        return 32;
+      case DashboardSectionId.scheduledThisMonth:
+        return 32;
+      case DashboardSectionId.dueNow:
+        return 40;
+      case DashboardSectionId.recentActivity:
+        return 12;
+    }
   }
 
   @override
@@ -182,12 +258,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
     final vmAsync = ref.watch(dashboardControllerProvider(selectedMonth));
+    final layoutAsync = ref.watch(dashboardLayoutControllerProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
+      endDrawer: const EditDashboardDrawer(),
       body: SafeArea(
         child: vmAsync.when(
           data: (vm) {
+            final layout = layoutAsync.value ?? DashboardLayout.defaults();
             return DashboardMonthPager(
               selectedMonth: selectedMonth,
               onRefresh: _refreshDashboard,
@@ -206,14 +285,37 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                           color: Colors.black,
                         ),
                       ),
-                      IconButton(
-                        onPressed: () {
-                          ref
-                              .read(dashboardSelectedMonthProvider.notifier)
-                              .setMonth(DateTime.now());
-                        },
-                        icon: const Icon(Icons.refresh, color: Colors.black),
-                        tooltip: 'Reset to current month',
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              return IconButton(
+                                onPressed:
+                                    () => Scaffold.of(context).openEndDrawer(),
+                                icon: const HeroIcon(
+                                  HeroIcons.pencil,
+                                  style: HeroIconStyle.outline,
+                                  color: Colors.black,
+                                ),
+                                tooltip: 'Edit dashboard',
+                              );
+                            },
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              ref
+                                  .read(dashboardSelectedMonthProvider.notifier)
+                                  .setMonth(DateTime.now());
+                            },
+                            icon: const HeroIcon(
+                              HeroIcons.arrowPath,
+                              style: HeroIconStyle.outline,
+                              color: Colors.black,
+                            ),
+                            tooltip: 'Reset to current month',
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -247,6 +349,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 ],
               ),
               monthContent: _buildMonthContent(
+                layout: layout,
                 netBalance: vm.netBalance,
                 projectedBalance: vm.projectedBalance,
                 showProjected: vm.showProjected,
@@ -261,7 +364,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 sufficiencyBreakdown: vm.sufficiencyBreakdown,
                 todayBudgetRemaining: vm.todayBudgetRemaining,
                 todaySpending: vm.todaySpending,
-                recommendedDailyBudgetWithBuffer: vm.sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
+                recommendedDailyBudgetWithBuffer:
+                    vm.sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
               ),
               onSwipeToPreviousMonth:
                   () =>
@@ -426,10 +530,24 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
                     color: Colors.black,
                   ),
                 ),
-                IconButton(
-                  onPressed: widget.onResetMonth,
-                  icon: const Icon(Icons.refresh, color: Colors.black),
-                  tooltip: 'Reset to current month',
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        return IconButton(
+                          onPressed: () => Scaffold.of(context).openEndDrawer(),
+                          icon: const Icon(Icons.edit, color: Colors.black),
+                          tooltip: 'Edit dashboard',
+                        );
+                      },
+                    ),
+                    IconButton(
+                      onPressed: widget.onResetMonth,
+                      icon: const Icon(Icons.refresh, color: Colors.black),
+                      tooltip: 'Reset to current month',
+                    ),
+                  ],
                 ),
               ],
             ),
