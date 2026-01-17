@@ -6,10 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class DashboardDueNowSection extends ConsumerWidget {
-  const DashboardDueNowSection({
-    super.key,
-    required this.items,
-  });
+  const DashboardDueNowSection({super.key, required this.items});
 
   final List<ScheduledTransaction> items;
 
