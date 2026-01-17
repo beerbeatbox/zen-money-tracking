@@ -1,11 +1,12 @@
 import 'package:anti/core/router/app_router.dart';
+import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardScheduleSection extends ConsumerWidget {
+class DashboardScheduleSection extends ConsumerStatefulWidget {
   const DashboardScheduleSection({
     super.key,
     required this.items,
@@ -16,48 +17,118 @@ class DashboardScheduleSection extends ConsumerWidget {
   final DateTime selectedMonth;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (items.isEmpty) return const SizedBox.shrink();
+  ConsumerState<DashboardScheduleSection> createState() =>
+      _DashboardScheduleSectionState();
+}
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 0, right: 4, bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Scheduled',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Divider(thickness: 2, color: Colors.black),
-          const SizedBox(height: 12),
-          ...List.generate(items.length, (index) {
-            final item = items[index];
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index == items.length - 1 ? 0 : 12,
+class _DashboardScheduleSectionState
+    extends ConsumerState<DashboardScheduleSection>
+    with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+
+  void _toggleExpanded() {
+    setState(() => _isExpanded = !_isExpanded);
+  }
+
+  double _calculateTotal(List<ScheduledTransaction> items) {
+    return items.fold<double>(0.0, (sum, t) {
+      final amountToUse =
+          t.isDynamicAmount ? -(t.budgetAmount ?? t.amount.abs()) : t.amount;
+      return sum + amountToUse;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.items.isEmpty) return const SizedBox.shrink();
+
+    final total = _calculateTotal(widget.items);
+    final totalLabel = formatCurrencySigned(total);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: _toggleExpanded,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Scheduled',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: Colors.black,
+                ),
               ),
-              child: ScheduledTransactionTile(
-                item: item,
-                onEdit:
-                    () => context.push(
-                      AppRouter.scheduledTransactionDetail.path.replaceFirst(
-                        ':id',
-                        item.id,
-                      ),
-                      extra: item,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    totalLabel,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                      color: Colors.black,
                     ),
-                showStatusLabel: true,
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeInOut,
+                    child: const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 20,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
-            );
-          }),
-        ],
-      ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Divider(thickness: 2, color: Colors.black),
+        ClipRect(
+          clipBehavior: Clip.none,
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeInOut,
+            alignment: Alignment.topCenter,
+            child:
+                _isExpanded
+                    ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 12),
+                        ...List.generate(widget.items.length, (index) {
+                          final item = widget.items[index];
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: index == widget.items.length - 1 ? 0 : 12,
+                            ),
+                            child: ScheduledTransactionTile(
+                              item: item,
+                              onEdit:
+                                  () => context.push(
+                                    AppRouter.scheduledTransactionDetail.path
+                                        .replaceFirst(':id', item.id),
+                                    extra: item,
+                                  ),
+                              showStatusLabel: true,
+                            ),
+                          );
+                        }),
+                      ],
+                    )
+                    : const SizedBox.shrink(),
+          ),
+        ),
+      ],
     );
   }
 }
