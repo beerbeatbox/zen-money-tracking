@@ -134,8 +134,6 @@ class _MonthlyIncomeSpentLineChartState
         children: [
           const _Header(),
           const SizedBox(height: 12),
-          _Legend(),
-          const SizedBox(height: 16),
           SizedBox(
             height: 200,
             child: SingleChildScrollView(
@@ -174,6 +172,8 @@ class _MonthlyIncomeSpentLineChartState
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          _Legend(),
         ],
       ),
     );
