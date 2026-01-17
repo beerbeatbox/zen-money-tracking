@@ -5,6 +5,7 @@ import 'package:anti/features/home/presentation/controllers/expense_log_actions_
 import 'package:anti/features/home/presentation/controllers/insight_month_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
+import 'package:anti/features/home/presentation/widgets/category_ranking_section.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_category_line_chart.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
@@ -211,6 +212,8 @@ class _MonthContent extends StatelessWidget {
         MonthlyIncomeSpentLineChart(selectedMonth: selectedMonth, logs: logs),
         const SizedBox(height: 12),
         MonthlyCategoryLineChart(selectedMonth: selectedMonth, logs: logs),
+        const SizedBox(height: 12),
+        CategoryRankingSection(selectedMonth: selectedMonth, logs: logs),
         const SizedBox(height: 12),
       ],
     );
