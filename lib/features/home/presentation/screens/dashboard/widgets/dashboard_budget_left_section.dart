@@ -89,9 +89,10 @@ class _DashboardBudgetLeftSectionState
     }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
@@ -147,7 +148,7 @@ class _CalculationRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: isBold ? 14 : 13,
+            fontSize: 13,
             fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
             letterSpacing: 0.2,
             color: Colors.grey[700],
@@ -156,7 +157,7 @@ class _CalculationRow extends StatelessWidget {
         Text(
           formatNetBalance(value),
           style: TextStyle(
-            fontSize: isBold ? 16 : 14,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.2,
             color: Colors.black,
