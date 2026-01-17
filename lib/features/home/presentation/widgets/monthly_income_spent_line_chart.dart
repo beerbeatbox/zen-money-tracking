@@ -7,7 +7,7 @@ import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-class MonthlyIncomeSpentLineChart extends StatelessWidget {
+class MonthlyIncomeSpentLineChart extends StatefulWidget {
   const MonthlyIncomeSpentLineChart({
     super.key,
     required this.selectedMonth,
@@ -18,8 +18,84 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
   final List<ExpenseLog> logs;
 
   @override
+  State<MonthlyIncomeSpentLineChart> createState() =>
+      _MonthlyIncomeSpentLineChartState();
+}
+
+class _MonthlyIncomeSpentLineChartState
+    extends State<MonthlyIncomeSpentLineChart> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void didUpdateWidget(MonthlyIncomeSpentLineChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Check if the month changed
+    if (oldWidget.selectedMonth.year != widget.selectedMonth.year ||
+        oldWidget.selectedMonth.month != widget.selectedMonth.month) {
+      // Scroll to current date when month changes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToCurrentDate();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToCurrentDate() {
+    if (!_scrollController.hasClients) return;
+
+    final now = DateTime.now();
+    final selectedMonth = widget.selectedMonth;
+
+    // Determine the current day to show
+    int currentDay;
+    if (selectedMonth.year == now.year && selectedMonth.month == now.month) {
+      // Viewing current month - show today's date
+      currentDay = now.day;
+    } else {
+      // Viewing past/future month - show the last day of that month
+      final daysInMonth =
+          DateTime(selectedMonth.year, selectedMonth.month + 1, 0).day;
+      currentDay = daysInMonth;
+    }
+
+    // Calculate scroll position
+    // Each day is 40 pixels wide
+    const dayWidth = 40.0;
+    final targetPosition = (currentDay - 1) * dayWidth;
+
+    // Get viewport width to ensure we don't scroll past the end
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final viewportWidth = _scrollController.position.viewportDimension;
+
+    // Calculate scroll offset to center the current date in the viewport
+    // Center of the current day: targetPosition + (dayWidth / 2)
+    // To center it: scroll to center of day minus half viewport width
+    final centerOfDay = targetPosition + (dayWidth / 2);
+    final scrollOffset = (centerOfDay - (viewportWidth / 2)).clamp(
+      0.0,
+      maxScroll,
+    );
+
+    // Use jumpTo for immediate positioning
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(scrollOffset);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (logs.isEmpty) {
+    if (widget.logs.isEmpty) {
       return OutlinedSurface(
         padding: const EdgeInsets.all(16),
         child: const _EmptyChart(),
@@ -27,10 +103,14 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
     }
 
     final daysInMonth =
-        DateTime(selectedMonth.year, selectedMonth.month + 1, 0).day;
+        DateTime(
+          widget.selectedMonth.year,
+          widget.selectedMonth.month + 1,
+          0,
+        ).day;
 
     final (incomeByDay, spentByDay) = _aggregateDailyTotals(
-      logs: logs,
+      logs: widget.logs,
       daysInMonth: daysInMonth,
     );
 
@@ -41,6 +121,11 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
     final maxSpent = spentByDay.fold<double>(0, max);
     final rawMaxY = max(maxIncome, maxSpent);
     final maxY = rawMaxY <= 0 ? 1.0 : rawMaxY * 1.15;
+
+    // Auto-scroll to current date after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentDate();
+    });
 
     return OutlinedSurface(
       padding: const EdgeInsets.all(16),
@@ -54,6 +139,7 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
           SizedBox(
             height: 200,
             child: SingleChildScrollView(
+              controller: _scrollController,
               scrollDirection: Axis.horizontal,
               child: SizedBox(
                 width: daysInMonth * 40.0,
@@ -184,7 +270,11 @@ class MonthlyIncomeSpentLineChart extends StatelessWidget {
             if (touchedSpots.isEmpty) return const [];
 
             final day = touchedSpots.first.x.toInt();
-            final date = DateTime(selectedMonth.year, selectedMonth.month, day);
+            final date = DateTime(
+              widget.selectedMonth.year,
+              widget.selectedMonth.month,
+              day,
+            );
             final dateLabel = formatDateLabel(date);
 
             return touchedSpots
