@@ -13,6 +13,17 @@ class SettingsRepository {
 
   Future<void> setCarryBalanceEnabled(bool enabled) =>
       _datasource.writeCarryBalanceEnabled(enabled);
+
+  Future<BudgetSource> getBudgetSource() => _datasource.readBudgetSource();
+
+  Future<void> setBudgetSource(BudgetSource source) =>
+      _datasource.writeBudgetSource(source);
+
+  Future<double?> getCustomBudgetAmount() =>
+      _datasource.readCustomBudgetAmount();
+
+  Future<void> setCustomBudgetAmount(double? amount) =>
+      _datasource.writeCustomBudgetAmount(amount);
 }
 
 @riverpod

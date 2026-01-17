@@ -260,6 +260,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final vmAsync = ref.watch(dashboardControllerProvider(selectedMonth));
     final layoutAsync = ref.watch(dashboardLayoutControllerProvider);
 
+    // Sync budget to widget when dashboard data is ready
+    ref.listen(dashboardControllerProvider(selectedMonth), (previous, next) {
+      next.whenData((vm) {
+        if (vm.todayBudgetRemaining != null) {
+          syncBudgetToWidget(vm.todayBudgetRemaining);
+        }
+      });
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       endDrawer: const EditDashboardDrawer(),

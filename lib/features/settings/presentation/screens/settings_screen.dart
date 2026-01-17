@@ -152,6 +152,12 @@ class _SettingsList extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _SettingsCard(
+          icon: HeroIcons.banknotes,
+          title: 'Budget',
+          onTap: () => context.pushNamed(AppRouter.budget.name),
+        ),
+        const SizedBox(height: 12),
+        _SettingsCard(
           icon: HeroIcons.tag,
           title: 'Categories',
           onTap: () => context.pushNamed(AppRouter.categoryManagement.name),

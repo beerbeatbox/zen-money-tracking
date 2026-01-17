@@ -5,6 +5,8 @@ import 'package:anti/features/home/domain/utils/recurrence.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
+import 'package:anti/features/settings/data/datasources/settings_local_datasource.dart';
+import 'package:anti/features/settings/presentation/controllers/budget_setting_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -95,11 +97,13 @@ class DashboardController extends _$DashboardController {
     ref.watch(expenseLogsProvider);
     final scheduledAsync = ref.watch(scheduledTransactionsProvider);
     final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
+    final budgetAsync = ref.watch(budgetSettingControllerProvider);
 
     final allLogs = await ref.read(expenseLogsProvider.future);
     final scheduledTransactions =
         scheduledAsync.value ?? const <ScheduledTransaction>[];
     final carryEnabled = carryAsync.value ?? false;
+    final budgetSetting = budgetAsync.value;
 
     final sortedLogs = [...allLogs]
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -151,8 +155,12 @@ class DashboardController extends _$DashboardController {
 
     final todaySpending = _calculateTodaySpending(scopedLogs, now);
     final todayBudgetRemaining = _calculateTodayBudgetRemaining(
-      sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
-      todaySpending,
+      budgetSource: budgetSetting?.source ?? BudgetSource.autoConservative,
+      customBudgetAmount: budgetSetting?.customAmount,
+      recommendedDailyBudget: sufficiencyBreakdown?.recommendedDailyBudget,
+      recommendedDailyBudgetWithBuffer:
+          sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
+      todaySpending: todaySpending,
     );
 
     return DashboardMonth(
@@ -197,14 +205,32 @@ double _calculateTodaySpending(List<ExpenseLog> logs, DateTime now) {
       .fold<double>(0.0, (total, log) => total + log.amount.abs());
 }
 
-double? _calculateTodayBudgetRemaining(
+double? _calculateTodayBudgetRemaining({
+  required BudgetSource budgetSource,
+  double? customBudgetAmount,
+  double? recommendedDailyBudget,
   double? recommendedDailyBudgetWithBuffer,
-  double todaySpending,
-) {
-  if (recommendedDailyBudgetWithBuffer == null) {
+  required double todaySpending,
+}) {
+  double? dailyBudget;
+
+  switch (budgetSource) {
+    case BudgetSource.custom:
+      dailyBudget = customBudgetAmount;
+      break;
+    case BudgetSource.autoConservative:
+      dailyBudget = recommendedDailyBudgetWithBuffer;
+      break;
+    case BudgetSource.autoExactly:
+      dailyBudget = recommendedDailyBudget;
+      break;
+  }
+
+  if (dailyBudget == null) {
     return null;
   }
-  return recommendedDailyBudgetWithBuffer - todaySpending;
+
+  return dailyBudget - todaySpending;
 }
 
 double _calculateProjectedBalance({

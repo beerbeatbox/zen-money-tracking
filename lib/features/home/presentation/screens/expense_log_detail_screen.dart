@@ -12,14 +12,68 @@ import 'package:anti/features/settings/presentation/widgets/outlined_confirmatio
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heroicons/heroicons.dart';
 
 import 'expense_log_detail_events.dart';
 
-class ExpenseLogDetailScreen extends ConsumerWidget {
+class ExpenseLogDetailScreen extends ConsumerWidget
+    with ExpenseLogDetailEvents {
   const ExpenseLogDetailScreen({super.key, required this.logId, this.log});
 
   final String logId;
   final ExpenseLog? log;
+
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final logsAsync = ref.read(expenseLogsProvider);
+    final logs = logsAsync.value;
+    if (logs == null) return;
+
+    final resolvedLog = _resolveLog(logs);
+    if (resolvedLog == null) return;
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (ctx) => OutlinedConfirmationDialog(
+            title: 'Delete this log?',
+            description: 'This removes it from your activity.',
+            primaryLabel: 'Delete log',
+            onPrimaryPressed: () => Navigator.of(ctx).pop(true),
+            secondaryLabel: 'Keep this log',
+            onSecondaryPressed: () => Navigator.of(ctx).pop(false),
+          ),
+    );
+
+    if (shouldDelete != true) return;
+
+    try {
+      await deleteLog(ref, logId);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Log removed from your activity.'),
+        ),
+      );
+      context.pop();
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text("Let's try that again. Please try once more."),
+        ),
+      );
+    }
+  }
+
+  ExpenseLog? _resolveLog(List<ExpenseLog> logs) {
+    for (final item in logs) {
+      if (item.id == logId) return item;
+    }
+    return log;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,6 +106,21 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
             color: Colors.black,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              splashRadius: 20,
+              onPressed: () => _handleDelete(context, ref),
+              icon: const HeroIcon(
+                HeroIcons.trash,
+                size: 24,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: logsAsync.when(
@@ -85,13 +154,6 @@ class ExpenseLogDetailScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  ExpenseLog? _resolveLog(List<ExpenseLog> logs) {
-    for (final item in logs) {
-      if (item.id == logId) return item;
-    }
-    return log;
   }
 }
 
@@ -243,118 +305,64 @@ class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
     );
   }
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder:
-          (ctx) => OutlinedConfirmationDialog(
-            title: 'Delete this log?',
-            description: 'This removes it from your activity.',
-            primaryLabel: 'Delete log',
-            onPrimaryPressed: () => Navigator.of(ctx).pop(true),
-            secondaryLabel: 'Keep this log',
-            onSecondaryPressed: () => Navigator.of(ctx).pop(false),
-          ),
-    );
-
-    if (shouldDelete != true) return;
-
-    try {
-      await deleteLog(ref, log.id);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text('Log removed from your activity.'),
-        ),
-      );
-      context.pop();
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text("Let's try that again. Please try once more."),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedActionButton(
-            label: 'Edit',
-            onPressed: () async {
-              await showNumberKeyboardBottomSheet(
-                context,
-                initialIsExpense: log.amount < 0,
-                initialValue: _formatInitialAmount(log.amount.abs()),
-                initialLogDateTime: log.createdAt,
-                initialCategory: log.category,
-                onSubmit: (
-                  sheetContext,
-                  rawValue,
-                  isExpense,
-                  logDateTime,
-                  category,
-                  frequency,
-                  intervalCount,
-                  intervalUnit,
-                  isDynamicAmount,
-                  budgetAmount,
-                ) async {
-                  final parsed = double.tryParse(rawValue);
-                  if (parsed == null) {
-                    _showSnack(sheetContext, 'Please enter a valid number.');
-                    return false;
-                  }
-                  if (parsed <= 0) {
-                    _showSnack(
-                      sheetContext,
-                      'Add an amount above zero to save changes.',
-                    );
-                    return false;
-                  }
-
-                  final updated = ExpenseLog(
-                    id: log.id,
-                    timeLabel: _formatTimeLabel(logDateTime),
-                    category: category,
-                    amount: isExpense ? -parsed.abs() : parsed.abs(),
-                    createdAt: logDateTime,
-                  );
-
-                  try {
-                    await updateLog(ref, updated);
-                    return true;
-                  } catch (_) {
-                    if (!sheetContext.mounted) return false;
-                    _showSnack(sheetContext, "Let's try that again.");
-                    return false;
-                  }
-                },
+    return OutlinedActionButton(
+      label: 'Edit',
+      onPressed: () async {
+        await showNumberKeyboardBottomSheet(
+          context,
+          initialIsExpense: log.amount < 0,
+          initialValue: _formatInitialAmount(log.amount.abs()),
+          initialLogDateTime: log.createdAt,
+          initialCategory: log.category,
+          onSubmit: (
+            sheetContext,
+            rawValue,
+            isExpense,
+            logDateTime,
+            category,
+            frequency,
+            intervalCount,
+            intervalUnit,
+            isDynamicAmount,
+            budgetAmount,
+          ) async {
+            final parsed = double.tryParse(rawValue);
+            if (parsed == null) {
+              _showSnack(sheetContext, 'Please enter a valid number.');
+              return false;
+            }
+            if (parsed <= 0) {
+              _showSnack(
+                sheetContext,
+                'Add an amount above zero to save changes.',
               );
-            },
-            textColor: Colors.black,
-            borderColor: Colors.black,
-            backgroundColor: Colors.white,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedActionButton(
-            label: 'Delete',
-            onPressed: () => _handleDelete(context, ref),
-            textColor: Colors.white,
-            borderColor: Colors.black,
-            backgroundColor: Colors.red,
-          ),
-        ),
-      ],
+              return false;
+            }
+
+            final updated = ExpenseLog(
+              id: log.id,
+              timeLabel: _formatTimeLabel(logDateTime),
+              category: category,
+              amount: isExpense ? -parsed.abs() : parsed.abs(),
+              createdAt: logDateTime,
+            );
+
+            try {
+              await updateLog(ref, updated);
+              return true;
+            } catch (_) {
+              if (!sheetContext.mounted) return false;
+              _showSnack(sheetContext, "Let's try that again.");
+              return false;
+            }
+          },
+        );
+      },
+      textColor: Colors.black,
+      borderColor: Colors.black,
+      backgroundColor: Colors.white,
     );
   }
 }

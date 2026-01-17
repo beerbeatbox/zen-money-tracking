@@ -12,7 +12,10 @@ part 'expense_log_actions_controller.g.dart';
 Future<List<ExpenseLog>> expenseLogs(Ref ref) async {
   final service = ref.watch(expenseLogServiceProvider);
   final logs = await service.getExpenseLogs();
-  await _syncTodaySpendingWithWidget(logs);
+  // Sync widget asynchronously to avoid circular dependency with dashboard controller
+  _syncTodaySpendingWithWidget(ref, logs).catchError((_) {
+    // Ignore errors in widget sync - it's non-critical
+  });
   return logs;
 }
 
@@ -84,7 +87,7 @@ Future<void> updateExpenseLogAction(Ref ref, ExpenseLog log) async {
 
 const _widgetChannel = MethodChannel('com.dopaminelab.thumby/widget');
 
-Future<void> _syncTodaySpendingWithWidget(List<ExpenseLog> logs) async {
+Future<void> _syncTodaySpendingWithWidget(Ref ref, List<ExpenseLog> logs) async {
   if (!_isRunningOnIOS()) return;
 
   final now = DateTime.now();
@@ -102,6 +105,24 @@ Future<void> _syncTodaySpendingWithWidget(List<ExpenseLog> logs) async {
     await _widgetChannel.invokeMethod<void>(
       'updateTodaySpending',
       <String, dynamic>{'amount': spentToday},
+    );
+  } on PlatformException {
+    // Widget bridge not available (e.g., running on non-iOS simulator target).
+  } on MissingPluginException {
+    // Widget bridge not available (e.g., running on non-iOS simulator target).
+  }
+}
+
+/// Syncs budget data to iOS widget. Can be called from dashboard screen
+/// after budget is calculated to avoid circular dependency.
+Future<void> syncBudgetToWidget(double? todayBudgetRemaining) async {
+  if (!_isRunningOnIOS()) return;
+  if (todayBudgetRemaining == null) return;
+
+  try {
+    await _widgetChannel.invokeMethod<void>(
+      'updateTodaySpending',
+      <String, dynamic>{'budgetRemaining': todayBudgetRemaining},
     );
   } on PlatformException {
     // Widget bridge not available (e.g., running on non-iOS simulator target).

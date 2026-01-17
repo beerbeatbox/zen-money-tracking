@@ -11,16 +11,20 @@ import SwiftUI
 private let appGroupIdentifier = "group.com.dopaminelab.thumby"
 private let spendingAmountKey = "today_spending_amount"
 private let spendingUpdatedAtKey = "today_spending_updated_at"
+private let budgetRemainingKey = "today_budget_remaining"
+private let budgetUpdatedAtKey = "today_budget_updated_at"
 private let widgetKind = "ThumbySpending"
 
 struct TodaySpendingData {
     let amount: Double
     let updatedAt: Date?
+    let budgetRemaining: Double?
+    let budgetUpdatedAt: Date?
 }
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> TodaySpendingEntry {
-        TodaySpendingEntry(date: Date(), amount: 0, updatedAt: nil)
+        TodaySpendingEntry(date: Date(), amount: 0, updatedAt: nil, budgetRemaining: nil, budgetUpdatedAt: nil)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (TodaySpendingEntry) -> Void) {
@@ -42,23 +46,38 @@ struct Provider: TimelineProvider {
 
     private func entry(for date: Date) -> TodaySpendingEntry {
         let data = loadTodaySpending(referenceDate: date)
-        return TodaySpendingEntry(date: date, amount: data.amount, updatedAt: data.updatedAt)
+        return TodaySpendingEntry(
+            date: date,
+            amount: data.amount,
+            updatedAt: data.updatedAt,
+            budgetRemaining: data.budgetRemaining,
+            budgetUpdatedAt: data.budgetUpdatedAt
+        )
     }
 
     private func loadTodaySpending(referenceDate: Date) -> TodaySpendingData {
         guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else {
-            return TodaySpendingData(amount: 0, updatedAt: nil)
+            return TodaySpendingData(amount: 0, updatedAt: nil, budgetRemaining: nil, budgetUpdatedAt: nil)
         }
 
         let storedAmount = defaults.object(forKey: spendingAmountKey) as? Double ?? 0
         let timestamp = defaults.object(forKey: spendingUpdatedAtKey) as? Double
         let updatedAt = timestamp.map { Date(timeIntervalSince1970: $0) }
 
-        guard let updatedAt, Calendar.current.isDate(updatedAt, inSameDayAs: referenceDate) else {
-            return TodaySpendingData(amount: 0, updatedAt: updatedAt)
+        let budgetTimestamp = defaults.object(forKey: budgetUpdatedAtKey) as? Double
+        let budgetUpdatedAt = budgetTimestamp.map { Date(timeIntervalSince1970: $0) }
+        
+        var budgetRemaining: Double? = nil
+        if let budgetUpdatedAt = budgetUpdatedAt,
+           Calendar.current.isDate(budgetUpdatedAt, inSameDayAs: referenceDate) {
+            budgetRemaining = defaults.object(forKey: budgetRemainingKey) as? Double
         }
 
-        return TodaySpendingData(amount: storedAmount, updatedAt: updatedAt)
+        guard let updatedAt, Calendar.current.isDate(updatedAt, inSameDayAs: referenceDate) else {
+            return TodaySpendingData(amount: 0, updatedAt: updatedAt, budgetRemaining: budgetRemaining, budgetUpdatedAt: budgetUpdatedAt)
+        }
+
+        return TodaySpendingData(amount: storedAmount, updatedAt: updatedAt, budgetRemaining: budgetRemaining, budgetUpdatedAt: budgetUpdatedAt)
     }
 }
 
@@ -66,6 +85,8 @@ struct TodaySpendingEntry: TimelineEntry {
     let date: Date
     let amount: Double
     let updatedAt: Date?
+    let budgetRemaining: Double?
+    let budgetUpdatedAt: Date?
 }
 
 struct ThumbySpendingEntryView: View {
@@ -92,6 +113,18 @@ struct ThumbySpendingEntryView: View {
         formatter.maximumFractionDigits = hasFraction ? 2 : 0
         formatter.minimumFractionDigits = hasFraction ? 2 : 0
         return formatter.string(from: NSNumber(value: entry.amount)) ?? "฿0"
+    }
+
+    private var formattedBudget: String? {
+        guard let budgetRemaining = entry.budgetRemaining else { return nil }
+        let hasFraction = abs(budgetRemaining.truncatingRemainder(dividingBy: 1)) > 0.0001
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "THB"
+        formatter.currencySymbol = "฿"
+        formatter.maximumFractionDigits = hasFraction ? 2 : 0
+        formatter.minimumFractionDigits = hasFraction ? 2 : 0
+        return formatter.string(from: NSNumber(value: budgetRemaining))
     }
 
     private var updatedLabel: String? {
@@ -128,6 +161,27 @@ struct ThumbySpendingEntryView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let budgetRemaining = entry.budgetRemaining, let formattedBudget = formattedBudget {
+                HStack(alignment: .lastTextBaseline, spacing: isSmall ? 6 : 8) {
+                    Text("Budget")
+                        .font(isSmall ? .caption.weight(.semibold) : .body.weight(.semibold))
+                        .foregroundStyle(Color.black.opacity(0.6))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text(formattedBudget)
+                        .font(.system(size: isSmall ? 14 : 18, weight: .semibold))
+                        .foregroundStyle(Color.black)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.4)
+                        .allowsTightening(true)
+                        .layoutPriority(1)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
             if !isSmall, let updatedLabel {
                 Text(updatedLabel)
@@ -167,6 +221,6 @@ struct ThumbySpending: Widget {
 #Preview(as: .systemSmall) {
     ThumbySpending()
 } timeline: {
-    TodaySpendingEntry(date: .now, amount: 42.50, updatedAt: .now)
-    TodaySpendingEntry(date: .now, amount: 0, updatedAt: nil)
+    TodaySpendingEntry(date: .now, amount: 42.50, updatedAt: .now, budgetRemaining: 157.50, budgetUpdatedAt: .now)
+    TodaySpendingEntry(date: .now, amount: 0, updatedAt: nil, budgetRemaining: nil, budgetUpdatedAt: nil)
 }

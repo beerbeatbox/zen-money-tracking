@@ -19,20 +19,20 @@ import WidgetKit
       widgetChannel.setMethodCallHandler { [weak self] call, result in
         switch call.method {
         case "updateTodaySpending":
-          guard
-            let args = call.arguments as? [String: Any],
-            let amount = args["amount"] as? Double
-          else {
+          guard let args = call.arguments as? [String: Any] else {
             result(
               FlutterError(
                 code: "INVALID_ARGS",
-                message: "Missing amount for today spending update",
+                message: "Invalid arguments for today spending update",
                 details: nil
               )
             )
             return
           }
-          self?.saveTodaySpending(amount: amount)
+          let amount = args["amount"] as? Double
+          let hasBudgetKey = args.keys.contains("budgetRemaining")
+          let budgetRemaining = hasBudgetKey ? (args["budgetRemaining"] as? Double) : nil
+          self?.saveTodaySpending(amount: amount, budgetRemaining: budgetRemaining, shouldUpdateBudget: hasBudgetKey)
           result(nil)
         default:
           result(FlutterMethodNotImplemented)
@@ -43,17 +43,34 @@ import WidgetKit
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  private func saveTodaySpending(amount: Double) {
+  private func saveTodaySpending(amount: Double?, budgetRemaining: Double?, shouldUpdateBudget: Bool) {
     let appGroupId = "group.com.dopaminelab.thumby"
     let amountKey = "today_spending_amount"
     let updatedAtKey = "today_spending_updated_at"
+    let budgetRemainingKey = "today_budget_remaining"
+    let budgetUpdatedAtKey = "today_budget_updated_at"
 
     guard let defaults = UserDefaults(suiteName: appGroupId) else {
       return
     }
 
-    defaults.set(amount, forKey: amountKey)
-    defaults.set(Date().timeIntervalSince1970, forKey: updatedAtKey)
+    // Update spending amount if provided
+    if let amount = amount {
+      defaults.set(amount, forKey: amountKey)
+      defaults.set(Date().timeIntervalSince1970, forKey: updatedAtKey)
+    }
+
+    // Update budget if the key was present in args
+    if shouldUpdateBudget {
+      if let budgetRemaining = budgetRemaining {
+        defaults.set(budgetRemaining, forKey: budgetRemainingKey)
+        defaults.set(Date().timeIntervalSince1970, forKey: budgetUpdatedAtKey)
+      } else {
+        // Explicitly nil means clear the budget
+        defaults.removeObject(forKey: budgetRemainingKey)
+        defaults.removeObject(forKey: budgetUpdatedAtKey)
+      }
+    }
 
     if #available(iOS 14.0, *) {
       WidgetCenter.shared.reloadTimelines(ofKind: "ThumbySpending")

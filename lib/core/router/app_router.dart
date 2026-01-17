@@ -6,6 +6,7 @@ import '../../features/categories/presentation/screens/category_management_scree
 import '../../features/home/domain/entities/expense_log.dart';
 import '../../features/home/domain/entities/scheduled_transaction.dart';
 import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
+import '../../features/home/presentation/screens/budget_screen.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/expense_logs_csv_screen.dart';
@@ -166,6 +167,12 @@ GoRouter appRouter(Ref ref) {
         path: AppRouter.expenseLogsCsv.path,
         name: AppRouter.expenseLogsCsv.name,
         builder: (context, state) => const ExpenseLogsCsvScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRouter.budget.path,
+        name: AppRouter.budget.name,
+        builder: (context, state) => const BudgetScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
