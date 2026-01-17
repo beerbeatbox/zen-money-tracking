@@ -2,10 +2,11 @@ import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:anti/features/home/presentation/controllers/insight_month_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
-import 'package:anti/features/home/presentation/controllers/insight_month_controller.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
+import 'package:anti/features/home/presentation/widgets/monthly_category_line_chart.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -208,6 +209,8 @@ class _MonthContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         MonthlyIncomeSpentLineChart(selectedMonth: selectedMonth, logs: logs),
+        const SizedBox(height: 12),
+        MonthlyCategoryLineChart(selectedMonth: selectedMonth, logs: logs),
         const SizedBox(height: 12),
       ],
     );
