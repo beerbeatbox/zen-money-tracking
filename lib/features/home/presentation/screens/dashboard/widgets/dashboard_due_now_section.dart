@@ -9,18 +9,13 @@ class DashboardDueNowSection extends ConsumerWidget {
   const DashboardDueNowSection({
     super.key,
     required this.items,
-    this.maxPreviewCount = 3,
   });
 
   final List<ScheduledTransaction> items;
-  final int? maxPreviewCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (items.isEmpty) return const SizedBox.shrink();
-
-    final preview =
-        maxPreviewCount == null ? items : items.take(maxPreviewCount!).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,9 +32,9 @@ class DashboardDueNowSection extends ConsumerWidget {
         const SizedBox(height: 8),
         const Divider(thickness: 2, color: Colors.black),
         const SizedBox(height: 12),
-        ...List.generate(preview.length, (index) {
-          final item = preview[index];
-          final isLast = index == preview.length - 1;
+        ...List.generate(items.length, (index) {
+          final item = items[index];
+          final isLast = index == items.length - 1;
           return Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: ScheduledTransactionTile(

@@ -10,20 +10,16 @@ class DashboardScheduleSection extends ConsumerWidget {
     super.key,
     required this.items,
     required this.selectedMonth,
-    this.maxPreviewCount = 3,
   });
 
   final List<ScheduledTransaction> items;
   final DateTime selectedMonth;
-  final int? maxPreviewCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (items.isEmpty) return const SizedBox.shrink();
 
     final countLabel = '${items.length} Scheduled';
-    final preview =
-        maxPreviewCount == null ? items : items.take(maxPreviewCount!).toList();
 
     return Padding(
       padding: const EdgeInsets.only(left: 0, right: 4, bottom: 12),
@@ -73,10 +69,12 @@ class DashboardScheduleSection extends ConsumerWidget {
           const SizedBox(height: 8),
           const Divider(thickness: 2, color: Colors.black),
           const SizedBox(height: 12),
-          ...List.generate(preview.length, (index) {
-            final item = preview[index];
+          ...List.generate(items.length, (index) {
+            final item = items[index];
             return Padding(
-              padding: EdgeInsets.only(bottom: index == preview.length - 1 ? 0 : 12),
+              padding: EdgeInsets.only(
+                bottom: index == items.length - 1 ? 0 : 12,
+              ),
               child: ScheduledTransactionTile(
                 item: item,
                 onEdit:
