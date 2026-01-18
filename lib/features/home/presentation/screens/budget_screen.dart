@@ -159,7 +159,7 @@ class _BudgetSourceSection extends StatelessWidget {
           selected: selectedSource == BudgetSource.custom,
           onTap: () => onSourceChanged(BudgetSource.custom),
         ),
-        const SizedBox(height: 12),
+        Divider(color: Colors.grey[300], thickness: 1),
         _BudgetSourceOption(
           source: BudgetSource.autoConservative,
           title: 'Auto Conservative',
@@ -168,7 +168,7 @@ class _BudgetSourceSection extends StatelessWidget {
           selected: selectedSource == BudgetSource.autoConservative,
           onTap: () => onSourceChanged(BudgetSource.autoConservative),
         ),
-        const SizedBox(height: 12),
+        Divider(color: Colors.grey[300], thickness: 1),
         _BudgetSourceOption(
           source: BudgetSource.autoExactly,
           title: 'Auto Exactly',
@@ -204,7 +204,6 @@ class _BudgetSourceOption extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

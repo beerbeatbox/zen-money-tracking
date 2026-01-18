@@ -100,7 +100,6 @@ class _MonthlyIncomeSpentLineChartState
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!),
         ),
         child: const _EmptyChart(),
       );
@@ -136,7 +135,6 @@ class _MonthlyIncomeSpentLineChartState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[300]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

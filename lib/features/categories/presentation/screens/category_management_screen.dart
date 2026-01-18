@@ -640,62 +640,65 @@ class _CategoryTreeList extends StatelessWidget {
           return ReorderableDelayedDragStartListener(
             key: ValueKey(category.id),
             index: index,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: CategoryNameWithEmoji(
-                        label: category.label,
-                        emoji: category.emoji,
-                        spacing: 8,
-                        textStyle: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CategoryNameWithEmoji(
+                          label: category.label,
+                          emoji: category.emoji,
+                          spacing: 8,
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => onAddSub(category),
-                      icon: const Icon(Icons.add, color: Colors.black),
-                      tooltip: 'Add sub-category',
-                    ),
-                    if (hasChildren)
                       IconButton(
-                        onPressed: () => onToggleExpanded(category.id),
-                        icon: Icon(
-                          isExpanded ? Icons.expand_less : Icons.expand_more,
+                        onPressed: () => onAddSub(category),
+                        icon: const Icon(Icons.add, color: Colors.black),
+                        tooltip: 'Add sub-category',
+                      ),
+                      if (hasChildren)
+                        IconButton(
+                          onPressed: () => onToggleExpanded(category.id),
+                          icon: Icon(
+                            isExpanded ? Icons.expand_less : Icons.expand_more,
+                            color: Colors.black,
+                          ),
+                          tooltip: isExpanded ? 'Collapse' : 'Expand',
+                        ),
+                      IconButton(
+                        onPressed: () => onRename(category),
+                        icon: const Icon(
+                          Icons.edit_outlined,
                           color: Colors.black,
                         ),
-                        tooltip: isExpanded ? 'Collapse' : 'Expand',
+                        tooltip: 'Edit',
                       ),
-                    IconButton(
-                      onPressed: () => onRename(category),
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        color: Colors.black,
+                      IconButton(
+                        onPressed: () => onDelete(category),
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        tooltip: 'Delete',
                       ),
-                      tooltip: 'Edit',
-                    ),
-                    IconButton(
-                      onPressed: () => onDelete(category),
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      tooltip: 'Delete',
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+                if (index < items.length - 1)
+                  Divider(color: Colors.grey[300], thickness: 1),
+              ],
             ),
           );
         }
@@ -703,74 +706,77 @@ class _CategoryTreeList extends StatelessWidget {
         return ReorderableDelayedDragStartListener(
           key: ValueKey(category.id),
           index: index,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    width: 28,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Container(
-                        width: 2,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(99),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      width: 28,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Container(
+                          width: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CategoryNameWithEmoji(
-                              label: category.label,
-                              emoji: category.emoji,
-                              spacing: 8,
-                              textStyle: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CategoryNameWithEmoji(
+                                label: category.label,
+                                emoji: category.emoji,
+                                spacing: 8,
+                                textStyle: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black,
+                                ),
                               ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () => onRename(category),
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              color: Colors.black,
+                            IconButton(
+                              onPressed: () => onRename(category),
+                              icon: const Icon(
+                                Icons.edit_outlined,
+                                color: Colors.black,
+                              ),
+                              tooltip: 'Edit',
                             ),
-                            tooltip: 'Edit',
-                          ),
-                          IconButton(
-                            onPressed: () => onDelete(category),
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.red,
+                            IconButton(
+                              onPressed: () => onDelete(category),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
+                              tooltip: 'Delete',
                             ),
-                            tooltip: 'Delete',
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              if (index < items.length - 1)
+                Divider(color: Colors.grey[300], thickness: 1),
+            ],
           ),
         );
       },
@@ -824,7 +830,6 @@ class _EmptyState extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

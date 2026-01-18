@@ -386,13 +386,13 @@ class _BodySection extends StatelessWidget {
           description: 'Get a ready-to-fill CSV with the right columns.',
           onTap: onDownloadTemplate,
         ),
-        const SizedBox(height: 12),
+        Divider(color: Colors.grey[300], thickness: 1),
         _ActionCard(
           title: 'Export My Logs',
           description: 'Create a CSV file of all logs on this device.',
           onTap: onExport,
         ),
-        const SizedBox(height: 12),
+        Divider(color: Colors.grey[300], thickness: 1),
         _ActionCard(
           title: 'Import From CSV',
           description:
@@ -443,7 +443,6 @@ class _ActionCardState extends State<_ActionCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
       ),
       child: Row(
         children: [
