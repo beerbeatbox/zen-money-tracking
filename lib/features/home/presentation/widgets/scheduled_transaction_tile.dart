@@ -51,7 +51,7 @@ class ScheduledTransactionTile extends ConsumerWidget {
         ? (item.budgetAmount ?? item.amount.abs())
         : item.amount.abs();
     final amountLabel = item.isDynamicAmount
-        ? 'Budget: ${formatNetBalance(amountToDisplay)}'
+        ? formatCurrencySigned(-amountToDisplay)
         : formatCurrencySigned(item.amount);
 
     final subtitle =

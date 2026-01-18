@@ -185,7 +185,7 @@ class _ScheduledDetailCard extends ConsumerWidget {
             : item.amount.abs();
     final amountLabel =
         item.isDynamicAmount
-            ? 'Budget: ${formatNetBalance(amountToDisplay)}'
+            ? formatCurrencySigned(-amountToDisplay)
             : formatCurrencySigned(item.amount);
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
