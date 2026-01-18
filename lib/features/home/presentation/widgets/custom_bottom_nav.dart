@@ -115,7 +115,7 @@ class CustomBottomNav extends StatelessWidget {
                 Expanded(
                   child: _buildNavIcon(
                     onTap: () => _handleTabTap(2, isActive: isScheduleActive),
-                    icon: HeroIcons.wallet,
+                    icon: HeroIcons.calendar,
                     semanticLabel: 'Scheduled payments',
                     isActive: isScheduleActive,
                   ),
@@ -123,7 +123,7 @@ class CustomBottomNav extends StatelessWidget {
                 Expanded(
                   child: _buildNavIcon(
                     onTap: () => _handleTabTap(3, isActive: isSettingsActive),
-                    icon: HeroIcons.user,
+                    icon: HeroIcons.cog6Tooth,
                     semanticLabel: 'Settings',
                     isActive: isSettingsActive,
                   ),
