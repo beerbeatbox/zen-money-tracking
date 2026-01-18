@@ -84,7 +84,7 @@ class _ReminderTimePickerBottomSheetState
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final bottomPadding = mediaQuery.padding.bottom;
+    final bottomPadding = mediaQuery.viewInsets.bottom;
     const sheetHeight = 320.0;
 
     return Align(
@@ -101,169 +101,148 @@ class _ReminderTimePickerBottomSheetState
           ),
           child: SafeArea(
             top: false,
-            child: Stack(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
               children: [
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    const Text(
-                      'SELECT TIME',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.2,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Expanded(
-                      child: Center(
-                        child: SizedBox(
-                          height: 180,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 80,
-                                child: CupertinoPicker(
-                                  scrollController: _hourController,
-                                  itemExtent: 32,
-                                  useMagnifier: false,
-                                  looping: true,
-                                  onSelectedItemChanged: (index) {
-                                    setState(() {
-                                      _selectedHour = index % 24;
-                                    });
-                                  },
-                                  children: List.generate(
-                                    24,
-                                    (i) => Center(
-                                      child: Text(
-                                        i.toString().padLeft(2, '0'),
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const Text(
-                                ':',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              SizedBox(
-                                width: 80,
-                                child: CupertinoPicker(
-                                  scrollController: _minuteController,
-                                  itemExtent: 32,
-                                  useMagnifier: false,
-                                  looping: true,
-                                  onSelectedItemChanged: (index) {
-                                    setState(() {
-                                      _selectedMinute = index % 60;
-                                    });
-                                  },
-                                  children: List.generate(
-                                    60,
-                                    (i) => Center(
-                                      child: Text(
-                                        i.toString().padLeft(2, '0'),
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Placeholder for buttons to maintain layout
-                    SizedBox(
-                      height: 56,
+                const Text(
+                  'SELECT TIME',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: Center(
+                    child: SizedBox(
+                      height: 180,
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Expanded(child: Container()),
-                          const SizedBox(width: 12),
-                          Expanded(child: Container()),
+                          SizedBox(
+                            width: 80,
+                            child: CupertinoPicker(
+                              scrollController: _hourController,
+                              itemExtent: 32,
+                              useMagnifier: false,
+                              looping: true,
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  _selectedHour = index % 24;
+                                });
+                              },
+                              children: List.generate(
+                                24,
+                                (i) => Center(
+                                  child: Text(
+                                    i.toString().padLeft(2, '0'),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            ':',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: 80,
+                            child: CupertinoPicker(
+                              scrollController: _minuteController,
+                              itemExtent: 32,
+                              useMagnifier: false,
+                              looping: true,
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  _selectedMinute = index % 60;
+                                });
+                              },
+                              children: List.generate(
+                                60,
+                                (i) => Center(
+                                  child: Text(
+                                    i.toString().padLeft(2, '0'),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                // Buttons on top layer
-                Positioned(
-                  left: 24,
-                  right: 24,
-                  bottom: 24 + bottomPadding,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedSurface(
-                          height: 56,
-                          isPressed: _cancelPressed,
-                          duration: const Duration(milliseconds: 80),
-                          curve: Curves.easeOut,
-                          child: const Center(
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ).onTap(
-                          onTapDown: (_) => _setCancelPressed(true),
-                          onTapUp: (_) => _releaseCancelWithPause(),
-                          onTapCancel: () => _releaseCancelWithPause(),
-                          onTap: _handleCancel,
-                          behavior: HitTestBehavior.opaque,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedSurface(
-                          height: 56,
-                          isPressed: _addPressed,
-                          duration: const Duration(milliseconds: 80),
-                          color: Colors.black,
-                          curve: Curves.easeOut,
-                          child: const Center(
-                            child: Text(
-                              'Add',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ).onTap(
-                          onTapDown: (_) => _setAddPressed(true),
-                          onTapUp: (_) => _releaseAddWithPause(),
-                          onTapCancel: () => _releaseAddWithPause(),
-                          onTap: _handleOk,
-                          behavior: HitTestBehavior.opaque,
-                        ),
-                      ),
-                    ],
                   ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedSurface(
+                        height: 56,
+                        isPressed: _cancelPressed,
+                        duration: const Duration(milliseconds: 80),
+                        curve: Curves.easeOut,
+                        child: const Center(
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ).onTap(
+                        onTapDown: (_) => _setCancelPressed(true),
+                        onTapUp: (_) => _releaseCancelWithPause(),
+                        onTapCancel: () => _releaseCancelWithPause(),
+                        onTap: _handleCancel,
+                        behavior: HitTestBehavior.opaque,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedSurface(
+                        height: 56,
+                        isPressed: _addPressed,
+                        duration: const Duration(milliseconds: 80),
+                        color: Colors.black,
+                        curve: Curves.easeOut,
+                        child: const Center(
+                          child: Text(
+                            'Add',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ).onTap(
+                        onTapDown: (_) => _setAddPressed(true),
+                        onTapUp: (_) => _releaseAddWithPause(),
+                        onTapCancel: () => _releaseAddWithPause(),
+                        onTap: _handleOk,
+                        behavior: HitTestBehavior.opaque,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
