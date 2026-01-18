@@ -11,10 +11,12 @@ class DashboardScheduleSection extends ConsumerStatefulWidget {
     super.key,
     required this.items,
     required this.selectedMonth,
+    this.isExpandable = false,
   });
 
   final List<ScheduledTransaction> items;
   final DateTime selectedMonth;
+  final bool isExpandable;
 
   @override
   ConsumerState<DashboardScheduleSection> createState() =>
@@ -24,7 +26,13 @@ class DashboardScheduleSection extends ConsumerStatefulWidget {
 class _DashboardScheduleSectionState
     extends ConsumerState<DashboardScheduleSection>
     with SingleTickerProviderStateMixin {
-  bool _isExpanded = false;
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = !widget.isExpandable;
+  }
 
   void _toggleExpanded() {
     setState(() => _isExpanded = !_isExpanded);
@@ -48,24 +56,62 @@ class _DashboardScheduleSectionState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: _toggleExpanded,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Scheduled',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
-                  color: Colors.black,
+        widget.isExpandable
+            ? InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: _toggleExpanded,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Scheduled',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          totalLabel,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        AnimatedRotation(
+                          turns: _isExpanded ? 0.5 : 0,
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeInOut,
+                          child: const Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 20,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  const Text(
+                    'Scheduled',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                      color: Colors.black,
+                    ),
+                  ),
                   Text(
                     totalLabel,
                     style: const TextStyle(
@@ -75,58 +121,68 @@ class _DashboardScheduleSectionState
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  AnimatedRotation(
-                    turns: _isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeInOut,
-                    child: const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 20,
-                      color: Colors.black,
-                    ),
-                  ),
                 ],
               ),
-            ],
-          ),
-        ),
         const SizedBox(height: 8),
         const Divider(thickness: 2, color: Colors.black),
         ClipRect(
           clipBehavior: Clip.none,
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child:
-                _isExpanded
-                    ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 12),
-                        ...List.generate(widget.items.length, (index) {
-                          final item = widget.items[index];
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: index == widget.items.length - 1 ? 0 : 12,
-                            ),
-                            child: ScheduledTransactionTile(
-                              item: item,
-                              onEdit:
-                                  () => context.push(
+          child: widget.isExpandable
+              ? AnimatedSize(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: _isExpanded
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 12),
+                            ...List.generate(widget.items.length, (index) {
+                              final item = widget.items[index];
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: index == widget.items.length - 1
+                                      ? 0
+                                      : 12,
+                                ),
+                                child: ScheduledTransactionTile(
+                                  item: item,
+                                  onEdit: () => context.push(
                                     AppRouter.scheduledTransactionDetail.path
                                         .replaceFirst(':id', item.id),
                                     extra: item,
                                   ),
-                              showStatusLabel: true,
-                            ),
-                          );
-                        }),
-                      ],
-                    )
-                    : const SizedBox.shrink(),
-          ),
+                                  showStatusLabel: true,
+                                ),
+                              );
+                            }),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    ...List.generate(widget.items.length, (index) {
+                      final item = widget.items[index];
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == widget.items.length - 1 ? 0 : 12,
+                        ),
+                        child: ScheduledTransactionTile(
+                          item: item,
+                          onEdit: () => context.push(
+                            AppRouter.scheduledTransactionDetail.path
+                                .replaceFirst(':id', item.id),
+                            extra: item,
+                          ),
+                          showStatusLabel: true,
+                        ),
+                      );
+                    }),
+                  ],
+                ),
         ),
       ],
     );
