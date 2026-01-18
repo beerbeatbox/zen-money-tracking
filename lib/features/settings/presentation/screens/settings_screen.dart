@@ -140,9 +140,18 @@ class _SettingsList extends StatelessWidget {
                             )
                             .setEnabled(value)
                         : null,
-                activeThumbColor: Colors.green,
-                inactiveThumbColor: Colors.black,
-                inactiveTrackColor: Colors.grey[300],
+                thumbColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) return null;
+                  return states.contains(WidgetState.selected)
+                      ? Colors.green
+                      : Colors.black;
+                }),
+                trackColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) return null;
+                  return states.contains(WidgetState.selected)
+                      ? Colors.green[200]
+                      : Colors.grey[300];
+                }),
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'core/router/app_router.dart';
 import 'core/services/notification_service.dart';
@@ -61,6 +62,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        textTheme: GoogleFonts.dmSansTextTheme(),
       ),
       routerConfig: router,
     );
