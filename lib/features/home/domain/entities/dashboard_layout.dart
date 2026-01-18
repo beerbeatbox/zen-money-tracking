@@ -13,10 +13,7 @@ enum DashboardSectionId {
 
 @immutable
 class DashboardLayout {
-  const DashboardLayout({
-    required this.active,
-    required this.inactive,
-  });
+  const DashboardLayout({required this.active, required this.inactive});
 
   final List<DashboardSectionId> active;
   final List<DashboardSectionId> inactive;
@@ -45,10 +42,7 @@ class DashboardLayout {
   }
 
   static DashboardLayout defaults() {
-    return DashboardLayout(
-      active: allSections(),
-      inactive: const [],
-    );
+    return DashboardLayout(active: allSections(), inactive: const []);
   }
 
   static DashboardLayout normalize({
@@ -77,7 +71,10 @@ class DashboardLayout {
       }
     }
 
-    return DashboardLayout(active: normalizedActive, inactive: normalizedInactive);
+    return DashboardLayout(
+      active: normalizedActive,
+      inactive: normalizedInactive,
+    );
   }
 }
 

@@ -112,7 +112,9 @@ struct ThumbySpendingEntryView: View {
         formatter.currencySymbol = "฿"
         formatter.maximumFractionDigits = hasFraction ? 2 : 0
         formatter.minimumFractionDigits = hasFraction ? 2 : 0
-        return formatter.string(from: NSNumber(value: entry.amount)) ?? "฿0"
+        let formatted = formatter.string(from: NSNumber(value: abs(entry.amount))) ?? "฿0"
+        // Add minus sign prefix to show spending as negative
+        return "-\(formatted)"
     }
 
     private var formattedBudget: String? {
@@ -161,27 +163,6 @@ struct ThumbySpendingEntryView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
-            if let budgetRemaining = entry.budgetRemaining, let formattedBudget = formattedBudget {
-                HStack(alignment: .lastTextBaseline, spacing: isSmall ? 6 : 8) {
-                    Text("Budget")
-                        .font(isSmall ? .caption.weight(.semibold) : .body.weight(.semibold))
-                        .foregroundStyle(Color.black.opacity(0.6))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text(formattedBudget)
-                        .font(.system(size: isSmall ? 14 : 18, weight: .semibold))
-                        .foregroundStyle(Color.black)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.4)
-                        .allowsTightening(true)
-                        .layoutPriority(1)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
 
             if !isSmall, let updatedLabel {
                 Text(updatedLabel)
