@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/widgets/section_card.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: SafeArea(
         child: Column(
@@ -55,11 +55,7 @@ class _ProfileHeader extends StatelessWidget {
             color: Colors.grey[300],
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.person,
-            size: 50,
-            color: Colors.black54,
-          ),
+          child: const Icon(Icons.person, size: 50, color: Colors.black54),
         ),
         const SizedBox(height: 16),
         const Text(
@@ -73,10 +69,7 @@ class _ProfileHeader extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'user@example.com',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
       ],
     );
@@ -160,14 +153,10 @@ class _ProfileItem extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.chevron_right, color: Colors.grey[400]),
           ],
         ),
       ),
     );
   }
 }
-

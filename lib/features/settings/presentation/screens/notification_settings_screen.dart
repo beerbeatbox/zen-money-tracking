@@ -5,6 +5,7 @@ import 'package:anti/features/settings/presentation/controllers/notification_set
 import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
@@ -77,26 +78,37 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        const Text(
-          'NOTIFICATION SETTINGS',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
-            color: Colors.black,
-          ),
+        IconButton(
+          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Manage your notification preferences',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8,
-            color: Colors.grey[600],
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Notification settings',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Manage your notification preferences',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
           ),
         ),
       ],

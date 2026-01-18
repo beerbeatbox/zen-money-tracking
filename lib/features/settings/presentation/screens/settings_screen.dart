@@ -50,9 +50,9 @@ class _TopBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'SETTINGS',
+              'Settings',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 24,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.4,
                 color: Colors.black,
@@ -109,7 +109,7 @@ class _SettingsList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'CARRY BALANCE FORWARD',
+                      'Carry balance forward',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
@@ -297,7 +297,7 @@ class _SettingsCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title.toUpperCase(),
+                title,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,

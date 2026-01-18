@@ -4,6 +4,7 @@ import 'package:anti/features/settings/presentation/controllers/expense_reminder
 import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 
 class ExpenseRemindersScreen extends ConsumerWidget {
@@ -97,29 +98,36 @@ class _TopBar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'EXPENSE REMINDERS',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: Colors.black,
+        IconButton(
+          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Expense reminders',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Set daily reminders to track expenses',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8,
-                color: Colors.grey[600],
+              const SizedBox(height: 4),
+              Text(
+                'Set daily reminders to track expenses',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                  color: Colors.grey[600],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         Container(
           padding: const EdgeInsets.all(8),

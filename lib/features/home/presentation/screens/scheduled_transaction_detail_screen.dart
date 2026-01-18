@@ -36,7 +36,7 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.grey[200],
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         leadingWidth: 64,
         titleSpacing: 0,
         leading: Padding(
@@ -45,15 +45,15 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
             padding: EdgeInsets.zero,
             splashRadius: 20,
             onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back, size: 20, color: Colors.black),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
           ),
         ),
         title: const Text(
           'Scheduled payment',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 24,
             fontWeight: FontWeight.w800,
-            letterSpacing: 0.2,
+            letterSpacing: 0.4,
             color: Colors.black,
           ),
         ),

@@ -101,9 +101,9 @@ class _TopBar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'BUDGET',
+                'Budget',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 24,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.4,
                   color: Colors.black,
