@@ -190,8 +190,8 @@ class _HeaderSection extends StatelessWidget {
             onPickMonth(picked);
           },
         ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -209,11 +209,26 @@ class _MonthContent extends StatelessWidget {
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionCard(child: MonthlyIncomeSpentLineChart(selectedMonth: selectedMonth, logs: logs)),
+        SectionCard(
+          child: MonthlyIncomeSpentLineChart(
+            selectedMonth: selectedMonth,
+            logs: logs,
+          ),
+        ),
         const SizedBox(height: 16),
-        SectionCard(child: MonthlyCategoryLineChart(selectedMonth: selectedMonth, logs: logs)),
+        SectionCard(
+          child: MonthlyCategoryLineChart(
+            selectedMonth: selectedMonth,
+            logs: logs,
+          ),
+        ),
         const SizedBox(height: 16),
-        SectionCard(child: CategoryRankingSection(selectedMonth: selectedMonth, logs: logs)),
+        SectionCard(
+          child: CategoryRankingSection(
+            selectedMonth: selectedMonth,
+            logs: logs,
+          ),
+        ),
       ],
     );
   }
