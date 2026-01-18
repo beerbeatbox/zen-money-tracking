@@ -24,12 +24,14 @@ class DashboardQuickAddHandler {
     if (_didHandleQuickAdd) return;
     _didHandleQuickAdd = true;
 
-    final type = (state.uri.queryParameters['type'] ?? '').trim().toLowerCase();
-    final initialIsExpense = type == 'income' ? false : true;
+    // Temporary disabled: auto-open keyboard on widget tap
+    // final type = (state.uri.queryParameters['type'] ?? '').trim().toLowerCase();
+    // final initialIsExpense = type == 'income' ? false : true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!context.mounted) return;
-      await openQuickLogKeyboard(initialIsExpense: initialIsExpense);
+      // Temporarily disabled: auto-open keyboard on widget tap
+      // await openQuickLogKeyboard(initialIsExpense: initialIsExpense);
       if (!context.mounted) return;
       // Clear query params so we don't auto-open again on rebuild.
       context.go(AppRouter.dashboard.path);
