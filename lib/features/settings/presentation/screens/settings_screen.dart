@@ -153,8 +153,8 @@ class _SettingsList extends StatelessWidget {
         const SizedBox(height: 12),
         _SettingsCard(
           icon: HeroIcons.bell,
-          title: 'Expense Reminders',
-          onTap: () => context.pushNamed(AppRouter.expenseReminders.name),
+          title: 'Notifications',
+          onTap: () => context.pushNamed(AppRouter.notificationSettings.name),
         ),
         const SizedBox(height: 12),
         _SettingsCard(

@@ -27,6 +27,7 @@ class SettingsLocalDatasource {
   static const _budgetSourceKey = 'budget_source';
   static const _customBudgetAmountKey = 'custom_budget_amount';
   static const _expenseRemindersKey = 'expense_reminders';
+  static const _scheduledNotificationsEnabledKey = 'scheduled_notifications_enabled';
 
   Future<File> _ensureFile() async {
     final directory = await getApplicationDocumentsDirectory();
@@ -129,6 +130,19 @@ class SettingsLocalDatasource {
     map[_expenseRemindersKey] = times
         .map((time) => {'hour': time.hour, 'minute': time.minute})
         .toList();
+    await _writeMap(map);
+  }
+
+  Future<bool> readScheduledNotificationsEnabled() async {
+    final map = await _readMap();
+    final raw = map[_scheduledNotificationsEnabledKey];
+    if (raw is bool) return raw;
+    return false;
+  }
+
+  Future<void> writeScheduledNotificationsEnabled(bool enabled) async {
+    final map = await _readMap();
+    map[_scheduledNotificationsEnabledKey] = enabled;
     await _writeMap(map);
   }
 }

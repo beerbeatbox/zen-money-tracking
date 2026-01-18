@@ -31,6 +31,12 @@ class SettingsService {
 
   Future<void> setExpenseReminders(List<TimeOfDay> times) =>
       _repository.setExpenseReminders(times);
+
+  Future<bool> getScheduledNotificationsEnabled() =>
+      _repository.getScheduledNotificationsEnabled();
+
+  Future<void> setScheduledNotificationsEnabled(bool enabled) =>
+      _repository.setScheduledNotificationsEnabled(enabled);
 }
 
 @riverpod

@@ -18,6 +18,7 @@ import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
 import '../../features/settings/presentation/screens/expense_reminders_screen.dart';
+import '../../features/settings/presentation/screens/notification_settings_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 
 part 'app_router.g.dart';
@@ -32,6 +33,7 @@ enum AppRouter {
   categoryManagement,
   expenseLogsCsv,
   expenseReminders,
+  notificationSettings,
   profile,
   scheduledTransactions,
   scheduledTransactionsSearch,
@@ -59,6 +61,8 @@ enum AppRouter {
         return '/settings/import-export';
       case AppRouter.expenseReminders:
         return '/settings/expense-reminders';
+      case AppRouter.notificationSettings:
+        return '/settings/notifications';
       case AppRouter.profile:
         return '/profile';
       case AppRouter.scheduledTransactions:
@@ -177,6 +181,12 @@ GoRouter appRouter(Ref ref) {
         path: AppRouter.expenseReminders.path,
         name: AppRouter.expenseReminders.name,
         builder: (context, state) => const ExpenseRemindersScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRouter.notificationSettings.path,
+        name: AppRouter.notificationSettings.name,
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
