@@ -14,6 +14,7 @@ import 'package:anti/features/settings/presentation/widgets/outlined_confirmatio
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heroicons/heroicons.dart';
 
 class ScheduledTransactionDetailScreen extends ConsumerWidget {
   const ScheduledTransactionDetailScreen({
@@ -56,6 +57,35 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
             color: Colors.black,
           ),
         ),
+        actions: [
+          Builder(
+            builder: (context) {
+              return itemsAsync.when(
+                data: (items) {
+                  final resolved = _resolveItem(items);
+                  if (resolved == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      splashRadius: 20,
+                      onPressed: () => _handleDelete(context, ref, resolved),
+                      icon: const HeroIcon(
+                        HeroIcons.trash,
+                        size: 24,
+                        color: Colors.red,
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: itemsAsync.when(
@@ -96,6 +126,48 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
       if (it.id == scheduledId) return it;
     }
     return item;
+  }
+
+  Future<void> _handleDelete(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduledTransaction item,
+  ) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (ctx) => OutlinedConfirmationDialog(
+            title: 'Remove this scheduled payment?',
+            description: 'You can schedule it again anytime.',
+            primaryLabel: 'Remove payment',
+            onPrimaryPressed: () => Navigator.of(ctx).pop(true),
+            secondaryLabel: 'Keep it',
+            onSecondaryPressed: () => Navigator.of(ctx).pop(false),
+          ),
+    );
+
+    if (shouldDelete != true) return;
+
+    try {
+      await ref.read(deleteScheduledTransactionActionProvider(item.id).future);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Scheduled payment removed.'),
+        ),
+      );
+      context.pop();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text("Let's try that again."),
+        ),
+      );
+    }
   }
 }
 
@@ -347,44 +419,6 @@ class _ScheduledActionsRow extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder:
-          (ctx) => OutlinedConfirmationDialog(
-            title: 'Remove this scheduled payment?',
-            description: 'You can schedule it again anytime.',
-            primaryLabel: 'Remove payment',
-            onPrimaryPressed: () => Navigator.of(ctx).pop(true),
-            secondaryLabel: 'Keep it',
-            onSecondaryPressed: () => Navigator.of(ctx).pop(false),
-          ),
-    );
-
-    if (shouldDelete != true) return;
-
-    try {
-      await ref.read(deleteScheduledTransactionActionProvider(item.id).future);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text('Scheduled payment removed.'),
-        ),
-      );
-      context.pop();
-    } catch (_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text("Let's try that again."),
-        ),
-      );
-    }
-  }
-
   String _getDueDateStatusMessage(DateTime scheduledDate, DateTime now) {
     final today = DateUtils.dateOnly(now);
     final scheduledDay = DateUtils.dateOnly(scheduledDate);
@@ -476,47 +510,29 @@ class _ScheduledActionsRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final markAsPaidLabel = !item.isActive ? 'Paused' : 'Mark as paid';
 
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedActionButton(
-                label: markAsPaidLabel,
-                onPressed:
-                    !item.isActive
-                        ? null
-                        : () => _showMarkAsPaidConfirmation(context, ref),
-                textColor: Colors.white,
-                borderColor: Colors.black,
-                backgroundColor: Colors.black,
-              ),
-            ),
-          ],
+        Expanded(
+          child: OutlinedActionButton(
+            label: markAsPaidLabel,
+            onPressed:
+                !item.isActive
+                    ? null
+                    : () => _showMarkAsPaidConfirmation(context, ref),
+            textColor: Colors.white,
+            borderColor: Colors.black,
+            backgroundColor: Colors.black,
+          ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedActionButton(
-                label: 'Edit',
-                onPressed: () => _openEditSheet(context, ref),
-                textColor: Colors.black,
-                borderColor: Colors.black,
-                backgroundColor: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedActionButton(
-                label: 'Delete',
-                onPressed: () => _handleDelete(context, ref),
-                textColor: Colors.white,
-                borderColor: Colors.black,
-                backgroundColor: Colors.red,
-              ),
-            ),
-          ],
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedActionButton(
+            label: 'Edit',
+            onPressed: () => _openEditSheet(context, ref),
+            textColor: Colors.black,
+            borderColor: Colors.black,
+            backgroundColor: Colors.white,
+          ),
         ),
       ],
     );
