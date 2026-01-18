@@ -17,6 +17,7 @@ import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_recent_logs_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_spending_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/edit_dashboard_drawer.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
@@ -209,6 +210,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               onRetry: () => refreshExpenseLogs(ref),
             ),
           );
+        case DashboardSectionId.spending:
+          sections.add(section);
+          widgets.add(
+            DashboardSpendingSection(
+              todaySpending: todaySpending ?? 0.0,
+              netBalance: netBalance,
+            ),
+          );
       }
     }
 
@@ -250,6 +259,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         return 40;
       case DashboardSectionId.recentActivity:
         return 12;
+      case DashboardSectionId.spending:
+        return 16;
     }
   }
 

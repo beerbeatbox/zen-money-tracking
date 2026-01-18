@@ -8,6 +8,7 @@ enum DashboardSectionId {
   scheduledThisMonth,
   dueNow,
   recentActivity,
+  spending,
 }
 
 @immutable
@@ -39,6 +40,7 @@ class DashboardLayout {
       DashboardSectionId.scheduledThisMonth,
       DashboardSectionId.dueNow,
       DashboardSectionId.recentActivity,
+      DashboardSectionId.spending,
     ];
   }
 
@@ -96,6 +98,8 @@ extension DashboardSectionLabel on DashboardSectionId {
         return 'Due now';
       case DashboardSectionId.recentActivity:
         return 'Recent activity';
+      case DashboardSectionId.spending:
+        return 'Spending';
     }
   }
 
@@ -115,6 +119,8 @@ extension DashboardSectionLabel on DashboardSectionId {
         return 'Check what is due today';
       case DashboardSectionId.recentActivity:
         return 'Review your latest logs';
+      case DashboardSectionId.spending:
+        return 'Track your spending and balance';
     }
   }
 }
