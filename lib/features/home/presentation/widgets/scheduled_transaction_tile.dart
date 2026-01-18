@@ -47,12 +47,14 @@ class ScheduledTransactionTile extends ConsumerWidget {
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
     // Use budgetAmount for dynamic scheduled transactions, amount for fixed
-    final amountToDisplay = item.isDynamicAmount
-        ? (item.budgetAmount ?? item.amount.abs())
-        : item.amount.abs();
-    final amountLabel = item.isDynamicAmount
-        ? formatCurrencySigned(-amountToDisplay)
-        : formatCurrencySigned(item.amount);
+    final amountToDisplay =
+        item.isDynamicAmount
+            ? (item.budgetAmount ?? item.amount.abs())
+            : item.amount.abs();
+    final amountLabel =
+        item.isDynamicAmount
+            ? formatCurrencySigned(-amountToDisplay)
+            : formatCurrencySigned(item.amount);
 
     final subtitle =
         showStatusLabel

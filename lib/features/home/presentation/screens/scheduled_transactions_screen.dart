@@ -112,10 +112,10 @@ class _ScheduledTransactionsScreenState
           initial == null
               ? null
               : _formatInitialAmount(
-                  (isDynamicAmount && budgetAmount != null)
-                      ? budgetAmount.abs()
-                      : initial.amount.abs(),
-                ),
+                (isDynamicAmount && budgetAmount != null)
+                    ? budgetAmount.abs()
+                    : initial.amount.abs(),
+              ),
       initialLogDateTime: initial?.scheduledDate,
       initialCategory: initial?.category,
       showFrequencyChips: true,

@@ -80,18 +80,20 @@ class ScaffoldWithNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: navigationShell,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openKeyboard(context, ref),
-        backgroundColor: Colors.white,
-        shape: const CircleBorder(
-          side: BorderSide(color: Colors.black, width: 2),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: const Icon(Icons.add, color: Colors.black),
+      body: Stack(
+        children: [
+          navigationShell,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CustomBottomNav(
+              navigationShell: navigationShell,
+              onAddPressed: () => _openKeyboard(context, ref),
+            ),
+          ),
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: CustomBottomNav(navigationShell: navigationShell),
     );
   }
 }
