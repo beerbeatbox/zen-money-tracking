@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,25 +10,68 @@ import 'package:go_router/go_router.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import '../router/app_router.dart';
 import '../../features/home/domain/entities/scheduled_transaction.dart';
+import '../router/app_router.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  static const _timezoneChannel = MethodChannel('com.dopaminelab.thumby/timezone');
+  static const _timezoneChannel = MethodChannel(
+    'com.dopaminelab.thumby/timezone',
+  );
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
   bool _permissionsGranted = false;
+  final _random = Random();
+
+  // Daily expense reminder message variations
+  static const _dailyReminderTitles = <String>[
+    '📝 Track your expenses today',
+    '💸 Time to log your spending',
+    '📊 Update your expenses',
+    '✨ Keep your finances in check',
+    '🎯 Track your spending today',
+    '📱 Record your expenses',
+  ];
+
+  static const _dailyReminderBodies = <String>[
+    'Add your spending to stay on track',
+    'Log today\'s expenses to stay organized',
+    'Capture your spending for better insights',
+    'Update your expense log for today',
+    'Record your transactions to stay on top',
+    'Track your spending to reach your goals',
+  ];
+
+  // Scheduled transaction message variations
+  static const _scheduledTransactionTitles = <String>[
+    '💰 Your scheduled payment',
+    '💳 Payment reminder',
+    '📅 Scheduled transaction',
+    '⏰ Time for your payment',
+    '💵 Payment due today',
+    '🔔 Your payment reminder',
+  ];
+
+  static const _scheduledTransactionBodies = <String>[
+    'Time to record: {title} (\${amount})',
+    'Ready to log: {title} - \${amount}',
+    'Record this payment: {title} (\${amount})',
+    'Log your payment: {title} - \${amount}',
+    'Add to your log: {title} (\${amount})',
+    'Track this transaction: {title} - \${amount}',
+  ];
 
   Future<String> _getLocalTimezone() async {
     try {
       if (Platform.isIOS || Platform.isAndroid) {
-        final timezone = await _timezoneChannel.invokeMethod<String>('getLocalTimezone');
+        final timezone = await _timezoneChannel.invokeMethod<String>(
+          'getLocalTimezone',
+        );
         return timezone ?? 'UTC';
       }
       // Fallback for other platforms
@@ -60,7 +104,9 @@ class NotificationService {
       );
 
       // Android initialization settings
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
 
       const initSettings = InitializationSettings(
         android: androidSettings,
@@ -74,16 +120,25 @@ class NotificationService {
       );
 
       if (initialized == null || initialized == false) {
-        developer.log('Failed to initialize notifications plugin', name: 'NotificationService');
+        developer.log(
+          'Failed to initialize notifications plugin',
+          name: 'NotificationService',
+        );
         return;
       }
 
       // Request and verify permissions on iOS
       _permissionsGranted = await hasPermissions();
       if (!_permissionsGranted) {
-        developer.log('Notification permissions not granted', name: 'NotificationService');
+        developer.log(
+          'Notification permissions not granted',
+          name: 'NotificationService',
+        );
       } else {
-        developer.log('Notification permissions granted', name: 'NotificationService');
+        developer.log(
+          'Notification permissions granted',
+          name: 'NotificationService',
+        );
       }
 
       _initialized = true;
@@ -99,8 +154,11 @@ class NotificationService {
 
   Future<bool> hasPermissions() async {
     try {
-      final ios = _notifications.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final ios =
+          _notifications
+              .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin
+              >();
       if (ios != null) {
         final result = await ios.requestPermissions(
           alert: true,
@@ -113,7 +171,10 @@ class NotificationService {
       // Android always returns true
       return true;
     } catch (e) {
-      developer.log('Error checking permissions: $e', name: 'NotificationService');
+      developer.log(
+        'Error checking permissions: $e',
+        name: 'NotificationService',
+      );
       return false;
     }
   }
@@ -131,17 +192,48 @@ class NotificationService {
         if (scheduledId != null) {
           // Navigate to scheduled transaction detail
           navigatorKey.currentContext!.go(
-            AppRouter.scheduledTransactionDetail.path.replaceFirst(':id', scheduledId),
+            AppRouter.scheduledTransactionDetail.path.replaceFirst(
+              ':id',
+              scheduledId,
+            ),
           );
           return;
         }
       } catch (e) {
-        developer.log('Error parsing notification payload: $e', name: 'NotificationService');
+        developer.log(
+          'Error parsing notification payload: $e',
+          name: 'NotificationService',
+        );
       }
     }
 
     // Default: Navigate to dashboard
     navigatorKey.currentContext!.go(AppRouter.dashboard.path);
+  }
+
+  // Randomization helper methods
+  String _getRandomDailyReminderTitle() {
+    return _dailyReminderTitles[_random.nextInt(_dailyReminderTitles.length)];
+  }
+
+  String _getRandomDailyReminderBody() {
+    return _dailyReminderBodies[_random.nextInt(_dailyReminderBodies.length)];
+  }
+
+  String _getRandomScheduledTransactionTitle() {
+    return _scheduledTransactionTitles[_random.nextInt(
+      _scheduledTransactionTitles.length,
+    )];
+  }
+
+  String _getRandomScheduledTransactionBody(String title, String amount) {
+    final body =
+        _scheduledTransactionBodies[_random.nextInt(
+          _scheduledTransactionBodies.length,
+        )];
+    return body
+        .replaceAll('{title}', title)
+        .replaceAll('\${amount}', '\$$amount');
   }
 
   int _generateReminderId(TimeOfDay time) {
@@ -166,7 +258,7 @@ class NotificationService {
 
       final id = _generateReminderId(time);
       final now = tz.TZDateTime.now(tz.local);
-      
+
       // Create scheduled date for today with the specified time
       var scheduledDate = tz.TZDateTime(
         tz.local,
@@ -192,14 +284,15 @@ class NotificationService {
       // Schedule daily recurring notification
       await _notifications.zonedSchedule(
         id,
-        'Time to track your expenses',
-        'Don\'t forget to add your expenses for today',
+        _getRandomDailyReminderTitle(),
+        _getRandomDailyReminderBody(),
         scheduledDate,
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'expense_reminders',
             'Expense Reminders',
-            channelDescription: 'Daily reminders to track your expenses',
+            channelDescription:
+                'Gentle reminders to help you track your spending',
             importance: Importance.high,
             priority: Priority.high,
           ),
@@ -219,7 +312,7 @@ class NotificationService {
       // Verify notification was scheduled
       final pending = await _notifications.pendingNotificationRequests();
       final wasScheduled = pending.any((n) => n.id == id);
-      
+
       if (wasScheduled) {
         developer.log(
           'Notification scheduled successfully (ID: $id)',
@@ -250,9 +343,15 @@ class NotificationService {
 
       final id = _generateReminderId(time);
       await _notifications.cancel(id);
-      developer.log('Cancelled reminder (ID: $id)', name: 'NotificationService');
+      developer.log(
+        'Cancelled reminder (ID: $id)',
+        name: 'NotificationService',
+      );
     } catch (e) {
-      developer.log('Error cancelling reminder: $e', name: 'NotificationService');
+      developer.log(
+        'Error cancelling reminder: $e',
+        name: 'NotificationService',
+      );
     }
   }
 
@@ -263,7 +362,10 @@ class NotificationService {
       await _notifications.cancelAll();
       developer.log('Cancelled all reminders', name: 'NotificationService');
     } catch (e) {
-      developer.log('Error cancelling all reminders: $e', name: 'NotificationService');
+      developer.log(
+        'Error cancelling all reminders: $e',
+        name: 'NotificationService',
+      );
     }
   }
 
@@ -285,7 +387,7 @@ class NotificationService {
         'Rescheduled ${times.length} reminders. Total pending: ${pending.length}',
         name: 'NotificationService',
       );
-      
+
       if (pending.length > 64) {
         developer.log(
           'Warning: iOS allows max 64 pending notifications. Current: ${pending.length}',
@@ -307,7 +409,10 @@ class NotificationService {
       if (!_initialized) return [];
       return await _notifications.pendingNotificationRequests();
     } catch (e) {
-      developer.log('Error getting pending notifications: $e', name: 'NotificationService');
+      developer.log(
+        'Error getting pending notifications: $e',
+        name: 'NotificationService',
+      );
       return [];
     }
   }
@@ -374,9 +479,10 @@ class NotificationService {
       final payload = jsonEncode({'scheduledId': scheduled.id});
 
       // Format amount for display
-      final amount = scheduled.isDynamicAmount
-          ? (scheduled.budgetAmount ?? scheduled.amount.abs())
-          : scheduled.amount.abs();
+      final amount =
+          scheduled.isDynamicAmount
+              ? (scheduled.budgetAmount ?? scheduled.amount.abs())
+              : scheduled.amount.abs();
       final amountText = amount.toStringAsFixed(2);
 
       developer.log(
@@ -388,14 +494,14 @@ class NotificationService {
       // Schedule daily recurring notification at 9 AM
       await _notifications.zonedSchedule(
         id,
-        'Scheduled payment due',
-        '${scheduled.title} - \$$amountText',
+        _getRandomScheduledTransactionTitle(),
+        _getRandomScheduledTransactionBody(scheduled.title, amountText),
         scheduledDate,
         NotificationDetails(
           android: AndroidNotificationDetails(
             'scheduled_transactions',
             'Scheduled Transactions',
-            channelDescription: 'Notifications for scheduled payments that are due',
+            channelDescription: 'Reminders for your scheduled payments',
             importance: Importance.high,
             priority: Priority.high,
           ),
@@ -441,7 +547,9 @@ class NotificationService {
     }
   }
 
-  Future<void> cancelScheduledTransactionNotification(String scheduledId) async {
+  Future<void> cancelScheduledTransactionNotification(
+    String scheduledId,
+  ) async {
     try {
       if (!_initialized) return;
 
