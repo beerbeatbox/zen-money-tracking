@@ -1,3 +1,4 @@
+import 'package:anti/core/constants/app_sizes.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/widgets/section_card.dart';
@@ -18,8 +19,14 @@ class SettingsScreen extends ConsumerWidget with SettingsEvents {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            24 + Sizes.bottomNavInset(context),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

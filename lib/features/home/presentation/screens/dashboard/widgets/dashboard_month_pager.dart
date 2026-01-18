@@ -1,3 +1,4 @@
+import 'package:anti/core/constants/app_sizes.dart';
 import 'package:flutter/material.dart';
 
 class DashboardMonthPager extends StatefulWidget {
@@ -177,7 +178,9 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
         final scrollable = SingleChildScrollView(
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: widget.padding,
+          padding: widget.padding.copyWith(
+            bottom: widget.padding.bottom + Sizes.bottomNavInset(context),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -187,9 +190,10 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeInCubic,
                 transitionBuilder: (child, animation) {
-                  final slideOffset = _lastSwipeDirection == 0
-                      ? const Offset(0.2, 0)
-                      : Offset(_lastSwipeDirection * 0.2, 0);
+                  final slideOffset =
+                      _lastSwipeDirection == 0
+                          ? const Offset(0.2, 0)
+                          : Offset(_lastSwipeDirection * 0.2, 0);
 
                   final tween = Tween<Offset>(
                     begin: slideOffset,
@@ -219,13 +223,14 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
           onHorizontalDragCancel: _onHorizontalDragCancel,
           child: SizedBox(
             height: constraints.maxHeight,
-            child: widget.onRefresh == null
-                ? scrollable
-                : RefreshIndicator(
-                    onRefresh: _handleRefresh,
-                    color: Colors.black,
-                    child: scrollable,
-                  ),
+            child:
+                widget.onRefresh == null
+                    ? scrollable
+                    : RefreshIndicator(
+                      onRefresh: _handleRefresh,
+                      color: Colors.black,
+                      child: scrollable,
+                    ),
           ),
         );
       },

@@ -52,11 +52,7 @@ class CustomBottomNav extends StatelessWidget {
           color: Colors.white,
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          Icons.add,
-          color: Colors.grey[900],
-          size: 28,
-        ),
+        child: Icon(Icons.add, color: Colors.grey[900], size: 28),
       ),
     );
   }

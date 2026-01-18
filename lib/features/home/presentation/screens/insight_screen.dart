@@ -1,3 +1,4 @@
+import 'package:anti/core/constants/app_sizes.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
@@ -30,6 +31,7 @@ class InsightScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: SafeArea(
+        bottom: false,
         child: vmAsync.when(
           data: (vm) {
             return DashboardMonthPager(
@@ -301,7 +303,12 @@ class _InsightStateWrapperState extends State<_InsightStateWrapper> {
       child: SingleChildScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          24 + Sizes.bottomNavInset(context),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -1,3 +1,4 @@
+import 'package:anti/core/constants/app_sizes.dart';
 import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/widgets/section_card.dart';
@@ -287,6 +288,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       backgroundColor: Colors.grey[200],
       endDrawer: const EditDashboardDrawer(),
       body: SafeArea(
+        bottom: false,
         child: vmAsync.when(
           data: (vm) {
             final layout = layoutAsync.value ?? DashboardLayout.defaults();
@@ -567,7 +569,12 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
       child: SingleChildScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          24 + Sizes.bottomNavInset(context),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
