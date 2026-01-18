@@ -18,7 +18,7 @@ class DashboardDueNowSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Due now',
+          'DUE NOW',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,

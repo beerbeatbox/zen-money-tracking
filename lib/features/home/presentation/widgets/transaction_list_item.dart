@@ -75,7 +75,7 @@ class TransactionListItem extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                   color: Colors.grey[700],
                 ),
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],

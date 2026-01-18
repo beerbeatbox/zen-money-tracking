@@ -115,7 +115,7 @@ class CustomBottomNav extends StatelessWidget {
                 Expanded(
                   child: _buildNavIcon(
                     onTap: () => _handleTabTap(2, isActive: isScheduleActive),
-                    icon: HeroIcons.calendar,
+                    icon: HeroIcons.rectangleStack,
                     semanticLabel: 'Scheduled payments',
                     isActive: isScheduleActive,
                   ),

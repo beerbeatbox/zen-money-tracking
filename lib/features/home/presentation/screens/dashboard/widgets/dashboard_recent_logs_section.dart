@@ -38,7 +38,7 @@ class DashboardRecentLogsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Recent Activity',
+              'TRANSACTIONS',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,

@@ -64,7 +64,7 @@ class _DashboardScheduleSectionState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Scheduled',
+                    'SCHEDULED',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -86,7 +86,7 @@ class _DashboardScheduleSectionState
               ),
             )
             : const Text(
-              'Scheduled',
+              'SCHEDULED',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,

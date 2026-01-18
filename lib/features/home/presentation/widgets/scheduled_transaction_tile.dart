@@ -53,8 +53,8 @@ class ScheduledTransactionTile extends ConsumerWidget {
 
     final subtitle =
         showStatusLabel
-            ? '${_statusLabel(item.scheduledDate, now: now)} • ${item.category} • $dateLabel • $timeLabel'
-            : '${item.category} • $dateLabel • $timeLabel';
+            ? '${_statusLabel(item.scheduledDate, now: now)}\n$dateLabel • $timeLabel'
+            : '$dateLabel • $timeLabel';
 
     final primaryLabel = !item.isActive ? 'Paused' : 'Mark as paid';
     final categories = ref
