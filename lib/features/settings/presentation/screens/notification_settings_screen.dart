@@ -1,5 +1,5 @@
 import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/settings/presentation/controllers/expense_reminder_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/notification_settings_controller.dart';
 import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
@@ -24,7 +24,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
     final remindersAsync = ref.watch(expenseReminderControllerProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -35,18 +35,19 @@ class NotificationSettingsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
-              _ScheduledNotificationsSection(
-                scheduledNotificationsAsync: scheduledNotificationsAsync,
-                onToggle: (value) async {
-                  await ref
-                      .read(notificationSettingsControllerProvider.notifier)
-                      .setEnabled(value);
-                },
+              SectionCard(
+                child: _ScheduledNotificationsSection(
+                  scheduledNotificationsAsync: scheduledNotificationsAsync,
+                  onToggle: (value) async {
+                    await ref
+                        .read(notificationSettingsControllerProvider.notifier)
+                        .setEnabled(value);
+                  },
+                ),
               ),
-              const SizedBox(height: 24),
-              const Divider(thickness: 2, color: Colors.black),
-              const SizedBox(height: 24),
-              _ExpenseRemindersSection(
+              const SizedBox(height: 16),
+              SectionCard(
+                child: _ExpenseRemindersSection(
                 remindersAsync: remindersAsync,
                 onAdd: () async {
                   final time = await showReminderTimePickerBottomSheet(context);
@@ -62,6 +63,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                       .removeReminder(time);
                 },
                 formatTime: _formatTime,
+              ),
               ),
             ],
           ),
@@ -117,57 +119,53 @@ class _ScheduledNotificationsSection extends StatelessWidget {
     final enabled = scheduledNotificationsAsync.value ?? false;
     final canToggle = !scheduledNotificationsAsync.isLoading;
 
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
-      child: Row(
-        children: [
-          const SizedBox(
-            width: 32,
-            height: 32,
-            child: HeroIcon(
-              HeroIcons.bell,
-              style: HeroIconStyle.outline,
-              color: Colors.black,
-              size: 22,
-            ),
+    return Row(
+      children: [
+        const SizedBox(
+          width: 32,
+          height: 32,
+          child: HeroIcon(
+            HeroIcons.bell,
+            style: HeroIconStyle.outline,
+            color: Colors.black,
+            size: 22,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'SCHEDULED NOTIFICATIONS',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: Colors.black,
-                  ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'SCHEDULED NOTIFICATIONS',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: Colors.black,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Get notified daily at 9 AM for due scheduled payments',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Get notified daily at 9 AM for due scheduled payments',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Switch(
-            value: enabled,
-            onChanged: canToggle ? onToggle : null,
-            activeColor: Colors.green,
-            inactiveThumbColor: Colors.black,
-            inactiveTrackColor: Colors.grey[300],
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        Switch(
+          value: enabled,
+          onChanged: canToggle ? onToggle : null,
+          activeColor: Colors.green,
+          inactiveThumbColor: Colors.black,
+          inactiveTrackColor: Colors.grey[300],
+        ),
+      ],
     );
   }
 }
@@ -217,9 +215,13 @@ class _ExpenseRemindersSection extends StatelessWidget {
                 ),
               ],
             ),
-            OutlinedSurface(
+            Container(
               padding: const EdgeInsets.all(8),
-              borderRadius: BorderRadius.circular(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
               child: const HeroIcon(
                 HeroIcons.plus,
                 style: HeroIconStyle.outline,
@@ -307,9 +309,13 @@ class _ReminderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -340,9 +346,13 @@ class _ReminderCard extends StatelessWidget {
               ],
             ),
           ),
-          OutlinedSurface(
+          Container(
             padding: const EdgeInsets.all(8),
-            borderRadius: BorderRadius.circular(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: const HeroIcon(
               HeroIcons.trash,
               style: HeroIconStyle.outline,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 
 class OutlinedConfirmationDialog extends StatelessWidget {
   const OutlinedConfirmationDialog({
@@ -26,9 +25,13 @@ class OutlinedConfirmationDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: OutlinedSurface(
+      child: Container(
         padding: const EdgeInsets.all(20),
-        borderRadius: BorderRadius.circular(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

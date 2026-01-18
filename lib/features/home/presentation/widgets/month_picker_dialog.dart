@@ -1,6 +1,5 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
 
 Future<DateTime?> showMonthPickerDialog(
@@ -86,9 +85,13 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: OutlinedSurface(
+      child: Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-        borderRadius: BorderRadius.circular(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,12 +107,16 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
                   ),
                 ),
                 const Spacer(),
-                OutlinedSurface(
+                Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
@@ -182,13 +189,16 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
                   final month = index + 1;
                   final isSelected = month == _month;
 
-                  return OutlinedSurface(
+                  return Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    color: isSelected ? Colors.black : Colors.white,
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.black : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
                     child: Center(
                       child: Text(
                         _months[index],

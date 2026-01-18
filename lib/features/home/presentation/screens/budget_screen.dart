@@ -1,7 +1,7 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/data/datasources/settings_local_datasource.dart';
 import 'package:anti/features/settings/presentation/controllers/budget_setting_controller.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class BudgetScreen extends ConsumerWidget {
     final budgetAsync = ref.watch(budgetSettingControllerProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -29,18 +29,33 @@ class BudgetScreen extends ConsumerWidget {
               const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
               budgetAsync.when(
-                data: (budget) => _BudgetContent(
-                  budgetSetting: budget,
-                  onSourceChanged: (source) {
-                    ref
-                        .read(budgetSettingControllerProvider.notifier)
-                        .setBudgetSource(source);
-                  },
-                  onCustomAmountChanged: (amount) {
-                    ref
-                        .read(budgetSettingControllerProvider.notifier)
-                        .setCustomBudgetAmount(amount);
-                  },
+                data: (budget) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SectionCard(
+                      child: _BudgetSourceSection(
+                        selectedSource: budget.source,
+                        onSourceChanged: (source) {
+                          ref
+                              .read(budgetSettingControllerProvider.notifier)
+                              .setBudgetSource(source);
+                        },
+                      ),
+                    ),
+                    if (budget.source == BudgetSource.custom) ...[
+                      const SizedBox(height: 16),
+                      SectionCard(
+                        child: _CustomAmountSection(
+                          currentAmount: budget.customAmount,
+                          onAmountChanged: (amount) {
+                            ref
+                                .read(budgetSettingControllerProvider.notifier)
+                                .setCustomBudgetAmount(amount);
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 loading: () => const Center(
                   child: Padding(
@@ -108,38 +123,6 @@ class _TopBar extends StatelessWidget {
             ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _BudgetContent extends StatelessWidget {
-  const _BudgetContent({
-    required this.budgetSetting,
-    required this.onSourceChanged,
-    required this.onCustomAmountChanged,
-  });
-
-  final BudgetSetting budgetSetting;
-  final ValueChanged<BudgetSource> onSourceChanged;
-  final ValueChanged<double?> onCustomAmountChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _BudgetSourceSection(
-          selectedSource: budgetSetting.source,
-          onSourceChanged: onSourceChanged,
-        ),
-        if (budgetSetting.source == BudgetSource.custom) ...[
-          const SizedBox(height: 24),
-          _CustomAmountSection(
-            currentAmount: budgetSetting.customAmount,
-            onAmountChanged: onCustomAmountChanged,
-          ),
-        ],
       ],
     );
   }
@@ -216,9 +199,13 @@ class _BudgetSourceOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -288,9 +275,13 @@ class _CustomAmountSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        OutlinedSurface(
+        Container(
           padding: const EdgeInsets.all(16),
-          borderRadius: BorderRadius.circular(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: Row(
             children: [
               Expanded(

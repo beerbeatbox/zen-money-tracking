@@ -1,6 +1,5 @@
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
 
 class WeeklyStreak extends StatelessWidget {
@@ -28,9 +27,13 @@ class WeeklyStreak extends StatelessWidget {
     );
     final spentByDate = _spentByDate(logs);
 
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.all(16),
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -172,14 +175,14 @@ class _StreakDayItem extends StatelessWidget {
         Stack(
           alignment: Alignment.center,
           children: [
-            OutlinedSurface(
+            Container(
               width: circleSize,
               height: circleSize,
-              shape: BoxShape.circle,
-              border: Border.all(color: borderColor, width: 2),
-              unpressedShadowOffset: const Offset(0, 0),
-              pressedShadowOffset: const Offset(0, 0),
-              color: fillColor,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: fillColor,
+                border: Border.all(color: borderColor, width: 2),
+              ),
               child: Center(child: icon ?? const SizedBox.shrink()),
             ),
           ],

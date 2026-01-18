@@ -1,5 +1,6 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
@@ -9,7 +10,6 @@ import 'package:anti/features/home/presentation/utils/scheduled_payment_validati
 import 'package:anti/features/home/presentation/widgets/dynamic_amount_paid_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,9 +31,9 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
     final itemsAsync = ref.watch(scheduledTransactionsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[200],
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
@@ -103,9 +103,9 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _ScheduledDetailCard(item: resolved),
+                  SectionCard(child: _ScheduledDetailCard(item: resolved)),
                   const SizedBox(height: 16),
-                  _ScheduledActionsRow(item: resolved),
+                  SectionCard(child: _ScheduledActionsRow(item: resolved)),
                 ],
               ),
             );
@@ -207,87 +207,84 @@ class _ScheduledDetailCard extends ConsumerWidget {
               type: type,
             );
 
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CategoryNameWithEmoji(
-            label: item.category,
-            emoji: emoji,
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
-              color: Colors.black,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CategoryNameWithEmoji(
+          label: item.category,
+          emoji: emoji,
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.4,
+            color: Colors.black,
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  amountLabel,
-                  style: const TextStyle(
-                    fontSize: 28,
+        ),
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Text(
+                amountLabel,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            if (item.isDynamicAmount)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F4FD),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: Colors.black.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: const Text(
+                  'Dynamic',
+                  style: TextStyle(
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
                     color: Colors.black,
                   ),
                 ),
               ),
-              if (item.isDynamicAmount)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8F4FD),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: Colors.black.withValues(alpha: 0.10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Dynamic',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _MetaRow(
-            label: 'Category',
-            value: item.category,
-            valueWidget: CategoryNameWithEmoji(
-              label: item.category,
-              emoji: emoji,
-              spacing: 6,
-              textStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-                color: Colors.black,
-              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _MetaRow(
+          label: 'Category',
+          value: item.category,
+          valueWidget: CategoryNameWithEmoji(
+            label: item.category,
+            emoji: emoji,
+            spacing: 6,
+            textStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
+              color: Colors.black,
             ),
           ),
-          const SizedBox(height: 12),
-          _MetaRow(label: 'When', value: '$timeLabel • $dateLabel'),
-          const SizedBox(height: 12),
-          _MetaRow(label: 'Frequency', value: frequencyLabel),
-          const SizedBox(height: 12),
-          _MetaRow(label: 'Status', value: item.isActive ? 'Active' : 'Paused'),
-          const SizedBox(height: 12),
-          _MetaRow(label: 'Schedule ID', value: item.id),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        _MetaRow(label: 'When', value: '$timeLabel • $dateLabel'),
+        const SizedBox(height: 12),
+        _MetaRow(label: 'Frequency', value: frequencyLabel),
+        const SizedBox(height: 12),
+        _MetaRow(label: 'Status', value: item.isActive ? 'Active' : 'Paused'),
+        const SizedBox(height: 12),
+        _MetaRow(label: 'Schedule ID', value: item.id),
+      ],
     );
   }
 

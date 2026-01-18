@@ -1,6 +1,5 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
 
 class DashboardBudgetLeftSection extends StatefulWidget {
@@ -52,9 +51,13 @@ class _DashboardBudgetLeftSectionState
         PopupMenuItem(
           enabled: false,
           padding: EdgeInsets.zero,
-          child: OutlinedSurface(
+          child: Container(
             padding: const EdgeInsets.all(16),
-            borderRadius: BorderRadius.circular(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,

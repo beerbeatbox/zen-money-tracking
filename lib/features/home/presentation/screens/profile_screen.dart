@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/widgets/section_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -8,9 +9,9 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[200],
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -30,9 +31,9 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _ProfileHeader(),
-            const SizedBox(height: 32),
-            _ProfileContent(),
+            SectionCard(child: const _ProfileHeader()),
+            const SizedBox(height: 16),
+            SectionCard(child: _ProfileContent()),
           ],
         ).paddingAll(24.0),
       ),

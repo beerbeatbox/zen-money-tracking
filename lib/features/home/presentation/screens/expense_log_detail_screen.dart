@@ -1,5 +1,6 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
@@ -7,7 +8,6 @@ import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,9 +80,9 @@ class ExpenseLogDetailScreen extends ConsumerWidget
     final logsAsync = ref.watch(expenseLogsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[200],
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
@@ -138,9 +138,9 @@ class ExpenseLogDetailScreen extends ConsumerWidget
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _LogDetailCard(log: resolvedLog),
+                  SectionCard(child: _LogDetailCard(log: resolvedLog)),
                   const SizedBox(height: 16),
-                  _LogActionsRow(log: resolvedLog),
+                  SectionCard(child: _LogActionsRow(log: resolvedLog)),
                 ],
               ),
             );
@@ -179,64 +179,61 @@ class _LogDetailCard extends ConsumerWidget {
               type: type,
             );
 
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CategoryNameWithEmoji(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CategoryNameWithEmoji(
+          label: log.category,
+          emoji: emoji,
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.4,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: _AnimatedLogAmountText(
+                value: log.amount,
+                textStyle: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: amountColor ?? Colors.black,
+                ),
+              ),
+            ),
+            _Tag(label: isIncome ? 'Income' : 'Spent'),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _MetaRow(
+          label: 'Category',
+          value: log.category,
+          valueWidget: CategoryNameWithEmoji(
             label: log.category,
             emoji: emoji,
+            spacing: 6,
             textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _AnimatedLogAmountText(
-                  value: log.amount,
-                  textStyle: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: amountColor ?? Colors.black,
-                  ),
-                ),
-              ),
-              _Tag(label: isIncome ? 'Income' : 'Spent'),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _MetaRow(
-            label: 'Category',
-            value: log.category,
-            valueWidget: CategoryNameWithEmoji(
-              label: log.category,
-              emoji: emoji,
-              spacing: 6,
-              textStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _MetaRow(
-            label: 'Time',
-            value: '${log.timeLabel} • ${formatDateLabel(log.createdAt)}',
-          ),
-          const SizedBox(height: 12),
-          _MetaRow(label: 'Log ID', value: log.id),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        _MetaRow(
+          label: 'Time',
+          value: '${log.timeLabel} • ${formatDateLabel(log.createdAt)}',
+        ),
+        const SizedBox(height: 12),
+        _MetaRow(label: 'Log ID', value: log.id),
+      ],
     );
   }
 }

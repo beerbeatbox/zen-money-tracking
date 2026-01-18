@@ -1,6 +1,5 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:heroicons/heroicons.dart';
@@ -95,9 +94,13 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: OutlinedSurface(
+      child: Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-        borderRadius: BorderRadius.circular(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,13 +116,16 @@ class _LogTimePickerDialogState extends State<_LogTimePickerDialog> {
                   ),
                 ),
                 const Spacer(),
-                OutlinedSurface(
+                Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: const [

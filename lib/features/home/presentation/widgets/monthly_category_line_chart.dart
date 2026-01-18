@@ -6,7 +6,6 @@ import 'package:anti/features/categories/domain/usecases/category_service.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,8 +103,13 @@ class _MonthlyCategoryLineChartState
     return categoriesAsync.when(
       data: (categories) {
         if (widget.logs.isEmpty) {
-          return OutlinedSurface(
+          return Container(
             padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: const _EmptyChart(),
           );
         }
@@ -124,8 +128,13 @@ class _MonthlyCategoryLineChartState
         );
 
         if (categoryData.isEmpty) {
-          return OutlinedSurface(
+          return Container(
             padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: const _EmptyChart(),
           );
         }
@@ -148,8 +157,13 @@ class _MonthlyCategoryLineChartState
           _scrollToCurrentDate();
         });
 
-        return OutlinedSurface(
+        return Container(
           padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -203,20 +217,13 @@ class _MonthlyCategoryLineChartState
         );
       },
       loading:
-          () => OutlinedSurface(
-            padding: const EdgeInsets.all(16),
-            child: const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: CircularProgressIndicator(color: Colors.black),
-              ),
+          () => const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: CircularProgressIndicator(color: Colors.black),
             ),
           ),
-      error:
-          (_, __) => OutlinedSurface(
-            padding: const EdgeInsets.all(16),
-            child: const _EmptyChart(),
-          ),
+      error: (_, __) => const _EmptyChart(),
     );
   }
 

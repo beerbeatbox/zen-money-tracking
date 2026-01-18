@@ -1,5 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/widgets/scheduled_transaction_search_box.dart';
@@ -43,7 +44,7 @@ class _ScheduledTransactionsSearchScreenState
     final filter = _filter;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -75,12 +76,15 @@ class _ScheduledTransactionsSearchScreenState
                 ],
               ),
               const SizedBox(height: 24),
-              _FilterChips(
-                value: filter,
-                onChanged: (next) => setState(() => _filter = next),
+              SectionCard(
+                child: _FilterChips(
+                  value: filter,
+                  onChanged: (next) => setState(() => _filter = next),
+                ),
               ),
               const SizedBox(height: 16),
-              itemsAsync.when(
+              SectionCard(
+                child: itemsAsync.when(
                 data: (items) {
                   final filtered = _applySearchAndFilters(
                     items,
@@ -114,6 +118,7 @@ class _ScheduledTransactionsSearchScreenState
                       onRetry:
                           () => ref.invalidate(scheduledTransactionsProvider),
                     ),
+                ),
               ),
             ],
           ),

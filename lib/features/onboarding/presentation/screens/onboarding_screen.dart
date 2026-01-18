@@ -18,6 +18,7 @@ class OnboardingScreen extends ConsumerWidget {
     final isLoading = featureFlagsAsync.isLoading;
 
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       body: Stack(
         children: [
           const _BackgroundSection(),

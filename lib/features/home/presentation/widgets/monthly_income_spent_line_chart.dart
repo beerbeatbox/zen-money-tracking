@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -96,8 +95,13 @@ class _MonthlyIncomeSpentLineChartState
   @override
   Widget build(BuildContext context) {
     if (widget.logs.isEmpty) {
-      return OutlinedSurface(
+      return Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
         child: const _EmptyChart(),
       );
     }
@@ -127,8 +131,13 @@ class _MonthlyIncomeSpentLineChartState
       _scrollToCurrentDate();
     });
 
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

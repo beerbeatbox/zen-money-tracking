@@ -1,8 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:flutter/material.dart';
 
-import 'outlined_surface.dart';
-
 class OutlinedActionButton extends StatefulWidget {
   const OutlinedActionButton({
     super.key,
@@ -72,15 +70,17 @@ class _OutlinedActionButtonState extends State<OutlinedActionButton> {
     final effectiveTextColor =
         enabled ? widget.textColor : Colors.black.withValues(alpha: 0.45);
 
-    final child = OutlinedSurface(
-      borderRadius: _radius,
-      border: Border.all(color: effectiveBorderColor, width: 2),
-      color: effectiveBackgroundColor,
-      pressedColor: effectiveBackgroundColor,
-      isPressed: _pressed,
-      duration: const Duration(milliseconds: 0),
+    final child = AnimatedContainer(
+      duration: const Duration(milliseconds: 70),
       curve: Curves.easeOut,
       padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: _pressed
+            ? effectiveBackgroundColor.withValues(alpha: 0.9)
+            : effectiveBackgroundColor,
+        borderRadius: _radius,
+        border: Border.all(color: effectiveBorderColor, width: 2),
+      ),
       child: Center(
         child: Text(
           widget.label,

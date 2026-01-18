@@ -4,7 +4,6 @@ import 'package:anti/features/categories/domain/usecases/category_service.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,10 +41,7 @@ class CategoryRankingSection extends ConsumerWidget {
     final categoryTotals = _calculateCategoryTotals();
 
     if (categoryTotals.isEmpty) {
-      return OutlinedSurface(
-        padding: const EdgeInsets.all(16),
-        child: const _EmptyState(),
-      );
+      return const _EmptyState();
     }
 
     // Sort by total amount descending
@@ -79,42 +75,33 @@ class CategoryRankingSection extends ConsumerWidget {
           categoryEmojiMap[categoryName] = emoji?.isNotEmpty == true ? emoji : null;
         }
 
-        return OutlinedSurface(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _Header(),
-              const SizedBox(height: 8),
-              const Divider(thickness: 2, color: Colors.black),
-              const SizedBox(height: 12),
-              ...sortedEntries.asMap().entries.map((entry) {
-                final index = entry.key;
-                final categoryEntry = entry.value;
-                return _RankingItem(
-                  rank: index + 1,
-                  categoryName: categoryEntry.key,
-                  totalAmount: categoryEntry.value,
-                  emoji: categoryEmojiMap[categoryEntry.key],
-                );
-              }),
-            ],
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _Header(),
+            const SizedBox(height: 8),
+            const Divider(thickness: 2, color: Colors.black),
+            const SizedBox(height: 12),
+            ...sortedEntries.asMap().entries.map((entry) {
+              final index = entry.key;
+              final categoryEntry = entry.value;
+              return _RankingItem(
+                rank: index + 1,
+                categoryName: categoryEntry.key,
+                totalAmount: categoryEntry.value,
+                emoji: categoryEmojiMap[categoryEntry.key],
+              );
+            }),
+          ],
         );
       },
-      loading: () => OutlinedSurface(
-        padding: const EdgeInsets.all(16),
-        child: const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: CircularProgressIndicator(color: Colors.black),
-          ),
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: CircularProgressIndicator(color: Colors.black),
         ),
       ),
-      error: (_, __) => OutlinedSurface(
-        padding: const EdgeInsets.all(16),
-        child: const _EmptyState(),
-      ),
+      error: (_, __) => const _EmptyState(),
     );
   }
 }

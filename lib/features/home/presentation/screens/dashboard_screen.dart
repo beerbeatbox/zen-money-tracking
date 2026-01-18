@@ -1,4 +1,5 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/dashboard_layout.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
@@ -235,7 +236,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final spaced = <Widget>[];
 
     for (var index = 0; index < widgets.length; index++) {
-      spaced.add(widgets[index]);
+      spaced.add(SectionCard(child: widgets[index]));
       if (index == widgets.length - 1) continue;
       spaced.add(SizedBox(height: _spacingAfterSection(sections[index])));
     }
@@ -281,7 +282,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     });
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       endDrawer: const EditDashboardDrawer(),
       body: SafeArea(
         child: vmAsync.when(

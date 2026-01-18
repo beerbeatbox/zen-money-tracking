@@ -1,6 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:anti/features/settings/presentation/screens/settings_events.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
@@ -16,7 +16,7 @@ class SettingsScreen extends ConsumerWidget with SettingsEvents {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -91,9 +91,7 @@ class _SettingsList extends StatelessWidget {
 
     return Column(
       children: [
-        OutlinedSurface(
-          padding: const EdgeInsets.all(16),
-          borderRadius: BorderRadius.circular(12),
+        SectionCard(
           child: Row(
             children: [
               const SizedBox(
@@ -143,62 +141,73 @@ class _SettingsList extends StatelessWidget {
                             )
                             .setEnabled(value)
                         : null,
-                activeColor: Colors.green,
+                activeThumbColor: Colors.green,
                 inactiveThumbColor: Colors.black,
                 inactiveTrackColor: Colors.grey[300],
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        _SettingsCard(
-          icon: HeroIcons.bell,
-          title: 'Notifications',
-          onTap: () => context.pushNamed(AppRouter.notificationSettings.name),
-        ),
-        const SizedBox(height: 12),
-        _SettingsCard(
-          icon: HeroIcons.banknotes,
-          title: 'Budget',
-          onTap: () => context.pushNamed(AppRouter.budget.name),
-        ),
-        const SizedBox(height: 12),
-        _SettingsCard(
-          icon: HeroIcons.tag,
-          title: 'Categories',
-          onTap: () => context.pushNamed(AppRouter.categoryManagement.name),
-        ),
-        const SizedBox(height: 12),
-        _SettingsCard(
-          icon: HeroIcons.arrowPath,
-          title: 'Import & Export',
-          onTap: () {
-            if (isIOS) {
-              context.pushNamed(AppRouter.expenseLogsCsv.name);
-              return;
-            }
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Android support is coming soon.'),
-                behavior: SnackBarBehavior.floating,
-                duration: Duration(seconds: 2),
+        const SizedBox(height: 16),
+        SectionCard(
+          child: Column(
+            children: [
+              _SettingsCard(
+                icon: HeroIcons.bell,
+                title: 'Notifications',
+                onTap:
+                    () =>
+                        context.pushNamed(AppRouter.notificationSettings.name),
               ),
-            );
-          },
+              const SizedBox(height: 12),
+              _SettingsCard(
+                icon: HeroIcons.banknotes,
+                title: 'Budget',
+                onTap: () => context.pushNamed(AppRouter.budget.name),
+              ),
+              const SizedBox(height: 12),
+              _SettingsCard(
+                icon: HeroIcons.tag,
+                title: 'Categories',
+                onTap:
+                    () => context.pushNamed(AppRouter.categoryManagement.name),
+              ),
+              const SizedBox(height: 12),
+              _SettingsCard(
+                icon: HeroIcons.arrowPath,
+                title: 'Import & Export',
+                onTap: () {
+                  if (isIOS) {
+                    context.pushNamed(AppRouter.expenseLogsCsv.name);
+                    return;
+                  }
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Android support is coming soon.'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _SettingsCard(
+                icon: HeroIcons.arrowRightOnRectangle,
+                title: 'Log Out',
+                onTap: () => context.go(AppRouter.onboarding.path),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-        _SettingsCard(
-          icon: HeroIcons.arrowRightOnRectangle,
-          title: 'Log Out',
-          onTap: () => context.go(AppRouter.onboarding.path),
-        ),
-        const SizedBox(height: 12),
-        _SettingsCard(
-          icon: HeroIcons.trash,
-          title: 'Delete All Data',
-          color: Colors.red,
-          onTap: onDeleteAll,
+        const SizedBox(height: 16),
+        SectionCard(
+          child: _SettingsCard(
+            icon: HeroIcons.trash,
+            title: 'Delete All Data',
+            color: Colors.red,
+            onTap: onDeleteAll,
+          ),
         ),
       ],
     );
@@ -261,41 +270,37 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
-      padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 32,
-            height: 32,
-            child: HeroIcon(
-              icon,
-              style: HeroIconStyle.outline,
-              color: color,
-              size: 22,
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 32,
+          height: 32,
+          child: HeroIcon(
+            icon,
+            style: HeroIconStyle.outline,
+            color: color,
+            size: 22,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: Colors.black,
-                  ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: Colors.black,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     ).onTap(behavior: HitTestBehavior.opaque, onTap: onTap);
   }
 }

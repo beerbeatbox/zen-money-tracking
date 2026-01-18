@@ -10,7 +10,6 @@ import 'package:anti/features/categories/presentation/widgets/category_name_with
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -500,12 +499,15 @@ class _NumberKeyboardBottomSheetState
       child: SizedBox(
         height: sheetHeight,
         width: double.infinity,
-        child: OutlinedSurface(
+        child: Container(
           height: sheetHeight,
           padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(28),
-            topRight: Radius.circular(28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(28),
+              topRight: Radius.circular(28),
+            ),
           ),
           child: SafeArea(
             top: false,
@@ -588,11 +590,13 @@ class _NumberKeyboardBottomSheetState
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedSurface(
+                      child: Container(
                         height: 56,
-                        isPressed: _closePressed,
-                        duration: const Duration(milliseconds: 80),
-                        curve: Curves.easeOut,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
                         child: const Center(
                           child: Text(
                             'Close',
@@ -613,12 +617,13 @@ class _NumberKeyboardBottomSheetState
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: OutlinedSurface(
+                      child: Container(
                         height: 56,
-                        isPressed: _ctaPressed,
-                        duration: const Duration(milliseconds: 80),
-                        color: Colors.black,
-                        curve: Curves.easeOut,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.black),
+                        ),
                         child: const Center(
                           child: Text(
                             'Save',
@@ -826,9 +831,13 @@ class _NumberSpinner extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        OutlinedSurface(
+        Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          borderRadius: BorderRadius.circular(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: const Icon(Icons.remove, size: 16, color: Colors.black),
         ).onTap(
           onTap: value > min ? () => onChanged(value - 1) : null,
@@ -848,9 +857,13 @@ class _NumberSpinner extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        OutlinedSurface(
+        Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          borderRadius: BorderRadius.circular(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: const Icon(Icons.add, size: 16, color: Colors.black),
         ).onTap(
           onTap: value < max ? () => onChanged(value + 1) : null,
@@ -881,9 +894,13 @@ class _UnitSpinner extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        OutlinedSurface(
+        Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          borderRadius: BorderRadius.circular(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: const Icon(Icons.chevron_left, size: 16, color: Colors.black),
         ).onTap(
           onTap:
@@ -906,9 +923,13 @@ class _UnitSpinner extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        OutlinedSurface(
+        Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          borderRadius: BorderRadius.circular(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: const Icon(Icons.chevron_right, size: 16, color: Colors.black),
         ).onTap(
           onTap:
@@ -935,10 +956,13 @@ class _FrequencyChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
-      color: selected ? Colors.black : Colors.white,
+      decoration: BoxDecoration(
+        color: selected ? Colors.black : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Text(
         label,
         style: TextStyle(
@@ -1044,9 +1068,13 @@ class _CategorySection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          OutlinedSurface(
+          Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            borderRadius: BorderRadius.circular(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1190,10 +1218,13 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
-      color: selected ? Colors.black : Colors.white,
+      decoration: BoxDecoration(
+        color: selected ? Colors.black : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: CategoryNameWithEmoji(
         label: item.label,
         emoji: item.emoji,
@@ -1257,9 +1288,13 @@ class _LogTimeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IntrinsicWidth(
-      child: OutlinedSurface(
+      child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        borderRadius: const BorderRadius.all(Radius.circular(18)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

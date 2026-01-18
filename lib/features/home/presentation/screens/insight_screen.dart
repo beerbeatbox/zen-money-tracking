@@ -1,4 +1,5 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
@@ -27,7 +28,7 @@ class InsightScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: vmAsync.when(
           data: (vm) {
@@ -209,12 +210,11 @@ class _MonthContent extends StatelessWidget {
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MonthlyIncomeSpentLineChart(selectedMonth: selectedMonth, logs: logs),
-        const SizedBox(height: 12),
-        MonthlyCategoryLineChart(selectedMonth: selectedMonth, logs: logs),
-        const SizedBox(height: 12),
-        CategoryRankingSection(selectedMonth: selectedMonth, logs: logs),
-        const SizedBox(height: 12),
+        SectionCard(child: MonthlyIncomeSpentLineChart(selectedMonth: selectedMonth, logs: logs)),
+        const SizedBox(height: 16),
+        SectionCard(child: MonthlyCategoryLineChart(selectedMonth: selectedMonth, logs: logs)),
+        const SizedBox(height: 16),
+        SectionCard(child: CategoryRankingSection(selectedMonth: selectedMonth, logs: logs)),
       ],
     );
   }

@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/data/models/expense_log_model.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
@@ -37,7 +37,7 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,11 +46,13 @@ class ExpenseLogsCsvScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             const Divider(thickness: 2, color: Colors.black),
             const SizedBox(height: 24),
-            _BodySection(
-              isIOS: _isIOS,
-              onDownloadTemplate: () => _downloadTemplate(context),
-              onExport: () => _exportAllLogs(context, ref),
-              onImport: () => _importCsv(context, ref),
+            SectionCard(
+              child: _BodySection(
+                isIOS: _isIOS,
+                onDownloadTemplate: () => _downloadTemplate(context),
+                onExport: () => _exportAllLogs(context, ref),
+                onImport: () => _importCsv(context, ref),
+              ),
             ),
           ],
         ).paddingAll(24),
@@ -420,7 +422,6 @@ class _ActionCard extends StatefulWidget {
 }
 
 class _ActionCardState extends State<_ActionCard> {
-  var _isPressed = false;
   var _isBusy = false;
 
   Future<void> _handleTap() async {
@@ -437,10 +438,13 @@ class _ActionCardState extends State<_ActionCard> {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
-      isPressed: _isPressed,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Row(
         children: [
           SizedBox(
@@ -487,12 +491,6 @@ class _ActionCardState extends State<_ActionCard> {
           ),
         ],
       ),
-    ).onTap(
-      behavior: HitTestBehavior.opaque,
-      onTap: _handleTap,
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-    );
+    ).onTap(behavior: HitTestBehavior.opaque, onTap: _handleTap);
   }
 }

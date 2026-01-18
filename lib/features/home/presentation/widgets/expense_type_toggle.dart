@@ -1,5 +1,4 @@
 import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseTypeToggle extends StatelessWidget {
@@ -14,9 +13,13 @@ class ExpenseTypeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -54,17 +57,12 @@ class _TypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
-      isPressed: false,
-      color: Colors.white,
-      pressedColor: Colors.white,
-      border: const Border.fromBorderSide(
-        BorderSide(color: Colors.transparent, width: 0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
       ),
-      unpressedShadowOffset: Offset.zero,
-      pressedShadowOffset: Offset.zero,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

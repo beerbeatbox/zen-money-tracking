@@ -1,5 +1,5 @@
 import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/settings/presentation/controllers/expense_reminder_controller.dart';
 import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,7 @@ class ExpenseRemindersScreen extends ConsumerWidget {
     final remindersAsync = ref.watch(expenseReminderControllerProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -41,36 +41,38 @@ class ExpenseRemindersScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
-              remindersAsync.when(
-                data: (reminders) {
-                  if (reminders.isEmpty) {
-                    return _EmptyState();
-                  }
-                  return _RemindersList(
-                    reminders: reminders,
-                    onDelete: (time) async {
-                      await ref
-                          .read(expenseReminderControllerProvider.notifier)
-                          .removeReminder(time);
-                    },
-                    formatTime: _formatTime,
-                  );
-                },
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: CircularProgressIndicator(),
+              SectionCard(
+                child: remindersAsync.when(
+                  data: (reminders) {
+                    if (reminders.isEmpty) {
+                      return _EmptyState();
+                    }
+                    return _RemindersList(
+                      reminders: reminders,
+                      onDelete: (time) async {
+                        await ref
+                            .read(expenseReminderControllerProvider.notifier)
+                            .removeReminder(time);
+                      },
+                      formatTime: _formatTime,
+                    );
+                  },
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(),
+                    ),
                   ),
-                ),
-                error: (error, stack) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Text(
-                      'Something went wrong. Please try again.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[600],
+                  error: (error, stack) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Text(
+                        'Something went wrong. Please try again.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ),
                   ),
@@ -118,9 +120,13 @@ class _TopBar extends StatelessWidget {
             ),
           ],
         ),
-        OutlinedSurface(
+        Container(
           padding: const EdgeInsets.all(8),
-          borderRadius: BorderRadius.circular(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: const HeroIcon(
             HeroIcons.plus,
             style: HeroIconStyle.outline,
@@ -174,9 +180,13 @@ class _ReminderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -207,9 +217,13 @@ class _ReminderCard extends StatelessWidget {
               ],
             ),
           ),
-          OutlinedSurface(
+          Container(
             padding: const EdgeInsets.all(8),
-            borderRadius: BorderRadius.circular(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: const HeroIcon(
               HeroIcons.trash,
               style: HeroIconStyle.outline,

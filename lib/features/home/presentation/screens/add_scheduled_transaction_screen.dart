@@ -1,4 +1,5 @@
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
@@ -43,7 +44,7 @@ class _AddScheduledTransactionScreenState
     final isEditing = _isEditing;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,26 +60,33 @@ class _AddScheduledTransactionScreenState
             const SizedBox(height: 16),
             const Divider(thickness: 2, color: Colors.black),
             const SizedBox(height: 24),
-            Text(
-              'Set a one-time payment or a subscription, then save it in seconds.',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
+            SectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Set a one-time payment or a subscription, then save it in seconds.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _FrequencySection(
+                    value: _frequency,
+                    onChanged: (next) => setState(() => _frequency = next),
+                  ),
+                  if (isEditing && _frequency != PaymentFrequency.oneTime) ...[
+                    const SizedBox(height: 16),
+                    _ActiveSubscriptionToggle(
+                      value: _isActive,
+                      onChanged: (value) => setState(() => _isActive = value),
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            _FrequencySection(
-              value: _frequency,
-              onChanged: (next) => setState(() => _frequency = next),
-            ),
-            if (isEditing && _frequency != PaymentFrequency.oneTime) ...[
-              const SizedBox(height: 16),
-              _ActiveSubscriptionToggle(
-                value: _isActive,
-                onChanged: (value) => setState(() => _isActive = value),
-              ),
-            ],
             const SizedBox(height: 24),
             OutlinedActionButton(
               label: isEditing ? 'Edit payment' : 'Schedule payment',

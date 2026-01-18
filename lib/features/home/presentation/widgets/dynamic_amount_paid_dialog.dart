@@ -2,7 +2,6 @@ import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/material.dart';
 
 Future<double?> showDynamicAmountPaidDialog(
@@ -111,9 +110,13 @@ class _DynamicAmountPaidDialogState extends State<_DynamicAmountPaidDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: OutlinedSurface(
+      child: Container(
         padding: const EdgeInsets.all(20),
-        borderRadius: BorderRadius.circular(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,9 +148,13 @@ class _DynamicAmountPaidDialogState extends State<_DynamicAmountPaidDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            OutlinedSurface(
+            Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              borderRadius: BorderRadius.circular(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

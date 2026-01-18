@@ -1,5 +1,4 @@
 import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -92,12 +91,15 @@ class _ReminderTimePickerBottomSheetState
       child: SizedBox(
         height: sheetHeight,
         width: double.infinity,
-        child: OutlinedSurface(
+        child: Container(
           height: sheetHeight,
           padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(28),
-            topRight: Radius.circular(28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(28),
+              topRight: Radius.circular(28),
+            ),
           ),
           child: SafeArea(
             top: false,
@@ -193,11 +195,13 @@ class _ReminderTimePickerBottomSheetState
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedSurface(
+                      child: Container(
                         height: 56,
-                        isPressed: _cancelPressed,
-                        duration: const Duration(milliseconds: 80),
-                        curve: Curves.easeOut,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
                         child: const Center(
                           child: Text(
                             'Cancel',
@@ -218,12 +222,13 @@ class _ReminderTimePickerBottomSheetState
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: OutlinedSurface(
+                      child: Container(
                         height: 56,
-                        isPressed: _addPressed,
-                        duration: const Duration(milliseconds: 80),
-                        color: Colors.black,
-                        curve: Curves.easeOut,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.black),
+                        ),
                         child: const Center(
                           child: Text(
                             'Add',

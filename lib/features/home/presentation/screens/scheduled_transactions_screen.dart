@@ -1,5 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
@@ -31,7 +32,7 @@ class _ScheduledTransactionsScreenState
     final filter = _filter;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -42,50 +43,59 @@ class _ScheduledTransactionsScreenState
               const SizedBox(height: 16),
               const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
-              ScheduledTransactionSearchBox(
-                onTap:
-                    () => context.push(
-                      AppRouter.scheduledTransactionsSearch.path,
+              SectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ScheduledTransactionSearchBox(
+                      onTap:
+                          () => context.push(
+                            AppRouter.scheduledTransactionsSearch.path,
+                          ),
                     ),
+                    const SizedBox(height: 16),
+                    _FilterChips(
+                      value: filter,
+                      onChanged:
+                          (next) => setState(() {
+                            _filter = next;
+                          }),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
-              _FilterChips(
-                value: filter,
-                onChanged:
-                    (next) => setState(() {
-                      _filter = next;
-                    }),
-              ),
-              const SizedBox(height: 16),
-              itemsAsync.when(
-                data: (items) {
-                  final filtered = _applyFilter(items, filter);
-                  return _Content(
-                    filter: filter,
-                    items: filtered,
-                    onEdit:
-                        (item) => context.push(
-                          AppRouter.scheduledTransactionDetail.path
-                              .replaceFirst(':id', item.id),
-                          extra: item,
-                        ),
-                  );
-                },
-                loading:
-                    () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.black,
+              SectionCard(
+                child: itemsAsync.when(
+                  data: (items) {
+                    final filtered = _applyFilter(items, filter);
+                    return _Content(
+                      filter: filter,
+                      items: filtered,
+                      onEdit:
+                          (item) => context.push(
+                            AppRouter.scheduledTransactionDetail.path
+                                .replaceFirst(':id', item.id),
+                            extra: item,
+                          ),
+                    );
+                  },
+                  loading:
+                      () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
-                    ),
-                error:
-                    (_, __) => _ErrorState(
-                      onRetry:
-                          () => ref.invalidate(scheduledTransactionsProvider),
-                    ),
+                  error:
+                      (_, __) => _ErrorState(
+                        onRetry:
+                            () => ref.invalidate(scheduledTransactionsProvider),
+                      ),
+                ),
               ),
             ],
           ),

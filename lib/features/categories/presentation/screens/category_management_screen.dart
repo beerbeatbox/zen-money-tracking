@@ -1,10 +1,10 @@
 import 'package:anti/core/extensions/widget_extension.dart';
+import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' hide Category;
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ class _CategoryManagementScreenState
     final categoriesAsync = ref.watch(categoriesControllerProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: categoriesAsync.when(
           loading: () => const _LoadingState().paddingAll(24),
@@ -59,60 +59,71 @@ class _CategoryManagementScreenState
                 const SizedBox(height: 16),
                 const Divider(thickness: 2, color: Colors.black),
                 const SizedBox(height: 24),
-                Center(
-                  child: ExpenseTypeToggle(
-                    isExpense: _isExpense,
-                    onChanged: (value) => setState(() => _isExpense = value),
+                SectionCard(
+                  child: Center(
+                    child: ExpenseTypeToggle(
+                      isExpense: _isExpense,
+                      onChanged: (value) => setState(() => _isExpense = value),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _isExpense
-                                ? 'Expense categories'
-                                : 'Income categories',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Press and hold, then drag to sort.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    OutlinedSurface(
-                      padding: const EdgeInsets.all(10),
-                      borderRadius: BorderRadius.circular(12),
-                      child: const Icon(Icons.add, color: Colors.black),
-                    ).onTap(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _onAddCategoryTap(context, categories),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Expanded(
-                  child:
-                      mains.isEmpty
-                          ? _EmptyState(
-                            isExpense: _isExpense,
-                            onAdd: () => _onAddCategoryTap(context, categories),
-                          )
-                          : _CategoryTreeList(
+                  child: SectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isExpense
+                                        ? 'Expense categories'
+                                        : 'Income categories',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Press and hold, then drag to sort.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[300]!),
+                              ),
+                              child: const Icon(Icons.add, color: Colors.black),
+                            ).onTap(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _onAddCategoryTap(context, categories),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child:
+                              mains.isEmpty
+                                  ? _EmptyState(
+                                    isExpense: _isExpense,
+                                    onAdd: () => _onAddCategoryTap(context, categories),
+                                  )
+                                  : _CategoryTreeList(
                             items: visibleItems,
                             expandedMainIds: _expandedMainIds,
                             hasChildrenByMainId: _hasChildrenByMainId(
@@ -141,6 +152,10 @@ class _CategoryManagementScreenState
                                   item: item,
                                 ),
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ).paddingAll(24);
@@ -627,12 +642,16 @@ class _CategoryTreeList extends StatelessWidget {
             index: index,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: OutlinedSurface(
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
                 ),
-                borderRadius: BorderRadius.circular(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -705,12 +724,16 @@ class _CategoryTreeList extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: OutlinedSurface(
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -796,9 +819,13 @@ class _EmptyState extends StatelessWidget {
             ? 'Add a category to make logging faster.'
             : 'Add a category to keep your income organized.';
 
-    return OutlinedSurface(
+    return Container(
       padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -901,9 +928,13 @@ Future<_CategoryEditResult?> _showUpsertCategoryDialog(
       return Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: OutlinedSurface(
+        child: Container(
           padding: const EdgeInsets.all(20),
-          borderRadius: BorderRadius.circular(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1028,9 +1059,13 @@ class _EmojiField extends StatelessWidget {
           final emoji = value.text.trim();
           final hasEmoji = emoji.isNotEmpty;
 
-          return OutlinedSurface(
+          return Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            borderRadius: BorderRadius.circular(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: Center(
               child:
                   hasEmoji
@@ -1076,12 +1111,15 @@ Future<String?> _showEmojiPickerBottomSheet(BuildContext context) {
         top: false,
         child: Align(
           alignment: Alignment.bottomCenter,
-          child: OutlinedSurface(
+          child: Container(
             height: height,
             padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(28),
-              topRight: Radius.circular(28),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(28),
+                topRight: Radius.circular(28),
+              ),
             ),
             child: Column(
               children: [
