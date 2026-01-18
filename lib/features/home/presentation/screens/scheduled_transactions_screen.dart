@@ -41,7 +41,6 @@ class _ScheduledTransactionsScreenState
             children: [
               _TopBar(onAdd: () => _openScheduleSheet(context, ref)),
               const SizedBox(height: 16),
-              const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
               SectionCard(
                 child: Column(

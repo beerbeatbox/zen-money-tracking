@@ -58,7 +58,6 @@ class DashboardRecentLogsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        const Divider(thickness: 2, color: Colors.black),
         const SizedBox(height: 12),
         _DatedLogsList(logs: logs),
       ],

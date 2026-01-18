@@ -26,7 +26,6 @@ class BudgetScreen extends ConsumerWidget {
             children: [
               const _TopBar(),
               const SizedBox(height: 16),
-              const Divider(thickness: 2, color: Colors.black),
               const SizedBox(height: 24),
               budgetAsync.when(
                 data: (budget) => Column(

@@ -27,7 +27,6 @@ class DashboardDueNowSection extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        const Divider(thickness: 2, color: Colors.black),
         const SizedBox(height: 12),
         ...List.generate(items.length, (index) {
           final item = items[index];

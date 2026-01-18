@@ -94,9 +94,7 @@ class _DashboardScheduleSectionState
                 color: Colors.black,
               ),
             ),
-        const SizedBox(height: 8),
-        const Divider(thickness: 2, color: Colors.black),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

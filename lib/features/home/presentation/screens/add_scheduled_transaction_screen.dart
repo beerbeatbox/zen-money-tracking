@@ -58,7 +58,6 @@ class _AddScheduledTransactionScreenState
               onBack: () => context.pop(),
             ),
             const SizedBox(height: 16),
-            const Divider(thickness: 2, color: Colors.black),
             const SizedBox(height: 24),
             SectionCard(
               child: Column(

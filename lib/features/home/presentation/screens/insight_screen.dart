@@ -190,9 +190,8 @@ class _HeaderSection extends StatelessWidget {
             onPickMonth(picked);
           },
         ),
-        const SizedBox(height: 16),
-        const Divider(thickness: 2, color: Colors.black),
-        const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            const SizedBox(height: 24),
       ],
     );
   }

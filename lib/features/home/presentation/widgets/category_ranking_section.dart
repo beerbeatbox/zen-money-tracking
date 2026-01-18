@@ -80,7 +80,6 @@ class CategoryRankingSection extends ConsumerWidget {
           children: [
             const _Header(),
             const SizedBox(height: 8),
-            const Divider(thickness: 2, color: Colors.black),
             const SizedBox(height: 12),
             ...sortedEntries.asMap().entries.map((entry) {
               final index = entry.key;
