@@ -1,3 +1,4 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/core/widgets/section_card.dart';
@@ -15,6 +16,7 @@ class BudgetScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final budgetAsync = ref.watch(budgetSettingControllerProvider);
+    final isMasked = ref.watch(amountMaskControllerProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
@@ -28,53 +30,61 @@ class BudgetScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               const SizedBox(height: 24),
               budgetAsync.when(
-                data: (budget) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SectionCard(
-                      child: _BudgetSourceSection(
-                        selectedSource: budget.source,
-                        onSourceChanged: (source) {
-                          ref
-                              .read(budgetSettingControllerProvider.notifier)
-                              .setBudgetSource(source);
-                        },
+                data:
+                    (budget) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SectionCard(
+                          child: _BudgetSourceSection(
+                            selectedSource: budget.source,
+                            onSourceChanged: (source) {
+                              ref
+                                  .read(
+                                    budgetSettingControllerProvider.notifier,
+                                  )
+                                  .setBudgetSource(source);
+                            },
+                          ),
+                        ),
+                        if (budget.source == BudgetSource.custom) ...[
+                          const SizedBox(height: 16),
+                          SectionCard(
+                            child: _CustomAmountSection(
+                              currentAmount: budget.customAmount,
+                              isMasked: isMasked,
+                              onAmountChanged: (amount) {
+                                ref
+                                    .read(
+                                      budgetSettingControllerProvider.notifier,
+                                    )
+                                    .setCustomBudgetAmount(amount);
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                loading:
+                    () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: CircularProgressIndicator(),
                       ),
                     ),
-                    if (budget.source == BudgetSource.custom) ...[
-                      const SizedBox(height: 16),
-                      SectionCard(
-                        child: _CustomAmountSection(
-                          currentAmount: budget.customAmount,
-                          onAmountChanged: (amount) {
-                            ref
-                                .read(budgetSettingControllerProvider.notifier)
-                                .setCustomBudgetAmount(amount);
-                          },
+                error:
+                    (error, stack) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          'Could not load budget settings',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ),
-                    ],
-                  ],
-                ),
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                error: (error, stack) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                      'Could not load budget settings',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[600],
-                      ),
                     ),
-                  ),
-                ),
               ),
             ],
           ),
@@ -252,10 +262,12 @@ class _BudgetSourceOption extends StatelessWidget {
 class _CustomAmountSection extends StatelessWidget {
   const _CustomAmountSection({
     required this.currentAmount,
+    required this.isMasked,
     required this.onAmountChanged,
   });
 
   final double? currentAmount;
+  final bool isMasked;
   final ValueChanged<double?> onAmountChanged;
 
   @override
@@ -288,14 +300,18 @@ class _CustomAmountSection extends StatelessWidget {
                   children: [
                     Text(
                       currentAmount != null
-                          ? formatNetBalance(currentAmount!)
+                          ? formatNetBalanceMasked(
+                            currentAmount!,
+                            isMasked: isMasked,
+                          )
                           : 'Not set',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: currentAmount != null
-                            ? Colors.black
-                            : Colors.grey[500],
+                        color:
+                            currentAmount != null
+                                ? Colors.black
+                                : Colors.grey[500],
                       ),
                     ),
                     const SizedBox(height: 4),

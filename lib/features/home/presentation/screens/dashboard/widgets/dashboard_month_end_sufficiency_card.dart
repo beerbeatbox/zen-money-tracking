@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_controller.dart';
-import 'package:flutter/material.dart';
 
-class DashboardMonthEndSufficiencyCard extends StatefulWidget {
+class DashboardMonthEndSufficiencyCard extends ConsumerStatefulWidget {
   const DashboardMonthEndSufficiencyCard({
     super.key,
     this.sufficiencyBreakdown,
@@ -11,12 +14,12 @@ class DashboardMonthEndSufficiencyCard extends StatefulWidget {
   final MonthEndSufficiencyBreakdown? sufficiencyBreakdown;
 
   @override
-  State<DashboardMonthEndSufficiencyCard> createState() =>
+  ConsumerState<DashboardMonthEndSufficiencyCard> createState() =>
       _DashboardMonthEndSufficiencyCardState();
 }
 
 class _DashboardMonthEndSufficiencyCardState
-    extends State<DashboardMonthEndSufficiencyCard>
+    extends ConsumerState<DashboardMonthEndSufficiencyCard>
     with TickerProviderStateMixin {
   bool _isExpanded = false;
 
@@ -33,6 +36,7 @@ class _DashboardMonthEndSufficiencyCardState
     if (breakdown == null) {
       return const SizedBox.shrink();
     }
+    final isMasked = ref.watch(amountMaskControllerProvider);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -83,8 +87,8 @@ class _DashboardMonthEndSufficiencyCardState
                       const SizedBox(height: 4),
                       Text(
                         breakdown.isSufficient
-                            ? 'You\'ll have ${formatNetBalance(breakdown.monthEndBalance.abs())} left'
-                            : 'You\'ll need ${formatNetBalance(breakdown.monthEndBalance.abs())} more',
+                            ? 'You\'ll have ${formatNetBalanceMasked(breakdown.monthEndBalance.abs(), isMasked: isMasked)} left'
+                            : 'You\'ll need ${formatNetBalanceMasked(breakdown.monthEndBalance.abs(), isMasked: isMasked)} more',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -126,7 +130,7 @@ class _DashboardMonthEndSufficiencyCardState
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Aim to spend around ${formatNetBalance(breakdown.recommendedDailyBudget)} per day',
+                                    'Aim to spend around ${formatNetBalanceMasked(breakdown.recommendedDailyBudget, isMasked: isMasked)} per day',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -176,7 +180,10 @@ class _DashboardMonthEndSufficiencyCardState
                 ? SizedBox(
                     key: const ValueKey('breakdown_expanded'),
                     width: double.infinity,
-                    child: _BreakdownSection(breakdown: breakdown),
+                    child: _BreakdownSection(
+                      breakdown: breakdown,
+                      isMasked: isMasked,
+                    ),
                   )
                 : const SizedBox(
                     key: ValueKey('breakdown_collapsed'),
@@ -191,9 +198,11 @@ class _DashboardMonthEndSufficiencyCardState
 class _BreakdownSection extends StatelessWidget {
   const _BreakdownSection({
     required this.breakdown,
+    required this.isMasked,
   });
 
   final MonthEndSufficiencyBreakdown breakdown;
+  final bool isMasked;
 
   @override
   Widget build(BuildContext context) {
@@ -205,13 +214,19 @@ class _BreakdownSection extends StatelessWidget {
         const SizedBox(height: 16),
         _BreakdownRow(
           label: 'Your current balance',
-          value: formatNetBalance(breakdown.currentBalance),
+          value: formatNetBalanceMasked(
+            breakdown.currentBalance,
+            isMasked: isMasked,
+          ),
           icon: Icons.account_balance_wallet,
         ),
         const SizedBox(height: 12),
         _BreakdownRow(
           label: 'Average daily spending',
-          value: formatNetBalance(breakdown.averageDailySpending),
+          value: formatNetBalanceMasked(
+            breakdown.averageDailySpending,
+            isMasked: isMasked,
+          ),
           icon: Icons.trending_down,
         ),
         const SizedBox(height: 12),
@@ -253,21 +268,28 @@ class _BreakdownSection extends StatelessWidget {
                 const SizedBox(height: 12),
                 _DailyBudgetRecommendationRow(
                   label: 'Balanced',
-                  value: formatNetBalance(breakdown.recommendedDailyBudget),
+                  value: formatNetBalanceMasked(
+                    breakdown.recommendedDailyBudget,
+                    isMasked: isMasked,
+                  ),
                   description: 'To reach month end comfortably',
                   icon: Icons.balance,
                 ),
                 const SizedBox(height: 8),
                 _DailyBudgetRecommendationRow(
                   label: 'Conservative',
-                  value: formatNetBalance(
+                  value: formatNetBalanceMasked(
                     breakdown.recommendedDailyBudgetWithBuffer,
+                    isMasked: isMasked,
                   ),
                   description: 'With 10% safety buffer',
                   icon: Icons.shield,
                 ),
                 const SizedBox(height: 8),
-                _ComparisonIndicator(breakdown: breakdown),
+                _ComparisonIndicator(
+                  breakdown: breakdown,
+                  isMasked: isMasked,
+                ),
               ],
             ),
           ),
@@ -281,25 +303,34 @@ class _BreakdownSection extends StatelessWidget {
         const SizedBox(height: 12),
         _BreakdownRow(
           label: 'Remaining scheduled',
-          value: formatNetBalance(breakdown.remainingScheduledTotal),
+          value: formatNetBalanceMasked(
+            breakdown.remainingScheduledTotal,
+            isMasked: isMasked,
+          ),
           icon: Icons.schedule,
         ),
         const SizedBox(height: 12),
         _BreakdownRow(
           label: 'Due now scheduled',
-          value: formatNetBalance(breakdown.dueNowScheduledTotal),
+          value: formatNetBalanceMasked(
+            breakdown.dueNowScheduledTotal,
+            isMasked: isMasked,
+          ),
           icon: Icons.pending_actions,
         ),
         const SizedBox(height: 12),
         _BreakdownRow(
           label: 'Projected spending',
-          value: formatNetBalance(breakdown.projectedDailySpending),
+          value: formatNetBalanceMasked(
+            breakdown.projectedDailySpending,
+            isMasked: isMasked,
+          ),
           icon: Icons.auto_graph,
         ),
         const SizedBox(height: 16),
         const Divider(thickness: 1, color: Colors.black12),
         const SizedBox(height: 16),
-        _CalculationBreakdown(breakdown: breakdown),
+        _CalculationBreakdown(breakdown: breakdown, isMasked: isMasked),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(12),
@@ -323,7 +354,7 @@ class _BreakdownSection extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Month-end balance: ${formatNetBalance(breakdown.monthEndBalance)}',
+                  'Month-end balance: ${formatNetBalanceMasked(breakdown.monthEndBalance, isMasked: isMasked)}',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -388,9 +419,11 @@ class _BreakdownRow extends StatelessWidget {
 class _CalculationBreakdown extends StatelessWidget {
   const _CalculationBreakdown({
     required this.breakdown,
+    required this.isMasked,
   });
 
   final MonthEndSufficiencyBreakdown breakdown;
+  final bool isMasked;
 
   @override
   Widget build(BuildContext context) {
@@ -409,22 +442,34 @@ class _CalculationBreakdown extends StatelessWidget {
         const SizedBox(height: 8),
         _CalculationLine(
           label: 'Current balance',
-          value: formatNetBalance(breakdown.currentBalance),
+          value: formatNetBalanceMasked(
+            breakdown.currentBalance,
+            isMasked: isMasked,
+          ),
           isPositive: true,
         ),
         _CalculationLine(
           label: 'Remaining scheduled',
-          value: formatNetBalance(breakdown.remainingScheduledTotal),
+          value: formatNetBalanceMasked(
+            breakdown.remainingScheduledTotal,
+            isMasked: isMasked,
+          ),
           isPositive: true,
         ),
         _CalculationLine(
           label: 'Due now scheduled',
-          value: formatNetBalance(breakdown.dueNowScheduledTotal),
+          value: formatNetBalanceMasked(
+            breakdown.dueNowScheduledTotal,
+            isMasked: isMasked,
+          ),
           isPositive: true,
         ),
         _CalculationLine(
           label: 'Projected spending',
-          value: formatNetBalance(breakdown.projectedDailySpending),
+          value: formatNetBalanceMasked(
+            breakdown.projectedDailySpending,
+            isMasked: isMasked,
+          ),
           isPositive: false,
         ),
         const SizedBox(height: 4),
@@ -432,7 +477,10 @@ class _CalculationBreakdown extends StatelessWidget {
         const SizedBox(height: 4),
         _CalculationLine(
           label: 'Month-end balance',
-          value: formatNetBalance(breakdown.monthEndBalance),
+          value: formatNetBalanceMasked(
+            breakdown.monthEndBalance,
+            isMasked: isMasked,
+          ),
           isPositive: breakdown.monthEndBalance >= 0,
           isBold: true,
         ),
@@ -586,9 +634,11 @@ class _DailyBudgetRecommendationRow extends StatelessWidget {
 class _ComparisonIndicator extends StatelessWidget {
   const _ComparisonIndicator({
     required this.breakdown,
+    required this.isMasked,
   });
 
   final MonthEndSufficiencyBreakdown breakdown;
+  final bool isMasked;
 
   String _getComparisonMessage() {
     final diff = breakdown.averageDailySpending -
@@ -596,11 +646,11 @@ class _ComparisonIndicator extends StatelessWidget {
 
     switch (breakdown.currentVsRecommended) {
       case DailyBudgetComparison.under:
-        return 'You\'re spending ${formatNetBalance(diff.abs())} less per day than recommended. Great job!';
+        return 'You\'re spending ${formatNetBalanceMasked(diff.abs(), isMasked: isMasked)} less per day than recommended. Great job!';
       case DailyBudgetComparison.onTrack:
         return 'You\'re on track! Your spending aligns with the recommendation.';
       case DailyBudgetComparison.over:
-        return 'You\'re spending ${formatNetBalance(diff.abs())} more per day than recommended. Consider reducing spending to stay on track.';
+        return 'You\'re spending ${formatNetBalanceMasked(diff.abs(), isMasked: isMasked)} more per day than recommended. Consider reducing spending to stay on track.';
     }
   }
 

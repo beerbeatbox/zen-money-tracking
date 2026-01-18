@@ -1,8 +1,10 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardBudgetLeftSection extends StatefulWidget {
+class DashboardBudgetLeftSection extends ConsumerStatefulWidget {
   const DashboardBudgetLeftSection({
     super.key,
     this.todayBudgetRemaining,
@@ -15,12 +17,12 @@ class DashboardBudgetLeftSection extends StatefulWidget {
   final double? recommendedDailyBudgetWithBuffer;
 
   @override
-  State<DashboardBudgetLeftSection> createState() =>
+  ConsumerState<DashboardBudgetLeftSection> createState() =>
       _DashboardBudgetLeftSectionState();
 }
 
 class _DashboardBudgetLeftSectionState
-    extends State<DashboardBudgetLeftSection> {
+    extends ConsumerState<DashboardBudgetLeftSection> {
   final GlobalKey _infoIconKey = GlobalKey();
 
   void _showCalculationDialog() {
@@ -28,6 +30,7 @@ class _DashboardBudgetLeftSectionState
         widget.todaySpending == null) {
       return;
     }
+    final isMasked = ref.read(amountMaskControllerProvider);
 
     final RenderBox? renderBox =
         _infoIconKey.currentContext?.findRenderObject() as RenderBox?;
@@ -65,16 +68,19 @@ class _DashboardBudgetLeftSectionState
                 _CalculationRow(
                   label: 'Conservative budget',
                   value: widget.recommendedDailyBudgetWithBuffer!,
+                  isMasked: isMasked,
                 ),
                 const SizedBox(height: 12),
                 _CalculationRow(
                   label: 'Today\'s spending',
                   value: widget.todaySpending!,
+                  isMasked: isMasked,
                 ),
                 const SizedBox(height: 12),
                 _CalculationRow(
                   label: 'Remaining',
                   value: widget.todayBudgetRemaining ?? 0.0,
+                  isMasked: isMasked,
                   isBold: true,
                 ),
               ],
@@ -90,6 +96,7 @@ class _DashboardBudgetLeftSectionState
     if (widget.todayBudgetRemaining == null) {
       return const SizedBox.shrink();
     }
+    final isMasked = ref.watch(amountMaskControllerProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -118,7 +125,10 @@ class _DashboardBudgetLeftSectionState
         ).onTap(onTap: _showCalculationDialog),
         const SizedBox(height: 8),
         Text(
-          formatNetBalance(widget.todayBudgetRemaining!),
+          formatNetBalanceMasked(
+            widget.todayBudgetRemaining!,
+            isMasked: isMasked,
+          ),
           style: const TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w800,
@@ -136,11 +146,13 @@ class _CalculationRow extends StatelessWidget {
   const _CalculationRow({
     required this.label,
     required this.value,
+    required this.isMasked,
     this.isBold = false,
   });
 
   final String label;
   final double value;
+  final bool isMasked;
   final bool isBold;
 
   @override
@@ -158,7 +170,7 @@ class _CalculationRow extends StatelessWidget {
           ),
         ),
         Text(
-          formatNetBalance(value),
+          formatNetBalanceMasked(value, isMasked: isMasked),
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w800,

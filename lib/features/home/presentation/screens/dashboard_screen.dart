@@ -1,3 +1,4 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/dashboard_layout.dart';
@@ -271,6 +272,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
     final vmAsync = ref.watch(dashboardControllerProvider(selectedMonth));
     final layoutAsync = ref.watch(dashboardLayoutControllerProvider);
+    final isMasked = ref.watch(amountMaskControllerProvider);
 
     // Sync budget to widget when dashboard data is ready
     ref.listen(dashboardControllerProvider(selectedMonth), (previous, next) {
@@ -309,6 +311,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          IconButton(
+                            onPressed:
+                                () =>
+                                    ref
+                                        .read(
+                                          amountMaskControllerProvider.notifier,
+                                        )
+                                        .toggle(),
+                            icon: HeroIcon(
+                              isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
+                              style: HeroIconStyle.outline,
+                              color: Colors.black,
+                            ),
+                            tooltip: isMasked ? 'Show amounts' : 'Hide amounts',
+                          ),
                           Builder(
                             builder: (context) {
                               return IconButton(
@@ -422,6 +439,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
+                isMasked: isMasked,
+                onToggleMask:
+                    () =>
+                        ref
+                            .read(amountMaskControllerProvider.notifier)
+                            .toggle(),
                 onRefresh: _refreshDashboard,
                 onResetMonth: () {
                   ref
@@ -453,6 +476,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
+                isMasked: isMasked,
+                onToggleMask:
+                    () =>
+                        ref
+                            .read(amountMaskControllerProvider.notifier)
+                            .toggle(),
                 onRefresh: _refreshDashboard,
                 onResetMonth: () {
                   ref
@@ -475,6 +504,8 @@ class _DashboardStateWrapper extends StatefulWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     this.onTapMonthLabel,
+    required this.isMasked,
+    required this.onToggleMask,
     required this.onRefresh,
     required this.onResetMonth,
     required this.child,
@@ -484,6 +515,8 @@ class _DashboardStateWrapper extends StatefulWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final Future<void> Function()? onTapMonthLabel;
+  final bool isMasked;
+  final VoidCallback onToggleMask;
   final Future<void> Function() onRefresh;
   final VoidCallback onResetMonth;
   final Widget child;
@@ -553,6 +586,16 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    IconButton(
+                      onPressed: widget.onToggleMask,
+                      icon: HeroIcon(
+                        widget.isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
+                        style: HeroIconStyle.outline,
+                        color: Colors.black,
+                      ),
+                      tooltip:
+                          widget.isMasked ? 'Show amounts' : 'Hide amounts',
+                    ),
                     Builder(
                       builder: (context) {
                         return IconButton(

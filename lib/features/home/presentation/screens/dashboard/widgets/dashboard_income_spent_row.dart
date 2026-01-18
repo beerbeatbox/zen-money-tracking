@@ -1,7 +1,10 @@
-import 'package:anti/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardIncomeSpentRow extends StatelessWidget {
+import 'package:anti/core/controllers/amount_mask_controller.dart';
+import 'package:anti/core/utils/formatters.dart';
+
+class DashboardIncomeSpentRow extends ConsumerWidget {
   const DashboardIncomeSpentRow({
     super.key,
     required this.income,
@@ -12,7 +15,8 @@ class DashboardIncomeSpentRow extends StatelessWidget {
   final double spent;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isMasked = ref.watch(amountMaskControllerProvider);
     return Row(
       children: [
         Expanded(
@@ -29,7 +33,7 @@ class DashboardIncomeSpentRow extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                formatCurrencySigned(income),
+                formatCurrencySignedMasked(income, isMasked: isMasked),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -53,7 +57,7 @@ class DashboardIncomeSpentRow extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                formatCurrencySigned(spent),
+                formatCurrencySignedMasked(spent, isMasked: isMasked),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

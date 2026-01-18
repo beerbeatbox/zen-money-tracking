@@ -182,7 +182,7 @@ class _SettingsList extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _SettingsCard(
-                icon: HeroIcons.arrowPath,
+                icon: HeroIcons.folderArrowDown,
                 title: 'Import & Export',
                 onTap: () {
                   if (isIOS) {

@@ -1,12 +1,14 @@
 import 'dart:math';
 
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MonthlyIncomeSpentLineChart extends StatefulWidget {
+class MonthlyIncomeSpentLineChart extends ConsumerStatefulWidget {
   const MonthlyIncomeSpentLineChart({
     super.key,
     required this.selectedMonth,
@@ -17,12 +19,12 @@ class MonthlyIncomeSpentLineChart extends StatefulWidget {
   final List<ExpenseLog> logs;
 
   @override
-  State<MonthlyIncomeSpentLineChart> createState() =>
+  ConsumerState<MonthlyIncomeSpentLineChart> createState() =>
       _MonthlyIncomeSpentLineChartState();
 }
 
 class _MonthlyIncomeSpentLineChartState
-    extends State<MonthlyIncomeSpentLineChart> {
+    extends ConsumerState<MonthlyIncomeSpentLineChart> {
   late final ScrollController _scrollController;
 
   @override
@@ -94,6 +96,7 @@ class _MonthlyIncomeSpentLineChartState
 
   @override
   Widget build(BuildContext context) {
+    final isMasked = ref.watch(amountMaskControllerProvider);
     if (widget.logs.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(16),
@@ -161,6 +164,7 @@ class _MonthlyIncomeSpentLineChartState
                           maxY: maxY,
                           incomeByDay: incomeByDay,
                           spentByDay: spentByDay,
+                          isMasked: isMasked,
                         ),
                         duration: const Duration(milliseconds: 250),
                         curve: Curves.linear,
@@ -172,6 +176,7 @@ class _MonthlyIncomeSpentLineChartState
                         maxY: maxY,
                         incomeColor: Colors.green[700] ?? Colors.green,
                         spentColor: Colors.red[700] ?? Colors.red,
+                        isMasked: isMasked,
                       ),
                     ],
                   ),
@@ -219,6 +224,7 @@ class _MonthlyIncomeSpentLineChartState
     required double maxY,
     required List<double> incomeByDay,
     required List<double> spentByDay,
+    required bool isMasked,
   }) {
     final incomeColor = Colors.green[700] ?? Colors.green;
     final spentColor = Colors.red[700] ?? Colors.red;
@@ -288,7 +294,10 @@ class _MonthlyIncomeSpentLineChartState
                 .map((spot) {
                   final isIncome = spot.bar.color == incomeColor;
                   final seriesLabel = isIncome ? 'Income' : 'Spent';
-                  final valueLabel = formatNetBalance(spot.y);
+                  final valueLabel = formatCurrencyUnsignedMasked(
+                    spot.y,
+                    isMasked: isMasked,
+                  );
 
                   return LineTooltipItem(
                     '$dateLabel\n$seriesLabel: $valueLabel',
@@ -345,7 +354,7 @@ class _MonthlyIncomeSpentLineChartState
                 return const SizedBox.shrink();
               }
               return Text(
-                _formatYAxis(value),
+                _formatYAxis(value, isMasked: isMasked),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -405,7 +414,8 @@ class _MonthlyIncomeSpentLineChartState
     );
   }
 
-  String _formatYAxis(double value) {
+  String _formatYAxis(double value, {required bool isMasked}) {
+    if (isMasked) return '฿*****';
     if (value <= 0) return '฿0';
     if (value >= 1000000) {
       return '฿${formatAmountWithComma((value / 1000000).round())}m';
@@ -519,6 +529,7 @@ class _DataIndicators extends StatelessWidget {
     required this.maxY,
     required this.incomeColor,
     required this.spentColor,
+    required this.isMasked,
   });
 
   final List<double> incomeByDay;
@@ -527,6 +538,7 @@ class _DataIndicators extends StatelessWidget {
   final double maxY;
   final Color incomeColor;
   final Color spentColor;
+  final bool isMasked;
 
   @override
   Widget build(BuildContext context) {
@@ -554,6 +566,7 @@ class _DataIndicators extends StatelessWidget {
         leftPadding: leftPadding,
         bottomPadding: bottomPadding,
         topPadding: topPadding,
+        isMasked: isMasked,
       ),
     );
   }
@@ -572,6 +585,7 @@ class _DataIndicatorPainter extends CustomPainter {
     required this.leftPadding,
     required this.bottomPadding,
     required this.topPadding,
+    required this.isMasked,
   });
 
   final List<double> incomeByDay;
@@ -585,6 +599,7 @@ class _DataIndicatorPainter extends CustomPainter {
   final double leftPadding;
   final double bottomPadding;
   final double topPadding;
+  final bool isMasked;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -696,6 +711,7 @@ class _DataIndicatorPainter extends CustomPainter {
   }
 
   String _formatValue(double value) {
+    if (isMasked) return '฿*****';
     if (value <= 0) return '฿0';
     if (value >= 1000000) {
       return '฿${formatAmountWithComma((value / 1000000).round())}m';

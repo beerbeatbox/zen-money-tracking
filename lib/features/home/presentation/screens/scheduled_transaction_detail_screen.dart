@@ -1,3 +1,4 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/core/widgets/section_card.dart';
@@ -29,6 +30,7 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(scheduledTransactionsProvider);
+    final isMasked = ref.watch(amountMaskControllerProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
@@ -103,7 +105,12 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SectionCard(child: _ScheduledDetailCard(item: resolved)),
+                  SectionCard(
+                    child: _ScheduledDetailCard(
+                      item: resolved,
+                      isMasked: isMasked,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   SectionCard(child: _ScheduledActionsRow(item: resolved)),
                 ],
@@ -172,9 +179,10 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
 }
 
 class _ScheduledDetailCard extends ConsumerWidget {
-  const _ScheduledDetailCard({required this.item});
+  const _ScheduledDetailCard({required this.item, required this.isMasked});
 
   final ScheduledTransaction item;
+  final bool isMasked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -185,8 +193,8 @@ class _ScheduledDetailCard extends ConsumerWidget {
             : item.amount.abs();
     final amountLabel =
         item.isDynamicAmount
-            ? formatCurrencySigned(-amountToDisplay)
-            : formatCurrencySigned(item.amount);
+            ? formatCurrencySignedMasked(-amountToDisplay, isMasked: isMasked)
+            : formatCurrencySignedMasked(item.amount, isMasked: isMasked);
     final dateLabel = formatDateLabel(item.scheduledDate);
     final timeLabel = formatTimeHm(item.scheduledDate);
     final frequencyLabel = _frequencyLabel(

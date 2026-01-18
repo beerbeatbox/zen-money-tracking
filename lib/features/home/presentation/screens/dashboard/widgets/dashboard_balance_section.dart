@@ -1,7 +1,11 @@
-import 'package:anti/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardBalanceSection extends StatelessWidget {
+import 'package:anti/core/controllers/amount_mask_controller.dart';
+import 'package:anti/core/utils/formatters.dart';
+import 'package:anti/core/controllers/amount_mask_controller.dart';
+
+class DashboardBalanceSection extends ConsumerWidget {
   const DashboardBalanceSection({
     super.key,
     required this.netBalance,
@@ -14,7 +18,8 @@ class DashboardBalanceSection extends StatelessWidget {
   final bool showProjected;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isMasked = ref.watch(amountMaskControllerProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -29,7 +34,7 @@ class DashboardBalanceSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          formatNetBalance(netBalance),
+          formatNetBalanceMasked(netBalance, isMasked: isMasked),
           style: const TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w800,
@@ -41,6 +46,7 @@ class DashboardBalanceSection extends StatelessWidget {
           const SizedBox(height: 12),
           _ProjectedBalanceRow(
             projectedBalance: projectedBalance,
+            isMasked: isMasked,
           ),
         ],
       ],
@@ -51,9 +57,11 @@ class DashboardBalanceSection extends StatelessWidget {
 class _ProjectedBalanceRow extends StatelessWidget {
   const _ProjectedBalanceRow({
     required this.projectedBalance,
+    required this.isMasked,
   });
 
   final double projectedBalance;
+  final bool isMasked;
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +80,7 @@ class _ProjectedBalanceRow extends StatelessWidget {
             ),
           ),
           Text(
-            formatNetBalance(projectedBalance),
+            formatNetBalanceMasked(projectedBalance, isMasked: isMasked),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,

@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:flutter/material.dart';
 
 Future<double?> showDynamicAmountPaidDialog(
   BuildContext context, {
@@ -22,7 +25,7 @@ Future<double?> showDynamicAmountPaidDialog(
   );
 }
 
-class _DynamicAmountPaidDialog extends StatefulWidget {
+class _DynamicAmountPaidDialog extends ConsumerStatefulWidget {
   const _DynamicAmountPaidDialog({
     required this.category,
     required this.budgetAmount,
@@ -34,11 +37,12 @@ class _DynamicAmountPaidDialog extends StatefulWidget {
   final double? previousAmount;
 
   @override
-  State<_DynamicAmountPaidDialog> createState() =>
+  ConsumerState<_DynamicAmountPaidDialog> createState() =>
       _DynamicAmountPaidDialogState();
 }
 
-class _DynamicAmountPaidDialogState extends State<_DynamicAmountPaidDialog> {
+class _DynamicAmountPaidDialogState
+    extends ConsumerState<_DynamicAmountPaidDialog> {
   String _value = '';
   final TextEditingController _controller = TextEditingController();
 
@@ -107,6 +111,7 @@ class _DynamicAmountPaidDialogState extends State<_DynamicAmountPaidDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isMasked = ref.watch(amountMaskControllerProvider);
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -140,7 +145,7 @@ class _DynamicAmountPaidDialogState extends State<_DynamicAmountPaidDialog> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Budget: ${formatNetBalance(widget.budgetAmount)}',
+              'Budget: ${formatNetBalanceMasked(widget.budgetAmount, isMasked: isMasked)}',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -162,9 +167,10 @@ class _DynamicAmountPaidDialogState extends State<_DynamicAmountPaidDialog> {
                     child: Text(
                       _value.isEmpty
                           ? 'Tap to enter amount'
-                          : formatNetBalance(
-                            double.tryParse(_displayValue) ?? 0,
-                          ),
+                        : formatNetBalanceMasked(
+                          double.tryParse(_displayValue) ?? 0,
+                          isMasked: isMasked,
+                        ),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,

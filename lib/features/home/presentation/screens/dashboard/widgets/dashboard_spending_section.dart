@@ -1,7 +1,9 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardSpendingSection extends StatelessWidget {
+class DashboardSpendingSection extends ConsumerWidget {
   const DashboardSpendingSection({
     super.key,
     required this.todaySpending,
@@ -12,7 +14,8 @@ class DashboardSpendingSection extends StatelessWidget {
   final double netBalance;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isMasked = ref.watch(amountMaskControllerProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -28,7 +31,7 @@ class DashboardSpendingSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          formatCurrencySigned(-todaySpending),
+          formatCurrencySignedMasked(-todaySpending, isMasked: isMasked),
           style: const TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w800,
@@ -51,7 +54,7 @@ class DashboardSpendingSection extends StatelessWidget {
               ),
             ),
             Text(
-              formatNetBalance(netBalance),
+              formatNetBalanceMasked(netBalance, isMasked: isMasked),
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w800,

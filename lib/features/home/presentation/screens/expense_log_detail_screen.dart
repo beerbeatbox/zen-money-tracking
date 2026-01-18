@@ -1,3 +1,4 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/core/widgets/section_card.dart';
@@ -166,6 +167,7 @@ class _LogDetailCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isIncome = log.amount >= 0;
     final amountColor = isIncome ? Colors.green[700] : Colors.red[700];
+    final isMasked = ref.watch(amountMaskControllerProvider);
     final categories = ref
         .watch(categoriesControllerProvider)
         .maybeWhen(data: (value) => value, orElse: () => null);
@@ -199,6 +201,7 @@ class _LogDetailCard extends ConsumerWidget {
             Expanded(
               child: _AnimatedLogAmountText(
                 value: log.amount,
+                isMasked: isMasked,
                 textStyle: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
@@ -241,11 +244,13 @@ class _LogDetailCard extends ConsumerWidget {
 class _AnimatedLogAmountText extends ImplicitlyAnimatedWidget {
   const _AnimatedLogAmountText({
     required this.value,
+    required this.isMasked,
     required this.textStyle,
     super.duration = const Duration(milliseconds: 600),
   });
 
   final double value;
+  final bool isMasked;
   final TextStyle textStyle;
 
   @override
@@ -272,7 +277,10 @@ class _AnimatedLogAmountTextState
   @override
   Widget build(BuildContext context) {
     final animatedValue = _valueTween?.evaluate(animation) ?? widget.value;
-    return Text(formatCurrencySigned(animatedValue), style: widget.textStyle);
+    return Text(
+      formatCurrencySignedMasked(animatedValue, isMasked: widget.isMasked),
+      style: widget.textStyle,
+    );
   }
 }
 

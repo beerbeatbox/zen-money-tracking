@@ -1,3 +1,4 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
@@ -51,7 +52,8 @@ class _DashboardScheduleSectionState
     if (widget.items.isEmpty) return const SizedBox.shrink();
 
     final total = _calculateTotal(widget.items);
-    final totalLabel = formatCurrencySigned(total);
+    final isMasked = ref.watch(amountMaskControllerProvider);
+    final totalLabel = formatCurrencySignedMasked(total, isMasked: isMasked);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

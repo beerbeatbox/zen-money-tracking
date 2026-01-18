@@ -1,3 +1,4 @@
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
@@ -11,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardRecentLogsSection extends StatelessWidget {
+class DashboardRecentLogsSection extends ConsumerWidget {
   const DashboardRecentLogsSection({
     super.key,
     required this.logs,
@@ -26,10 +27,11 @@ class DashboardRecentLogsSection extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (logs.isEmpty) {
       return DashboardEmptyLogs(monthYearLabel: monthYearLabel);
     }
+    final isMasked = ref.watch(amountMaskControllerProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,16 +61,17 @@ class DashboardRecentLogsSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const SizedBox(height: 12),
-        _DatedLogsList(logs: logs),
+        _DatedLogsList(logs: logs, isMasked: isMasked),
       ],
     );
   }
 }
 
 class _DatedLogsList extends StatelessWidget {
-  const _DatedLogsList({required this.logs});
+  const _DatedLogsList({required this.logs, required this.isMasked});
 
   final List<ExpenseLog> logs;
+  final bool isMasked;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +101,7 @@ class _DatedLogsList extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _calculateDayTotal(group.logs),
+                    _calculateDayTotal(group.logs, isMasked: isMasked),
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
@@ -149,9 +152,9 @@ class _DatedLogsList extends StatelessWidget {
     return isToday ? '$baseLabel (Today)' : baseLabel;
   }
 
-  String _calculateDayTotal(List<ExpenseLog> logs) {
+  String _calculateDayTotal(List<ExpenseLog> logs, {required bool isMasked}) {
     final total = logs.fold<double>(0.0, (sum, log) => sum + log.amount);
-    return formatCurrencySigned(total);
+    return formatCurrencySignedMasked(total, isMasked: isMasked);
   }
 }
 

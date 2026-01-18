@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/formatters.dart';
-import 'package:flutter/material.dart';
 
-class TransactionListItem extends StatelessWidget {
+class TransactionListItem extends ConsumerWidget {
   const TransactionListItem({
     super.key,
     required this.title,
@@ -19,13 +22,16 @@ class TransactionListItem extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isIncome = amount > 0;
     final amountColor = isIncome
         ? const Color(0xFFE57373) // Reddish-orange for income
         : Colors.black; // Black for expenses
 
-    final amountText = formatCurrencySigned(amount);
+    final amountText = formatCurrencySignedMasked(
+      amount,
+      isMasked: ref.watch(amountMaskControllerProvider),
+    );
 
     Widget content = Row(
       crossAxisAlignment: CrossAxisAlignment.center,

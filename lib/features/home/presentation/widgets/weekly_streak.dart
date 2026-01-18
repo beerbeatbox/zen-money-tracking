@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:flutter/material.dart';
 
-class WeeklyStreak extends StatelessWidget {
+class WeeklyStreak extends ConsumerWidget {
   const WeeklyStreak({
     super.key,
     required this.logs,
@@ -15,9 +18,10 @@ class WeeklyStreak extends StatelessWidget {
   final DateTime? now;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final nowValue = now ?? DateTime.now();
     final today = DateUtils.dateOnly(nowValue);
+    final isMasked = ref.watch(amountMaskControllerProvider);
     final monday = today.subtract(
       Duration(days: today.weekday - DateTime.monday),
     );
@@ -50,7 +54,7 @@ class WeeklyStreak extends StatelessWidget {
                 ),
               ),
               Text(
-                'Daily limit ${formatNetBalance(dailyBudgetLimit)}',
+                'Daily limit ${formatNetBalanceMasked(dailyBudgetLimit, isMasked: isMasked)}',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,

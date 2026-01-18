@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/domain/usecases/category_service.dart';
@@ -99,6 +100,7 @@ class _MonthlyCategoryLineChartState
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesControllerProvider);
+    final isMasked = ref.watch(amountMaskControllerProvider);
 
     return categoriesAsync.when(
       data: (categories) {
@@ -186,6 +188,7 @@ class _MonthlyCategoryLineChartState
                               daysInMonth: daysInMonth,
                               maxY: maxY,
                               categories: categories,
+                              isMasked: isMasked,
                             ),
                             duration: const Duration(milliseconds: 250),
                             curve: Curves.linear,
@@ -309,6 +312,7 @@ class _MonthlyCategoryLineChartState
     required int daysInMonth,
     required double maxY,
     required List<Category> categories,
+    required bool isMasked,
   }) {
     return LineChartData(
       minX: 1,
@@ -370,7 +374,7 @@ class _MonthlyCategoryLineChartState
                 return const SizedBox.shrink();
               }
               return Text(
-                _formatYAxis(value),
+                _formatYAxis(value, isMasked: isMasked),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -403,7 +407,8 @@ class _MonthlyCategoryLineChartState
     );
   }
 
-  String _formatYAxis(double value) {
+  String _formatYAxis(double value, {required bool isMasked}) {
+    if (isMasked) return '฿*****';
     if (value <= 0) return '฿0';
     if (value >= 1000000) {
       return '฿${formatAmountWithComma((value / 1000000).round())}m';

@@ -1,12 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/domain/usecases/category_service.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class CategoryRankingSection extends ConsumerWidget {
   const CategoryRankingSection({
     super.key,
@@ -122,7 +123,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _RankingItem extends StatelessWidget {
+class _RankingItem extends ConsumerWidget {
   const _RankingItem({
     required this.rank,
     required this.categoryName,
@@ -136,7 +137,7 @@ class _RankingItem extends StatelessWidget {
   final String? emoji;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -171,7 +172,10 @@ class _RankingItem extends StatelessWidget {
             ),
           ),
           Text(
-            formatNetBalance(totalAmount),
+            formatNetBalanceMasked(
+              totalAmount,
+              isMasked: ref.watch(amountMaskControllerProvider),
+            ),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
