@@ -72,59 +72,54 @@ class _DashboardScheduleSectionState
                       color: Colors.black,
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        totalLabel,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.2,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      AnimatedRotation(
-                        turns: _isExpanded ? 0.5 : 0,
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeInOut,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down,
-                          size: 20,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeInOut,
+                    child: const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 20,
+                      color: Colors.black,
+                    ),
                   ),
                 ],
               ),
             )
-            : Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Scheduled',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  totalLabel,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
+            : const Text(
+              'Scheduled',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
+                color: Colors.black,
+              ),
             ),
         const SizedBox(height: 8),
         const Divider(thickness: 2, color: Colors.black),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Total',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.6,
+                color: Colors.grey[700],
+              ),
+            ),
+            Text(
+              totalLabel,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
         ClipRect(
           clipBehavior: Clip.none,
           child:
