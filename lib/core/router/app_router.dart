@@ -17,6 +17,7 @@ import '../../features/home/presentation/screens/scheduled_transactions_search_s
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
+import '../../features/settings/presentation/screens/expense_reminders_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 
 part 'app_router.g.dart';
@@ -30,6 +31,7 @@ enum AppRouter {
   settings,
   categoryManagement,
   expenseLogsCsv,
+  expenseReminders,
   profile,
   scheduledTransactions,
   scheduledTransactionsSearch,
@@ -55,6 +57,8 @@ enum AppRouter {
         return '/settings/categories';
       case AppRouter.expenseLogsCsv:
         return '/settings/import-export';
+      case AppRouter.expenseReminders:
+        return '/settings/expense-reminders';
       case AppRouter.profile:
         return '/profile';
       case AppRouter.scheduledTransactions:
@@ -71,12 +75,12 @@ enum AppRouter {
   }
 }
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     debugLogDiagnostics: true,
     initialLocation: AppRouter.dashboard.path,
     routes: [
@@ -157,25 +161,31 @@ GoRouter appRouter(Ref ref) {
         ],
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: AppRouter.categoryManagement.path,
         name: AppRouter.categoryManagement.name,
         builder: (context, state) => const CategoryManagementScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: AppRouter.expenseLogsCsv.path,
         name: AppRouter.expenseLogsCsv.name,
         builder: (context, state) => const ExpenseLogsCsvScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRouter.expenseReminders.path,
+        name: AppRouter.expenseReminders.name,
+        builder: (context, state) => const ExpenseRemindersScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
         path: AppRouter.budget.path,
         name: AppRouter.budget.name,
         builder: (context, state) => const BudgetScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: AppRouter.expenseLogDetail.path,
         name: AppRouter.expenseLogDetail.name,
         builder: (context, state) {
@@ -186,7 +196,7 @@ GoRouter appRouter(Ref ref) {
         },
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: AppRouter.addScheduledTransaction.path,
         name: AppRouter.addScheduledTransaction.name,
         builder: (context, state) {
@@ -197,13 +207,13 @@ GoRouter appRouter(Ref ref) {
       ),
       // Search route must come before detail route (more specific routes first)
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: AppRouter.scheduledTransactionsSearch.path,
         name: AppRouter.scheduledTransactionsSearch.name,
         builder: (context, state) => const ScheduledTransactionsSearchScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: AppRouter.scheduledTransactionDetail.path,
         name: AppRouter.scheduledTransactionDetail.name,
         builder: (context, state) {

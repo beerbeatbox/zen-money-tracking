@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:anti/features/settings/data/datasources/settings_local_datasource.dart';
@@ -24,6 +25,12 @@ class SettingsRepository {
 
   Future<void> setCustomBudgetAmount(double? amount) =>
       _datasource.writeCustomBudgetAmount(amount);
+
+  Future<List<TimeOfDay>> getExpenseReminders() =>
+      _datasource.readExpenseReminders();
+
+  Future<void> setExpenseReminders(List<TimeOfDay> times) =>
+      _datasource.writeExpenseReminders(times);
 }
 
 @riverpod

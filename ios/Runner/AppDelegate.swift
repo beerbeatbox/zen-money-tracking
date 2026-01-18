@@ -38,6 +38,20 @@ import WidgetKit
           result(FlutterMethodNotImplemented)
         }
       }
+
+      let timezoneChannel = FlutterMethodChannel(
+        name: "com.dopaminelab.thumby/timezone",
+        binaryMessenger: controller.binaryMessenger
+      )
+
+      timezoneChannel.setMethodCallHandler { call, result in
+        switch call.method {
+        case "getLocalTimezone":
+          result(NSTimeZone.local.identifier)
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

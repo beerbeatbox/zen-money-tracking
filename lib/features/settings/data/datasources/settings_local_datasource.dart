@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,6 +26,7 @@ class SettingsLocalDatasource {
   static const _carryBalanceEnabledKey = 'carry_balance_enabled';
   static const _budgetSourceKey = 'budget_source';
   static const _customBudgetAmountKey = 'custom_budget_amount';
+  static const _expenseRemindersKey = 'expense_reminders';
 
   Future<File> _ensureFile() async {
     final directory = await getApplicationDocumentsDirectory();
@@ -98,6 +100,35 @@ class SettingsLocalDatasource {
     } else {
       map[_customBudgetAmountKey] = amount;
     }
+    await _writeMap(map);
+  }
+
+  Future<List<TimeOfDay>> readExpenseReminders() async {
+    final map = await _readMap();
+    final raw = map[_expenseRemindersKey];
+    if (raw is List) {
+      return raw
+          .map((item) {
+            if (item is Map<String, dynamic>) {
+              final hour = item['hour'];
+              final minute = item['minute'];
+              if (hour is int && minute is int) {
+                return TimeOfDay(hour: hour, minute: minute);
+              }
+            }
+            return null;
+          })
+          .whereType<TimeOfDay>()
+          .toList();
+    }
+    return [];
+  }
+
+  Future<void> writeExpenseReminders(List<TimeOfDay> times) async {
+    final map = await _readMap();
+    map[_expenseRemindersKey] = times
+        .map((time) => {'hour': time.hour, 'minute': time.minute})
+        .toList();
     await _writeMap(map);
   }
 }
