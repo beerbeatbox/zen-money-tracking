@@ -141,7 +141,7 @@ class _DashboardScheduleSectionState
                                       bottom:
                                           index == widget.items.length - 1
                                               ? 0
-                                              : 12,
+                                              : 32,
                                     ),
                                     child: ScheduledTransactionTile(
                                       item: item,
@@ -169,7 +169,7 @@ class _DashboardScheduleSectionState
                         final item = widget.items[index];
                         return Padding(
                           padding: EdgeInsets.only(
-                            bottom: index == widget.items.length - 1 ? 0 : 12,
+                            bottom: index == widget.items.length - 1 ? 0 : 32,
                           ),
                           child: ScheduledTransactionTile(
                             item: item,

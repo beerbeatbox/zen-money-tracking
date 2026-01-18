@@ -1,12 +1,10 @@
-import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
-import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/categories/domain/entities/category.dart';
 import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/home/presentation/widgets/transaction_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -51,15 +49,12 @@ class ScheduledTransactionTile extends ConsumerWidget {
         item.isDynamicAmount
             ? (item.budgetAmount ?? item.amount.abs())
             : item.amount.abs();
-    final amountLabel =
-        item.isDynamicAmount
-            ? formatCurrencySigned(-amountToDisplay)
-            : formatCurrencySigned(item.amount);
+    final amountValue = item.isDynamicAmount ? -amountToDisplay : item.amount;
 
     final subtitle =
         showStatusLabel
-            ? '${_statusLabel(item.scheduledDate, now: now)} • $dateLabel • $timeLabel'
-            : '$dateLabel • $timeLabel';
+            ? '${_statusLabel(item.scheduledDate, now: now)} • ${item.category} • $dateLabel • $timeLabel'
+            : '${item.category} • $dateLabel • $timeLabel';
 
     final primaryLabel = !item.isActive ? 'Paused' : 'Mark as paid';
     final categories = ref
@@ -77,98 +72,58 @@ class ScheduledTransactionTile extends ConsumerWidget {
 
     final shouldShowBadges = showRecurrenceBadges;
 
-    return OutlinedSurface(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 16),
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TransactionListItem(
+          title: item.category,
+          subtitle: subtitle,
+          amount: amountValue,
+          emoji: emoji,
+          onTap: onEdit,
+        ),
+        if (shouldShowBadges) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 60),
+            child: Text(
+              _buildBadgeText(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
+        if (showActionButtons) ...[
+          const SizedBox(height: 12),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
             children: [
               Expanded(
-                child: _CategoryLabelWithEmojiBaseline(
-                  label: item.category,
-                  emoji: emoji,
+                child: OutlinedActionButton(
+                  label: primaryLabel,
+                  onPressed: !item.isActive ? null : onConvert,
+                  textColor: Colors.black,
+                  borderColor: Colors.black,
+                  backgroundColor: Colors.white,
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                amountLabel,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
-                  color: Colors.black,
+              Expanded(
+                child: OutlinedActionButton(
+                  label: 'Remove',
+                  onPressed: onDelete,
+                  textColor: Colors.red,
+                  borderColor: Colors.red,
+                  backgroundColor: const Color(0xFFFDEBEB),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          if (shouldShowBadges) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _Badge(
-                  label: _recurrenceLabel(
-                    item.frequency,
-                    item.intervalCount,
-                    item.intervalUnit,
-                  ),
-                ),
-                if (item.isDynamicAmount)
-                  const _Badge(
-                    label: 'Dynamic',
-                    backgroundColor: Color(0xFFE8F4FD),
-                  ),
-                if (!item.isActive)
-                  const _Badge(
-                    label: 'Paused',
-                    backgroundColor: Color(0xFFF4F4F4),
-                  ),
-              ],
-            ),
-          ],
-          if (showActionButtons) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedActionButton(
-                    label: primaryLabel,
-                    onPressed: !item.isActive ? null : onConvert,
-                    textColor: Colors.black,
-                    borderColor: Colors.black,
-                    backgroundColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedActionButton(
-                    label: 'Remove',
-                    onPressed: onDelete,
-                    textColor: Colors.red,
-                    borderColor: Colors.red,
-                    backgroundColor: const Color(0xFFFDEBEB),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
-      ),
-    ).onTap(onTap: onEdit);
+      ],
+    );
   }
 
   String _statusLabel(DateTime scheduledDate, {required DateTime now}) {
@@ -183,86 +138,23 @@ class ScheduledTransactionTile extends ConsumerWidget {
     if (daysUntil == 1) return 'Due in 1 day';
     return 'Due in $daysUntil days';
   }
-}
 
-class _CategoryLabelWithEmojiBaseline extends StatelessWidget {
-  const _CategoryLabelWithEmojiBaseline({
-    required this.label,
-    required this.emoji,
-  });
+  String _buildBadgeText() {
+    final badges = <String>[];
 
-  final String label;
-  final String? emoji;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalizedEmoji = (emoji ?? '').trim();
-    const labelStyle = TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w800,
-      letterSpacing: 0.2,
-      color: Colors.black,
+    badges.add(
+      _recurrenceLabel(item.frequency, item.intervalCount, item.intervalUnit),
     );
 
-    if (normalizedEmoji.isEmpty) {
-      return Text(
-        label,
-        style: labelStyle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
+    if (item.isDynamicAmount) {
+      badges.add('Dynamic');
     }
 
-    final emojiFontSize = (labelStyle.fontSize! + 6).clamp(18, 28).toDouble();
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: normalizedEmoji,
-            style: labelStyle.copyWith(fontSize: emojiFontSize),
-          ),
-          const WidgetSpan(
-            alignment: PlaceholderAlignment.baseline,
-            baseline: TextBaseline.alphabetic,
-            child: SizedBox(width: 8),
-          ),
-          TextSpan(text: label, style: labelStyle),
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-}
+    if (!item.isActive) {
+      badges.add('Paused');
+    }
 
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.label,
-    this.backgroundColor = const Color(0xFFF2F2F2),
-  });
-
-  final String label;
-  final Color backgroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.10)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.2,
-          color: Colors.black,
-        ),
-      ),
-    );
+    return badges.join(' • ');
   }
 }
 

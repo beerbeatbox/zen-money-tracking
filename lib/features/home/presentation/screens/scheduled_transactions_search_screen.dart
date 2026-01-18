@@ -352,7 +352,7 @@ class _Content extends StatelessWidget {
         final isLast = index == items.length - 1;
 
         return Padding(
-          padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+          padding: EdgeInsets.only(bottom: isLast ? 0 : 32),
           child: ScheduledTransactionTile(
             item: item,
             onEdit: () => onEdit(item),

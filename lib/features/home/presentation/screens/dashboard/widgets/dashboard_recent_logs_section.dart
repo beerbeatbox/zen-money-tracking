@@ -1,4 +1,3 @@
-import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
@@ -7,7 +6,7 @@ import 'package:anti/features/categories/presentation/controllers/categories_con
 import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_surface.dart';
+import 'package:anti/features/home/presentation/widgets/transaction_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -83,7 +82,7 @@ class _DatedLogsList extends StatelessWidget {
         final isLastGroup = groupIndex == groupedLogs.length - 1;
 
         return Padding(
-          padding: EdgeInsets.only(bottom: isLastGroup ? 0 : 24),
+          padding: EdgeInsets.only(bottom: isLastGroup ? 0 : 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -116,7 +115,7 @@ class _DatedLogsList extends StatelessWidget {
                 final isLastLog = logIndex == group.logs.length - 1;
 
                 return Padding(
-                  padding: EdgeInsets.only(bottom: isLastLog ? 0 : 10),
+                  padding: EdgeInsets.only(bottom: isLastLog ? 0 : 32),
                   child: _LogTile(log: log),
                 );
               }),
@@ -171,7 +170,6 @@ class _LogTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final amountLabel = formatCurrencySigned(log.amount);
     final categories = ref
         .watch(categoriesControllerProvider)
         .maybeWhen(data: (value) => value, orElse: () => null);
@@ -185,46 +183,11 @@ class _LogTile extends ConsumerWidget {
               type: type,
             );
 
-    return OutlinedSurface(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Expanded(
-                      child: _CategoryLabelWithEmojiBaseline(
-                        label: log.category,
-                        emoji: emoji,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      amountLabel,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.3,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                _LogMetaRow(log: log),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ).onTap(
-      behavior: HitTestBehavior.opaque,
+    return TransactionListItem(
+      title: log.category,
+      subtitle: log.timeLabel,
+      amount: log.amount,
+      emoji: emoji,
       onTap: () => _openLogDetail(context),
     );
   }
@@ -234,75 +197,6 @@ class _LogTile extends ConsumerWidget {
       AppRouter.expenseLogDetail.name,
       pathParameters: {'id': log.id},
       extra: log,
-    );
-  }
-}
-
-class _CategoryLabelWithEmojiBaseline extends StatelessWidget {
-  const _CategoryLabelWithEmojiBaseline({
-    required this.label,
-    required this.emoji,
-  });
-
-  final String label;
-  final String? emoji;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalizedEmoji = (emoji ?? '').trim();
-    const labelStyle = TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w800,
-      color: Colors.black,
-      letterSpacing: 0.2,
-    );
-
-    if (normalizedEmoji.isEmpty) {
-      return Text(
-        label,
-        style: labelStyle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    // Use Text.rich so the widget participates in baseline alignment within the Row.
-    final emojiFontSize = (labelStyle.fontSize! + 6).clamp(18, 28).toDouble();
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: normalizedEmoji,
-            style: labelStyle.copyWith(fontSize: emojiFontSize),
-          ),
-          const WidgetSpan(
-            alignment: PlaceholderAlignment.baseline,
-            baseline: TextBaseline.alphabetic,
-            child: SizedBox(width: 8),
-          ),
-          TextSpan(text: label, style: labelStyle),
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-}
-
-class _LogMetaRow extends StatelessWidget {
-  const _LogMetaRow({required this.log});
-
-  final ExpenseLog log;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      log.timeLabel,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: Colors.grey[600],
-      ),
     );
   }
 }
