@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+
 part 'settings_local_datasource.g.dart';
 
 enum BudgetSource {
@@ -28,6 +30,7 @@ class SettingsLocalDatasource {
   static const _customBudgetAmountKey = 'custom_budget_amount';
   static const _expenseRemindersKey = 'expense_reminders';
   static const _scheduledNotificationsEnabledKey = 'scheduled_notifications_enabled';
+  static const _bottomNavStyleKey = 'bottom_nav_style';
 
   Future<File> _ensureFile() async {
     final directory = await getApplicationDocumentsDirectory();
@@ -143,6 +146,19 @@ class SettingsLocalDatasource {
   Future<void> writeScheduledNotificationsEnabled(bool enabled) async {
     final map = await _readMap();
     map[_scheduledNotificationsEnabledKey] = enabled;
+    await _writeMap(map);
+  }
+
+  Future<BottomNavStyle> readBottomNavStyle() async {
+    final map = await _readMap();
+    final raw = map[_bottomNavStyleKey];
+    if (raw is String) return BottomNavStyle.fromJson(raw);
+    return BottomNavStyle.floating;
+  }
+
+  Future<void> writeBottomNavStyle(BottomNavStyle style) async {
+    final map = await _readMap();
+    map[_bottomNavStyleKey] = style.toJson();
     await _writeMap(map);
   }
 }

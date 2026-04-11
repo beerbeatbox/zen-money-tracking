@@ -17,6 +17,7 @@ import '../../features/home/presentation/screens/scheduled_transactions_search_s
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
+import '../../features/settings/presentation/screens/customize_screen.dart';
 import '../../features/settings/presentation/screens/expense_reminders_screen.dart';
 import '../../features/settings/presentation/screens/notification_settings_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -34,6 +35,7 @@ enum AppRouter {
   expenseLogsCsv,
   expenseReminders,
   notificationSettings,
+  customize,
   profile,
   scheduledTransactions,
   scheduledTransactionsSearch,
@@ -63,6 +65,8 @@ enum AppRouter {
         return '/settings/expense-reminders';
       case AppRouter.notificationSettings:
         return '/settings/notifications';
+      case AppRouter.customize:
+        return '/settings/customize';
       case AppRouter.profile:
         return '/profile';
       case AppRouter.scheduledTransactions:
@@ -187,6 +191,12 @@ GoRouter appRouter(Ref ref) {
         path: AppRouter.notificationSettings.path,
         name: AppRouter.notificationSettings.name,
         builder: (context, state) => const NotificationSettingsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRouter.customize.path,
+        name: AppRouter.customize.name,
+        builder: (context, state) => const CustomizeScreen(),
       ),
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,

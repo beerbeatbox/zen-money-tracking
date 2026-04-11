@@ -1,4 +1,6 @@
 import 'package:anti/core/constants/app_sizes.dart';
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/widgets/section_card.dart';
@@ -31,6 +33,9 @@ class _ScheduledTransactionsScreenState
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(scheduledTransactionsProvider);
     final filter = _filter;
+    final navStyle =
+        ref.watch(bottomNavStyleSettingControllerProvider).value ??
+        BottomNavStyle.floating;
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
@@ -41,7 +46,7 @@ class _ScheduledTransactionsScreenState
             24,
             24,
             24,
-            24 + Sizes.bottomNavInset(context),
+            24 + Sizes.bottomNavInset(context, navStyle),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

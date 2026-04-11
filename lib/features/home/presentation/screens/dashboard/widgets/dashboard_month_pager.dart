@@ -1,5 +1,8 @@
 import 'package:anti/core/constants/app_sizes.dart';
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DashboardMonthPager extends StatefulWidget {
   const DashboardMonthPager({
@@ -175,63 +178,72 @@ class _DashboardMonthPagerState extends State<DashboardMonthPager>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final scrollable = SingleChildScrollView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: widget.padding.copyWith(
-            bottom: widget.padding.bottom + Sizes.bottomNavInset(context),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              widget.header,
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  final slideOffset =
-                      _lastSwipeDirection == 0
-                          ? const Offset(0.2, 0)
-                          : Offset(_lastSwipeDirection * 0.2, 0);
+        return Consumer(
+          builder: (context, ref, _) {
+            final navStyle =
+                ref.watch(bottomNavStyleSettingControllerProvider).value ??
+                BottomNavStyle.floating;
+            final bottomInset = Sizes.bottomNavInset(context, navStyle);
 
-                  final tween = Tween<Offset>(
-                    begin: slideOffset,
-                    end: Offset.zero,
-                  ).chain(CurveTween(curve: Curves.easeOutCubic));
-
-                  final offsetAnimation = animation.drive(tween);
-
-                  return SlideTransition(
-                    position: offsetAnimation,
-                    child: FadeTransition(opacity: animation, child: child),
-                  );
-                },
-                child: Transform.translate(
-                  offset: Offset(_dragOffset, 0),
-                  child: widget.monthContent,
-                ),
+            final scrollable = SingleChildScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: widget.padding.copyWith(
+                bottom: widget.padding.bottom + bottomInset,
               ),
-            ],
-          ),
-        );
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  widget.header,
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final slideOffset =
+                          _lastSwipeDirection == 0
+                              ? const Offset(0.2, 0)
+                              : Offset(_lastSwipeDirection * 0.2, 0);
 
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onHorizontalDragUpdate: _onHorizontalDragUpdate,
-          onHorizontalDragEnd: _onHorizontalDragEnd,
-          onHorizontalDragCancel: _onHorizontalDragCancel,
-          child: SizedBox(
-            height: constraints.maxHeight,
-            child:
-                widget.onRefresh == null
-                    ? scrollable
-                    : RefreshIndicator(
-                      onRefresh: _handleRefresh,
-                      color: Colors.black,
-                      child: scrollable,
+                      final tween = Tween<Offset>(
+                        begin: slideOffset,
+                        end: Offset.zero,
+                      ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+                      final offsetAnimation = animation.drive(tween);
+
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: Transform.translate(
+                      offset: Offset(_dragOffset, 0),
+                      child: widget.monthContent,
                     ),
-          ),
+                  ),
+                ],
+              ),
+            );
+
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragUpdate: _onHorizontalDragUpdate,
+              onHorizontalDragEnd: _onHorizontalDragEnd,
+              onHorizontalDragCancel: _onHorizontalDragCancel,
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child:
+                    widget.onRefresh == null
+                        ? scrollable
+                        : RefreshIndicator(
+                          onRefresh: _handleRefresh,
+                          color: Colors.black,
+                          child: scrollable,
+                        ),
+              ),
+            );
+          },
         );
       },
     );

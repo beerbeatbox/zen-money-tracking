@@ -2,6 +2,8 @@ import 'package:anti/core/constants/app_sizes.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/widgets/section_card.dart';
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:anti/features/settings/presentation/screens/settings_events.dart';
 import 'package:anti/features/settings/presentation/widgets/outlined_confirmation_dialog.dart';
@@ -16,6 +18,10 @@ class SettingsScreen extends ConsumerWidget with SettingsEvents {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final navStyle =
+        ref.watch(bottomNavStyleSettingControllerProvider).value ??
+        BottomNavStyle.floating;
+
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: SafeArea(
@@ -25,7 +31,7 @@ class SettingsScreen extends ConsumerWidget with SettingsEvents {
             24,
             24,
             24,
-            24 + Sizes.bottomNavInset(context),
+            24 + Sizes.bottomNavInset(context, navStyle),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,6 +182,13 @@ class _SettingsList extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _SettingsCard(
+                icon: HeroIcons.paintBrush,
+                title: 'Customize',
+                subtitle: 'Choose how your bottom navigation looks',
+                onTap: () => context.pushNamed(AppRouter.customize.name),
+              ),
+              const SizedBox(height: 12),
+              _SettingsCard(
                 icon: HeroIcons.banknotes,
                 title: 'Budget',
                 onTap: () => context.pushNamed(AppRouter.budget.name),
@@ -274,12 +287,14 @@ class _SettingsCard extends StatelessWidget {
   const _SettingsCard({
     required this.icon,
     required this.title,
+    this.subtitle,
     this.color = Colors.black,
     required this.onTap,
   });
 
   final HeroIcons icon;
   final String title;
+  final String? subtitle;
   final Color color;
   final VoidCallback onTap;
 
@@ -312,6 +327,17 @@ class _SettingsCard extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ],
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:anti/features/settings/data/datasources/settings_local_datasource.dart';
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
 
 part 'settings_repository.g.dart';
 
@@ -37,6 +38,11 @@ class SettingsRepository {
 
   Future<void> setScheduledNotificationsEnabled(bool enabled) =>
       _datasource.writeScheduledNotificationsEnabled(enabled);
+
+  Future<BottomNavStyle> getBottomNavStyle() => _datasource.readBottomNavStyle();
+
+  Future<void> setBottomNavStyle(BottomNavStyle style) =>
+      _datasource.writeBottomNavStyle(style);
 }
 
 @riverpod

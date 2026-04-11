@@ -1,5 +1,7 @@
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -78,9 +80,13 @@ class ScaffoldWithNavBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final navStyleAsync = ref.watch(bottomNavStyleSettingControllerProvider);
+    final navStyle = navStyleAsync.value ?? BottomNavStyle.floating;
+
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: Stack(
+        clipBehavior: Clip.none,
         children: [
           navigationShell,
           Positioned(
@@ -90,6 +96,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
             child: CustomBottomNav(
               navigationShell: navigationShell,
               onAddPressed: () => _openKeyboard(context, ref),
+              style: navStyle,
             ),
           ),
         ],

@@ -1,4 +1,6 @@
 import 'package:anti/core/constants/app_sizes.dart';
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
@@ -236,7 +238,7 @@ class _MonthContent extends StatelessWidget {
   }
 }
 
-class _InsightStateWrapper extends StatefulWidget {
+class _InsightStateWrapper extends ConsumerStatefulWidget {
   const _InsightStateWrapper({
     required this.selectedMonth,
     required this.monthYearLabel,
@@ -258,10 +260,10 @@ class _InsightStateWrapper extends StatefulWidget {
   final Widget child;
 
   @override
-  State<_InsightStateWrapper> createState() => _InsightStateWrapperState();
+  ConsumerState<_InsightStateWrapper> createState() => _InsightStateWrapperState();
 }
 
-class _InsightStateWrapperState extends State<_InsightStateWrapper> {
+class _InsightStateWrapperState extends ConsumerState<_InsightStateWrapper> {
   late final ScrollController _scrollController;
 
   @override
@@ -297,6 +299,10 @@ class _InsightStateWrapperState extends State<_InsightStateWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    final navStyle =
+        ref.watch(bottomNavStyleSettingControllerProvider).value ??
+        BottomNavStyle.floating;
+
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       color: Colors.black,
@@ -307,7 +313,7 @@ class _InsightStateWrapperState extends State<_InsightStateWrapper> {
           24,
           24,
           24,
-          24 + Sizes.bottomNavInset(context),
+          24 + Sizes.bottomNavInset(context, navStyle),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

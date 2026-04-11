@@ -26,6 +26,8 @@ import 'package:anti/features/home/presentation/screens/dashboard/widgets/edit_d
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
+import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heroicons/heroicons.dart';
@@ -500,7 +502,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 }
 
-class _DashboardStateWrapper extends StatefulWidget {
+class _DashboardStateWrapper extends ConsumerStatefulWidget {
   const _DashboardStateWrapper({
     required this.monthYearLabel,
     required this.onPreviousMonth,
@@ -524,10 +526,11 @@ class _DashboardStateWrapper extends StatefulWidget {
   final Widget child;
 
   @override
-  State<_DashboardStateWrapper> createState() => _DashboardStateWrapperState();
+  ConsumerState<_DashboardStateWrapper> createState() =>
+      _DashboardStateWrapperState();
 }
 
-class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
+class _DashboardStateWrapperState extends ConsumerState<_DashboardStateWrapper> {
   late final ScrollController _scrollController;
 
   @override
@@ -563,6 +566,10 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    final navStyle =
+        ref.watch(bottomNavStyleSettingControllerProvider).value ??
+        BottomNavStyle.floating;
+
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       color: Colors.black,
@@ -573,7 +580,7 @@ class _DashboardStateWrapperState extends State<_DashboardStateWrapper> {
           24,
           24,
           24,
-          24 + Sizes.bottomNavInset(context),
+          24 + Sizes.bottomNavInset(context, navStyle),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
