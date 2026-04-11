@@ -248,26 +248,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     return spaced;
   }
 
-  double _spacingAfterSection(DashboardSectionId section) {
-    switch (section) {
-      case DashboardSectionId.budgetLeftToday:
-        return 16;
-      case DashboardSectionId.balance:
-        return 16;
-      case DashboardSectionId.incomeSpent:
-        return 16;
-      case DashboardSectionId.monthEndSufficiency:
-        return 32;
-      case DashboardSectionId.scheduledThisMonth:
-        return 32;
-      case DashboardSectionId.dueNow:
-        return 40;
-      case DashboardSectionId.recentActivity:
-        return 12;
-      case DashboardSectionId.spending:
-        return 16;
-    }
-  }
+  double _spacingAfterSection(DashboardSectionId _) => 16;
 
   @override
   Widget build(BuildContext context) {
