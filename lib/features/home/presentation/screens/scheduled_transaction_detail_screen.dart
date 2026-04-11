@@ -121,7 +121,10 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _ScheduledActionsRow(item: resolved),
+                        _ScheduledActionsRow(
+                          item: resolved,
+                          openedFromDueNow: openedFromDueNow,
+                        ),
                         if (openedFromDueNow) ...[
                           const SizedBox(height: 12),
                           OutlinedActionButton(
@@ -417,9 +420,13 @@ class _ScheduledDetailCard extends ConsumerWidget {
 }
 
 class _ScheduledActionsRow extends ConsumerWidget {
-  const _ScheduledActionsRow({required this.item});
+  const _ScheduledActionsRow({
+    required this.item,
+    this.openedFromDueNow = false,
+  });
 
   final ScheduledTransaction item;
+  final bool openedFromDueNow;
 
   String _formatInitialAmount(double value) {
     final asInt = value.toInt();
@@ -588,10 +595,11 @@ class _ScheduledActionsRow extends ConsumerWidget {
           duration: Duration(seconds: 2),
         ),
       );
-      // For one-time payments the item is deleted after conversion,
-      // so navigate back; recurring items stay and refresh automatically.
+      // One-time items are removed after conversion. Due now (dashboard) flow
+      // should return after marking paid; recurring from Scheduled stays here.
       if (!context.mounted) return;
-      if (item.frequency == PaymentFrequency.oneTime) {
+      if (item.frequency == PaymentFrequency.oneTime ||
+          openedFromDueNow) {
         context.pop();
       }
     } catch (_) {
