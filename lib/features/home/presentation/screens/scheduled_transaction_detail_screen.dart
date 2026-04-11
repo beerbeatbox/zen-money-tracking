@@ -22,10 +22,14 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
     super.key,
     required this.scheduledId,
     this.item,
+    this.openedFromDueNow = false,
   });
 
   final String scheduledId;
   final ScheduledTransaction? item;
+
+  /// True when opened from dashboard Due now (skip flow, hide delete-all).
+  final bool openedFromDueNow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,33 +64,34 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          Builder(
-            builder: (context) {
-              return itemsAsync.when(
-                data: (items) {
-                  final resolved = _resolveItem(items);
-                  if (resolved == null) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      splashRadius: 20,
-                      onPressed: () => _handleDelete(context, ref, resolved),
-                      icon: const HeroIcon(
-                        HeroIcons.trash,
-                        size: 24,
-                        color: Colors.red,
+          if (!openedFromDueNow)
+            Builder(
+              builder: (context) {
+                return itemsAsync.when(
+                  data: (items) {
+                    final resolved = _resolveItem(items);
+                    if (resolved == null) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        splashRadius: 20,
+                        onPressed: () => _handleDelete(context, ref, resolved),
+                        icon: const HeroIcon(
+                          HeroIcons.trash,
+                          size: 24,
+                          color: Colors.red,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              );
-            },
-          ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                );
+              },
+            ),
         ],
       ),
       body: SafeArea(
@@ -112,7 +117,34 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  SectionCard(child: _ScheduledActionsRow(item: resolved)),
+                  SectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ScheduledActionsRow(item: resolved),
+                        if (openedFromDueNow) ...[
+                          const SizedBox(height: 12),
+                          OutlinedActionButton(
+                            label:
+                                resolved.isActive
+                                    ? 'Skip this payment'
+                                    : 'Paused',
+                            onPressed:
+                                !resolved.isActive
+                                    ? null
+                                    : () => _showSkipConfirmation(
+                                      context,
+                                      ref,
+                                      resolved,
+                                    ),
+                            textColor: Colors.black,
+                            borderColor: Colors.black,
+                            backgroundColor: Colors.white,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
             );
@@ -163,6 +195,67 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
         const SnackBar(
           behavior: SnackBarBehavior.floating,
           content: Text('Scheduled payment removed.'),
+        ),
+      );
+      context.pop();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text("Let's try that again."),
+        ),
+      );
+    }
+  }
+
+  Future<void> _showSkipConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduledTransaction item,
+  ) async {
+    final isOneTime = item.frequency == PaymentFrequency.oneTime;
+    final description =
+        isOneTime
+            ? 'This one-time payment will be removed from your schedule. You can add it again anytime.'
+            : 'Your next due date will move forward. Nothing is logged as paid.';
+
+    final shouldSkip = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (ctx) => OutlinedConfirmationDialog(
+            title: 'Skip this payment?',
+            description: description,
+            primaryLabel: 'Skip',
+            onPrimaryPressed: () => Navigator.of(ctx).pop(true),
+            secondaryLabel: 'Keep scheduled',
+            onSecondaryPressed: () => Navigator.of(ctx).pop(false),
+          ),
+    );
+
+    if (shouldSkip != true) return;
+    if (!context.mounted) return;
+
+    await _handleSkip(context, ref, item);
+  }
+
+  Future<void> _handleSkip(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduledTransaction item,
+  ) async {
+    try {
+      await ref.read(skipScheduledTransactionActionProvider(item).future);
+      if (!context.mounted) return;
+      final message =
+          item.frequency == PaymentFrequency.oneTime
+              ? 'Removed from your schedule.'
+              : 'Your next due date is updated.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(message),
         ),
       );
       context.pop();
@@ -460,6 +553,7 @@ class _ScheduledActionsRow extends ConsumerWidget {
     );
 
     if (shouldMarkAsPaid != true) return;
+    if (!context.mounted) return;
 
     await _handleMarkAsPaid(context, ref);
   }

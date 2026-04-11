@@ -75,6 +75,23 @@ class ScheduledTransactionService {
     );
     await updateScheduledTransaction(scheduled.copyWith(scheduledDate: next));
   }
+
+  /// Skips the current due occurrence without creating an expense log.
+  /// One-time schedules are removed; recurring schedules advance [scheduledDate].
+  Future<void> skipScheduledOccurrence(ScheduledTransaction scheduled) async {
+    if (scheduled.frequency == PaymentFrequency.oneTime) {
+      await deleteScheduledTransaction(scheduled.id);
+      return;
+    }
+
+    final next = nextDueDate(
+      from: scheduled.scheduledDate,
+      frequency: scheduled.frequency,
+      intervalCount: scheduled.intervalCount,
+      intervalUnit: scheduled.intervalUnit,
+    );
+    await updateScheduledTransaction(scheduled.copyWith(scheduledDate: next));
+  }
 }
 
 @riverpod

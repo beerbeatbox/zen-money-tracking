@@ -230,7 +230,13 @@ GoRouter appRouter(Ref ref) {
           final extra = state.extra;
           final item = extra is ScheduledTransaction ? extra : null;
           final id = state.pathParameters['id'] ?? item?.id ?? '';
-          return ScheduledTransactionDetailScreen(scheduledId: id, item: item);
+          final openedFromDueNow =
+              state.uri.queryParameters['dueNow'] == '1';
+          return ScheduledTransactionDetailScreen(
+            scheduledId: id,
+            item: item,
+            openedFromDueNow: openedFromDueNow,
+          );
         },
       ),
       ...profileRouter,

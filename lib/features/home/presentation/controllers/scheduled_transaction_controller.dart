@@ -118,6 +118,36 @@ class ScheduledTransactionController extends _$ScheduledTransactionController {
       }
     }
   }
+
+  Future<void> skipOccurrence(ScheduledTransaction item) async {
+    final scheduledService = ref.read(scheduledTransactionServiceProvider);
+    await scheduledService.skipScheduledOccurrence(item);
+
+    await _notificationService.cancelScheduledTransactionNotification(item.id);
+
+    if (!ref.mounted) return;
+    ref.invalidate(scheduledTransactionsProvider);
+    final updatedTransactions = await ref.read(scheduledTransactionsProvider.future);
+
+    if (item.frequency == PaymentFrequency.oneTime) return;
+
+    final updatedItem = updatedTransactions.firstWhere(
+      (t) => t.id == item.id,
+      orElse: () => item,
+    );
+    if (updatedItem.id != item.id) return;
+
+    final today = DateTime.now();
+    final scheduledDay = DateTime(
+      updatedItem.scheduledDate.year,
+      updatedItem.scheduledDate.month,
+      updatedItem.scheduledDate.day,
+    );
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    if (updatedItem.isActive && !scheduledDay.isAfter(todayOnly)) {
+      await _handleNotificationForTransaction(updatedItem, true);
+    }
+  }
 }
 
 @riverpod
@@ -148,6 +178,15 @@ Future<void> convertScheduledTransactionToLogAction(
 ) async {
   final controller = ref.read(scheduledTransactionControllerProvider.notifier);
   await controller.convertToLog(item);
+}
+
+@riverpod
+Future<void> skipScheduledTransactionAction(
+  Ref ref,
+  ScheduledTransaction item,
+) async {
+  final controller = ref.read(scheduledTransactionControllerProvider.notifier);
+  await controller.skipOccurrence(item);
 }
 
 

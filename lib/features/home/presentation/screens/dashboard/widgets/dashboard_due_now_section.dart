@@ -37,10 +37,10 @@ class DashboardDueNowSection extends ConsumerWidget {
               item: item,
               onEdit:
                   () => context.push(
-                    AppRouter.scheduledTransactionDetail.path.replaceFirst(
+                    '${AppRouter.scheduledTransactionDetail.path.replaceFirst(
                       ':id',
                       item.id,
-                    ),
+                    )}?dueNow=1',
                     extra: item,
                   ),
               showStatusLabel: true,
