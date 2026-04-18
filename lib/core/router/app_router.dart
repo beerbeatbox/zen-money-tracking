@@ -7,6 +7,7 @@ import '../../features/home/domain/entities/expense_log.dart';
 import '../../features/home/domain/entities/scheduled_transaction.dart';
 import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
 import '../../features/home/presentation/screens/budget_screen.dart';
+import '../../features/home/presentation/screens/daily_recap_screen.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/expense_logs_csv_screen.dart';
@@ -41,7 +42,8 @@ enum AppRouter {
   scheduledTransactionsSearch,
   addScheduledTransaction,
   scheduledTransactionDetail,
-  expenseLogDetail;
+  expenseLogDetail,
+  dailyRecap;
 
   String get path {
     switch (this) {
@@ -79,6 +81,8 @@ enum AppRouter {
         return '/scheduled-transactions/:id';
       case AppRouter.expenseLogDetail:
         return '/logs/:id';
+      case AppRouter.dailyRecap:
+        return '/daily-recap';
     }
   }
 }
@@ -213,6 +217,17 @@ GoRouter appRouter(Ref ref) {
           final log = extra is ExpenseLog ? extra : null;
           final logId = state.pathParameters['id'] ?? log?.id ?? '';
           return ExpenseLogDetailScreen(logId: logId, log: log);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRouter.dailyRecap.path,
+        name: AppRouter.dailyRecap.name,
+        builder: (context, state) {
+          final raw = state.uri.queryParameters['date'];
+          final parsed = parseDailyRecapDateFromQuery(raw);
+          final fallback = DateTime.now().subtract(const Duration(days: 1));
+          return DailyRecapScreen(recapDate: parsed ?? fallback);
         },
       ),
       GoRoute(

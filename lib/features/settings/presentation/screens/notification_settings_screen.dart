@@ -1,5 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/widgets/section_card.dart';
+import 'package:anti/features/settings/presentation/controllers/daily_recap_notification_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/expense_reminder_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/notification_settings_controller.dart';
 import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
@@ -22,6 +23,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheduledNotificationsAsync =
         ref.watch(notificationSettingsControllerProvider);
+    final dailyRecapAsync = ref.watch(dailyRecapNotificationControllerProvider);
     final remindersAsync = ref.watch(expenseReminderControllerProvider);
 
     return Scaffold(
@@ -41,6 +43,19 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   onToggle: (value) async {
                     await ref
                         .read(notificationSettingsControllerProvider.notifier)
+                        .setEnabled(value);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              SectionCard(
+                child: _DailyRecapNotificationSection(
+                  dailyRecapAsync: dailyRecapAsync,
+                  onToggle: (value) async {
+                    await ref
+                        .read(
+                          dailyRecapNotificationControllerProvider.notifier,
+                        )
                         .setEnabled(value);
                   },
                 ),
@@ -159,6 +174,71 @@ class _ScheduledNotificationsSection extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Get notified daily at 9 AM for due scheduled payments',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Switch(
+          value: enabled,
+          onChanged: canToggle ? onToggle : null,
+          activeColor: Colors.green,
+          inactiveThumbColor: Colors.black,
+          inactiveTrackColor: Colors.grey[300],
+        ),
+      ],
+    );
+  }
+}
+
+class _DailyRecapNotificationSection extends StatelessWidget {
+  const _DailyRecapNotificationSection({
+    required this.dailyRecapAsync,
+    required this.onToggle,
+  });
+
+  final AsyncValue<bool> dailyRecapAsync;
+  final Future<void> Function(bool) onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = dailyRecapAsync.value ?? true;
+    final canToggle = !dailyRecapAsync.isLoading;
+
+    return Row(
+      children: [
+        const SizedBox(
+          width: 32,
+          height: 32,
+          child: HeroIcon(
+            HeroIcons.sparkles,
+            style: HeroIconStyle.outline,
+            color: Colors.black,
+            size: 22,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'DAILY RECAP',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Get your daily spending recap every morning at 8 AM',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

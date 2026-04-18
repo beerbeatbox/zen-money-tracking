@@ -30,6 +30,8 @@ class SettingsLocalDatasource {
   static const _customBudgetAmountKey = 'custom_budget_amount';
   static const _expenseRemindersKey = 'expense_reminders';
   static const _scheduledNotificationsEnabledKey = 'scheduled_notifications_enabled';
+  static const _dailyRecapNotificationEnabledKey =
+      'daily_recap_notification_enabled';
   static const _bottomNavStyleKey = 'bottom_nav_style';
 
   Future<File> _ensureFile() async {
@@ -146,6 +148,19 @@ class SettingsLocalDatasource {
   Future<void> writeScheduledNotificationsEnabled(bool enabled) async {
     final map = await _readMap();
     map[_scheduledNotificationsEnabledKey] = enabled;
+    await _writeMap(map);
+  }
+
+  Future<bool> readDailyRecapNotificationEnabled() async {
+    final map = await _readMap();
+    final raw = map[_dailyRecapNotificationEnabledKey];
+    if (raw is bool) return raw;
+    return true;
+  }
+
+  Future<void> writeDailyRecapNotificationEnabled(bool enabled) async {
+    final map = await _readMap();
+    map[_dailyRecapNotificationEnabledKey] = enabled;
     await _writeMap(map);
   }
 

@@ -11,12 +11,16 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../features/home/domain/entities/scheduled_transaction.dart';
+import '../../features/home/presentation/screens/daily_recap_screen.dart';
 import '../router/app_router.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
+
+  /// Fixed ID for the daily recap notification (avoid 100000–999999: scheduled txns).
+  static const int dailyRecapNotificationId = 50000;
 
   static const _timezoneChannel = MethodChannel(
     'com.dopaminelab.thumby/timezone',
@@ -188,6 +192,17 @@ class NotificationService {
     if (payload != null && payload.isNotEmpty) {
       try {
         final data = jsonDecode(payload) as Map<String, dynamic>;
+        final type = data['type'] as String?;
+        if (type == 'daily_recap') {
+          final dateStr = data['date'] as String?;
+          final parsed = parseDailyRecapDateFromQuery(dateStr);
+          final fallback = DateTime.now().subtract(const Duration(days: 1));
+          final date = parsed ?? fallback;
+          navigatorKey.currentContext!.go(
+            '${AppRouter.dailyRecap.path}?date=${formatDailyRecapQueryDate(date)}',
+          );
+          return;
+        }
         final scheduledId = data['scheduledId'] as String?;
         if (scheduledId != null) {
           // Navigate to scheduled transaction detail
@@ -562,6 +577,100 @@ class NotificationService {
     } catch (e) {
       developer.log(
         'Error cancelling scheduled transaction notification: $e',
+        name: 'NotificationService',
+      );
+    }
+  }
+
+  Future<bool> scheduleDailyRecapNotification() async {
+    try {
+      if (!_initialized) await initialize();
+
+      if (!_permissionsGranted) {
+        _permissionsGranted = await hasPermissions();
+        if (!_permissionsGranted) {
+          developer.log(
+            'Cannot schedule daily recap: permissions not granted',
+            name: 'NotificationService',
+          );
+          return false;
+        }
+      }
+
+      final now = tz.TZDateTime.now(tz.local);
+      var scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        8,
+        0,
+      );
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+
+      final recapDate = scheduledDate.subtract(const Duration(days: 1));
+      final dateStr =
+          '${recapDate.year}-${recapDate.month.toString().padLeft(2, '0')}-${recapDate.day.toString().padLeft(2, '0')}';
+      final payload = jsonEncode({'type': 'daily_recap', 'date': dateStr});
+
+      developer.log(
+        'Scheduling daily recap notification for $scheduledDate (recap date $dateStr)',
+        name: 'NotificationService',
+      );
+
+      await _notifications.zonedSchedule(
+        dailyRecapNotificationId,
+        'Your daily recap is ready',
+        'See yesterday\'s spending insights',
+        scheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'daily_recap',
+            'Daily recap',
+            channelDescription: 'Summary of your previous day\'s spending',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            threadIdentifier: 'daily_recap',
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+        payload: payload,
+      );
+
+      final pending = await _notifications.pendingNotificationRequests();
+      return pending.any((n) => n.id == dailyRecapNotificationId);
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error scheduling daily recap notification: $e',
+        name: 'NotificationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
+
+  Future<void> cancelDailyRecapNotification() async {
+    try {
+      if (!_initialized) return;
+      await _notifications.cancel(dailyRecapNotificationId);
+      developer.log(
+        'Cancelled daily recap notification',
+        name: 'NotificationService',
+      );
+    } catch (e) {
+      developer.log(
+        'Error cancelling daily recap notification: $e',
         name: 'NotificationService',
       );
     }
