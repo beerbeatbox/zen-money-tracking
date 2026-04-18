@@ -126,12 +126,19 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
       _NumberKeyboardBottomSheetState();
 }
 
+enum _SheetStep {
+  amount,
+  details,
+}
+
 class _NumberKeyboardBottomSheetState
     extends ConsumerState<NumberKeyboardBottomSheet> {
   String _value = '';
   bool _ctaPressed = false;
   bool _closePressed = false;
   Timer? _backspaceHoldTimer;
+  late _SheetStep _step;
+  late PageController _pageController;
   late bool _isExpense;
   late DateTime _logDateTime;
   late String _selectedCategory;
@@ -193,6 +200,8 @@ class _NumberKeyboardBottomSheetState
   @override
   void initState() {
     super.initState();
+    _step = _SheetStep.amount;
+    _pageController = PageController();
     _isExpense = widget.initialIsExpense;
     _value = widget.initialValue ?? '';
     _logDateTime = widget.initialLogDateTime ?? DateTime.now();
@@ -418,9 +427,20 @@ class _NumberKeyboardBottomSheetState
     setState(() => _logDateTime = picked);
   }
 
+  void _goToStep(_SheetStep step) {
+    if (!mounted) return;
+    setState(() => _step = step);
+    _pageController.animateToPage(
+      step.index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
   @override
   void dispose() {
     _backspaceHoldTimer?.cancel();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -491,8 +511,7 @@ class _NumberKeyboardBottomSheetState
 
     final mediaQuery = MediaQuery.of(context);
     final bottomPadding = mediaQuery.viewInsets.bottom;
-    final sheetHeight =
-        mediaQuery.size.height - kToolbarHeight - mediaQuery.padding.top;
+    final sheetHeight = mediaQuery.size.height * 0.55;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -514,79 +533,92 @@ class _NumberKeyboardBottomSheetState
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        if (widget.showFrequencyChips) ...[
-                          _FrequencyToggle(value: _frequency, onChanged: _setFrequency),
-                          if (_frequency == PaymentFrequency.interval) ...[
-                            const SizedBox(height: 12),
-                            _IntervalPicker(
-                              count: _intervalCount ?? 1,
-                              unit: _intervalUnit ?? IntervalUnit.months,
-                              onChanged: _setInterval,
-                            ),
-                          ],
-                          const SizedBox(height: 14),
-                          _AmountTypeToggle(
-                            value: _isDynamicAmount,
-                            onChanged: _setDynamicAmount,
-                          ),
-                          if (_isDynamicAmount) ...[
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(
-                                'This amount will be used for calculations. You\'ll enter the actual amount when you mark it as paid.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[600],
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 14),
-                        ],
-                        Center(
-                          child: ExpenseTypeToggle(
-                            isExpense: _isExpense,
-                            onChanged: _updateExpenseType,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _CategorySection(
-                          selected: _selectedCategory,
-                          onChanged: _setCategory,
-                          categories: _availableCategories,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
                 Center(
                   child: _LogTimeSection(
                     label: _logTimeLabel,
                     onTap: _onLogTimeTap,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 16),
                 Center(child: _AmountHeader(value: _displayValue)),
-                Center(
-                  child: FractionallySizedBox(
-                    widthFactor: 0.65,
-                    child: _NumberPad(
-                      onKeyTap: _onKeyTap,
-                      onBackspace: _onBackspace,
-                      onBackspaceHoldStart: _startBackspaceHold,
-                      onBackspaceHoldEnd: _stopBackspaceHold,
-                    ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      Center(
+                        child: FractionallySizedBox(
+                          widthFactor: 0.65,
+                          child: _NumberPad(
+                            onKeyTap: _onKeyTap,
+                            onBackspace: _onBackspace,
+                            onBackspaceHoldStart: _startBackspaceHold,
+                            onBackspaceHoldEnd: _stopBackspaceHold,
+                          ),
+                        ),
+                      ),
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(
+                              child: ExpenseTypeToggle(
+                                isExpense: _isExpense,
+                                onChanged: _updateExpenseType,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _CategorySection(
+                              selected: _selectedCategory,
+                              onChanged: _setCategory,
+                              categories: _availableCategories,
+                            ),
+                            if (widget.showFrequencyChips) ...[
+                              const SizedBox(height: 14),
+                              _FrequencyToggle(
+                                value: _frequency,
+                                onChanged: _setFrequency,
+                              ),
+                              if (_frequency == PaymentFrequency.interval) ...[
+                                const SizedBox(height: 12),
+                                _IntervalPicker(
+                                  count: _intervalCount ?? 1,
+                                  unit:
+                                      _intervalUnit ?? IntervalUnit.months,
+                                  onChanged: _setInterval,
+                                ),
+                              ],
+                              const SizedBox(height: 14),
+                              _AmountTypeToggle(
+                                value: _isDynamicAmount,
+                                onChanged: _setDynamicAmount,
+                              ),
+                              if (_isDynamicAmount) ...[
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  child: Text(
+                                    'This amount will be used for calculations. You\'ll enter the actual amount when you mark it as paid.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[600],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -597,10 +629,10 @@ class _NumberKeyboardBottomSheetState
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey[300]!),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'Close',
-                            style: TextStyle(
+                            _step == _SheetStep.amount ? 'Cancel' : '← Back',
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Colors.black,
@@ -611,7 +643,13 @@ class _NumberKeyboardBottomSheetState
                         onTapDown: (_) => _setClosePressed(true),
                         onTapUp: (_) => _releaseCloseWithPause(),
                         onTapCancel: () => _releaseCloseWithPause(),
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () {
+                          if (_step == _SheetStep.amount) {
+                            Navigator.of(context).pop();
+                          } else {
+                            _goToStep(_SheetStep.amount);
+                          }
+                        },
                         behavior: HitTestBehavior.opaque,
                       ),
                     ),
@@ -624,10 +662,10 @@ class _NumberKeyboardBottomSheetState
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.black),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'Save',
-                            style: TextStyle(
+                            _step == _SheetStep.amount ? 'Next' : 'Save',
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -638,7 +676,13 @@ class _NumberKeyboardBottomSheetState
                         onTapDown: (_) => _setCtaPressed(true),
                         onTapUp: (_) => _releaseCtaWithPause(),
                         onTapCancel: () => _releaseCtaWithPause(),
-                        onTap: _submit,
+                        onTap: () {
+                          if (_step == _SheetStep.amount) {
+                            _goToStep(_SheetStep.details);
+                          } else {
+                            _submit();
+                          }
+                        },
                         behavior: HitTestBehavior.opaque,
                       ),
                     ),
