@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:anti/core/controllers/amount_mask_controller.dart';
 import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/core/controllers/amount_mask_controller.dart';
 
 class DashboardBalanceSection extends ConsumerWidget {
   const DashboardBalanceSection({
