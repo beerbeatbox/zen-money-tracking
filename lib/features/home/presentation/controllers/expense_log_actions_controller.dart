@@ -59,6 +59,18 @@ class ExpenseLogActionsController extends _$ExpenseLogActionsController {
     ref.invalidate(expenseLogsProvider);
     await ref.read(expenseLogsProvider.future);
   }
+
+  /// Replaces [originalId] with [newLogs] in one write (split transaction).
+  Future<void> splitExpenseLog(String originalId, List<ExpenseLog> newLogs) async {
+    final service = ref.read(expenseLogServiceProvider);
+    final logs = await service.getExpenseLogs();
+    final without = logs.where((l) => l.id != originalId).toList();
+    await service.setExpenseLogs([...without, ...newLogs]);
+
+    if (!ref.mounted) return;
+    ref.invalidate(expenseLogsProvider);
+    await ref.read(expenseLogsProvider.future);
+  }
 }
 
 @riverpod
@@ -83,6 +95,15 @@ Future<void> deleteExpenseLogAction(Ref ref, String logId) async {
 Future<void> updateExpenseLogAction(Ref ref, ExpenseLog log) async {
   final controller = ref.read(expenseLogActionsControllerProvider.notifier);
   await controller.updateExpenseLog(log);
+}
+
+@riverpod
+Future<void> splitExpenseLogAction(
+  Ref ref,
+  ({String originalId, List<ExpenseLog> newLogs}) args,
+) async {
+  final controller = ref.read(expenseLogActionsControllerProvider.notifier);
+  await controller.splitExpenseLog(args.originalId, args.newLogs);
 }
 
 const _widgetChannel = MethodChannel('com.dopaminelab.thumby/widget');

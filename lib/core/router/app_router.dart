@@ -9,6 +9,7 @@ import '../../features/home/presentation/screens/add_scheduled_transaction_scree
 import '../../features/home/presentation/screens/budget_screen.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
+import '../../features/home/presentation/screens/split_log_screen.dart';
 import '../../features/home/presentation/screens/expense_logs_csv_screen.dart';
 import '../../features/home/presentation/screens/insight_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transaction_detail_screen.dart';
@@ -41,7 +42,8 @@ enum AppRouter {
   scheduledTransactionsSearch,
   addScheduledTransaction,
   scheduledTransactionDetail,
-  expenseLogDetail;
+  expenseLogDetail,
+  splitLog;
 
   String get path {
     switch (this) {
@@ -79,6 +81,8 @@ enum AppRouter {
         return '/scheduled-transactions/:id';
       case AppRouter.expenseLogDetail:
         return '/logs/:id';
+      case AppRouter.splitLog:
+        return '/logs/:id/split';
     }
   }
 }
@@ -203,6 +207,17 @@ GoRouter appRouter(Ref ref) {
         path: AppRouter.budget.path,
         name: AppRouter.budget.name,
         builder: (context, state) => const BudgetScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRouter.splitLog.path,
+        name: AppRouter.splitLog.name,
+        builder: (context, state) {
+          final extra = state.extra;
+          final log = extra is ExpenseLog ? extra : null;
+          final logId = state.pathParameters['id'] ?? log?.id ?? '';
+          return SplitLogScreen(logId: logId, log: log);
+        },
       ),
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,

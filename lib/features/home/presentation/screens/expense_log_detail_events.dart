@@ -10,4 +10,17 @@ mixin ExpenseLogDetailEvents {
   Future<void> updateLog(WidgetRef ref, ExpenseLog updatedLog) async {
     await ref.read(updateExpenseLogActionProvider(updatedLog).future);
   }
+
+  Future<void> splitLog(
+    WidgetRef ref,
+    String originalId,
+    List<ExpenseLog> newLogs,
+  ) async {
+    await ref.read(
+      splitExpenseLogActionProvider((
+        originalId: originalId,
+        newLogs: newLogs,
+      )).future,
+    );
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:anti/core/controllers/amount_mask_controller.dart';
+import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/core/widgets/section_card.dart';
@@ -312,62 +313,86 @@ class _LogActionsRow extends ConsumerWidget with ExpenseLogDetailEvents {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return OutlinedActionButton(
-      label: 'Edit',
-      onPressed: () async {
-        await showNumberKeyboardBottomSheet(
-          context,
-          initialIsExpense: log.amount < 0,
-          initialValue: _formatInitialAmount(log.amount.abs()),
-          initialLogDateTime: log.createdAt,
-          initialCategory: log.category,
-          onSubmit: (
-            sheetContext,
-            rawValue,
-            isExpense,
-            logDateTime,
-            category,
-            frequency,
-            intervalCount,
-            intervalUnit,
-            isDynamicAmount,
-            budgetAmount,
-          ) async {
-            final parsed = double.tryParse(rawValue);
-            if (parsed == null) {
-              _showSnack(sheetContext, 'Please enter a valid number.');
-              return false;
-            }
-            if (parsed <= 0) {
-              _showSnack(
-                sheetContext,
-                'Add an amount above zero to save changes.',
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedActionButton(
+            label: 'Edit',
+            onPressed: () async {
+              await showNumberKeyboardBottomSheet(
+                context,
+                initialIsExpense: log.amount < 0,
+                initialValue: _formatInitialAmount(log.amount.abs()),
+                initialLogDateTime: log.createdAt,
+                initialCategory: log.category,
+                onSubmit: (
+                  sheetContext,
+                  rawValue,
+                  isExpense,
+                  logDateTime,
+                  category,
+                  frequency,
+                  intervalCount,
+                  intervalUnit,
+                  isDynamicAmount,
+                  budgetAmount,
+                ) async {
+                  final parsed = double.tryParse(rawValue);
+                  if (parsed == null) {
+                    _showSnack(sheetContext, 'Please enter a valid number.');
+                    return false;
+                  }
+                  if (parsed <= 0) {
+                    _showSnack(
+                      sheetContext,
+                      'Add an amount above zero to save changes.',
+                    );
+                    return false;
+                  }
+
+                  final updated = ExpenseLog(
+                    id: log.id,
+                    timeLabel: _formatTimeLabel(logDateTime),
+                    category: category,
+                    amount: isExpense ? -parsed.abs() : parsed.abs(),
+                    createdAt: logDateTime,
+                  );
+
+                  try {
+                    await updateLog(ref, updated);
+                    return true;
+                  } catch (_) {
+                    if (!sheetContext.mounted) return false;
+                    _showSnack(sheetContext, "Let's try that again.");
+                    return false;
+                  }
+                },
               );
-              return false;
-            }
-
-            final updated = ExpenseLog(
-              id: log.id,
-              timeLabel: _formatTimeLabel(logDateTime),
-              category: category,
-              amount: isExpense ? -parsed.abs() : parsed.abs(),
-              createdAt: logDateTime,
-            );
-
-            try {
-              await updateLog(ref, updated);
-              return true;
-            } catch (_) {
-              if (!sheetContext.mounted) return false;
-              _showSnack(sheetContext, "Let's try that again.");
-              return false;
-            }
-          },
-        );
-      },
-      textColor: Colors.black,
-      borderColor: Colors.black,
-      backgroundColor: Colors.white,
+            },
+            textColor: Colors.black,
+            borderColor: Colors.black,
+            backgroundColor: Colors.white,
+          ),
+        ),
+        if (log.amount < 0) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedActionButton(
+              label: 'Split',
+              onPressed: () {
+                context.pushNamed(
+                  AppRouter.splitLog.name,
+                  pathParameters: {'id': log.id},
+                  extra: log,
+                );
+              },
+              textColor: Colors.black,
+              borderColor: Colors.black,
+              backgroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
