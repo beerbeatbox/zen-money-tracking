@@ -1,7 +1,9 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/daily_recap_data.dart';
+import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/daily_recap_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +27,9 @@ DateTime? parseDailyRecapDateFromQuery(String? value) {
   return DateTime(y, m, d);
 }
 
+/// Ink color for text and chrome on daily recap light slides.
+const Color _kDailyRecapInk = Color(0xFF0A0A0A);
+
 class DailyRecapScreen extends ConsumerStatefulWidget {
   const DailyRecapScreen({super.key, required this.recapDate});
 
@@ -34,13 +39,10 @@ class DailyRecapScreen extends ConsumerStatefulWidget {
   ConsumerState<DailyRecapScreen> createState() => _DailyRecapScreenState();
 }
 
-class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
-    with TickerProviderStateMixin {
-  static const _slideCount = 6;
-  static const _segmentDuration = Duration(seconds: 5);
+class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
+  static const _slideCount = 7;
 
   late final PageController _pageController;
-  late AnimationController _progressController;
 
   int _pageIndex = 0;
   DateTime? _pointerDownTime;
@@ -50,25 +52,6 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
-    _progressController = AnimationController(
-      vsync: this,
-      duration: _segmentDuration,
-    )..addStatusListener(_onProgressStatus);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _progressController.forward(from: 0);
-    });
-  }
-
-  void _onProgressStatus(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
-      _goToNextSlide();
-    }
-  }
-
-  void _resetProgress() {
-    _progressController
-      ..reset()
-      ..forward();
   }
 
   void _goToNextSlide() {
@@ -93,20 +76,16 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeOutCubic,
       );
-    } else {
-      _resetProgress();
     }
   }
 
   void _onPageChanged(int index) {
     setState(() => _pageIndex = index);
-    _resetProgress();
   }
 
   void _handlePointerDown(PointerDownEvent e) {
     _pointerDownTime = DateTime.now();
     _pointerDownPosition = e.localPosition;
-    _progressController.stop();
   }
 
   void _handlePointerUp(PointerUpEvent e) {
@@ -115,10 +94,7 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
     _pointerDownTime = null;
     _pointerDownPosition = null;
 
-    if (downTime == null || downPos == null) {
-      _progressController.forward();
-      return;
-    }
+    if (downTime == null || downPos == null) return;
 
     final elapsed = DateTime.now().difference(downTime);
     final width = MediaQuery.sizeOf(context).width;
@@ -128,24 +104,17 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
         _goToPreviousSlide();
       } else if (downPos.dx > 2 * width / 3) {
         _goToNextSlide();
-      } else {
-        _progressController.forward();
       }
-    } else {
-      _progressController.forward();
     }
   }
 
   void _handlePointerCancel(PointerCancelEvent e) {
     _pointerDownTime = null;
     _pointerDownPosition = null;
-    _progressController.forward();
   }
 
   @override
   void dispose() {
-    _progressController.removeStatusListener(_onProgressStatus);
-    _progressController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -157,17 +126,20 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
 
     return asyncData.when(
       data: (data) => _buildStory(context, data),
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
-        backgroundColor: Colors.black,
-      ),
+      loading:
+          () => const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: _kDailyRecapInk),
+            ),
+            backgroundColor: Color(0xFFF5F5F5),
+          ),
       error:
           (_, __) => Scaffold(
-            backgroundColor: Colors.black,
+            backgroundColor: const Color(0xFFF5F5F5),
             appBar: AppBar(
-              backgroundColor: Colors.black,
+              backgroundColor: const Color(0xFFF5F5F5),
               leading: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
+                icon: const Icon(Icons.close, color: _kDailyRecapInk),
                 onPressed: () => context.pop(),
               ),
             ),
@@ -178,7 +150,7 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
                   'Something went wrong. Close and try again.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: _kDailyRecapInk,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -207,27 +179,38 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
                 child: _StoryProgressBar(
                   segmentCount: _slideCount,
                   activeIndex: _pageIndex,
-                  progress: _progressController,
                 ),
               ),
               Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                  icon: const Icon(Icons.close, color: _kDailyRecapInk, size: 28),
                   onPressed: () => context.pop(),
                 ),
               ),
               Expanded(
                 child: PageView(
                   controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: _onPageChanged,
                   children: [
                     _IntroSlide(data: data, backgroundColor: colors[0]),
                     _TotalSpentSlide(data: data, backgroundColor: colors[1]),
                     _TopCategorySlide(data: data, backgroundColor: colors[2]),
-                    _TransactionCountSlide(data: data, backgroundColor: colors[3]),
-                    _BiggestExpenseSlide(data: data, backgroundColor: colors[4]),
-                    _OutroSlide(data: data, backgroundColor: colors[5]),
+                    _TransactionCountSlide(
+                      data: data,
+                      backgroundColor: colors[3],
+                    ),
+                    _BiggestExpenseSlide(
+                      data: data,
+                      backgroundColor: colors[4],
+                    ),
+                    _SpendingTimelineSlide(
+                      data: data,
+                      backgroundColor: colors[5],
+                      isActive: _pageIndex == 5,
+                    ),
+                    _OutroSlide(data: data, backgroundColor: colors[6]),
                   ],
                 ),
               ),
@@ -240,15 +223,16 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen>
 
   List<Color> _slideBackgrounds(bool hasActivity) {
     const palette = <Color>[
-      Color(0xFF0D9488),
-      Color(0xFFDB2777),
-      Color(0xFF7C3AED),
-      Color(0xFFEA580C),
-      Color(0xFF2563EB),
-      Color(0xFF059669),
+      Color(0xFFFFFFFF), // white          – intro
+      Color(0xFFFAFAFA), // off-white      – total spent
+      Color(0xFFF5F5F5), // light grey     – top category
+      Color(0xFFF0F0F0), // grey tint      – transaction count
+      Color(0xFFFAFAFA), // off-white      – biggest expense
+      Color(0xFFFCFCFC), // near-white     – spending timeline
+      Color(0xFFFFFFFF), // white          – outro
     ];
     if (!hasActivity) {
-      return List<Color>.filled(_slideCount, const Color(0xFF475569));
+      return List<Color>.filled(_slideCount, const Color(0xFFF3F3F3));
     }
     return palette;
   }
@@ -258,54 +242,42 @@ class _StoryProgressBar extends StatelessWidget {
   const _StoryProgressBar({
     required this.segmentCount,
     required this.activeIndex,
-    required this.progress,
   });
 
   final int segmentCount;
   final int activeIndex;
-  final AnimationController progress;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: List.generate(segmentCount, (i) {
+        final fill = i <= activeIndex ? 1.0 : 0.0;
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: i < segmentCount - 1 ? 4 : 0),
-            child: AnimatedBuilder(
-              animation: progress,
-              builder: (context, _) {
-                final fill =
-                    i < activeIndex
-                        ? 1.0
-                        : i == activeIndex
-                        ? progress.value.clamp(0.0, 1.0)
-                        : 0.0;
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final w = constraints.maxWidth * fill;
-                      return Stack(
-                        children: [
-                          Container(
-                            height: 3,
-                            width: constraints.maxWidth,
-                            color: Colors.white.withValues(alpha: 0.35),
-                          ),
-                          Positioned(
-                            left: 0,
-                            top: 0,
-                            height: 3,
-                            width: w,
-                            child: Container(color: Colors.white),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                );
-              },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final w = constraints.maxWidth * fill;
+                  return Stack(
+                    children: [
+                      Container(
+                        height: 3,
+                        width: constraints.maxWidth,
+                        color: _kDailyRecapInk.withValues(alpha: 0.18),
+                      ),
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        height: 3,
+                        width: w,
+                        child: const ColoredBox(color: _kDailyRecapInk),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -334,7 +306,7 @@ class _IntroSlide extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white,
+              color: _kDailyRecapInk,
               fontSize: 22,
               fontWeight: FontWeight.w700,
             ),
@@ -346,7 +318,7 @@ class _IntroSlide extends StatelessWidget {
                 : 'No transactions that day — tap through for a quick look',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.95),
+              color: _kDailyRecapInk.withValues(alpha: 0.92),
               fontSize: 28,
               fontWeight: FontWeight.w800,
               height: 1.25,
@@ -377,7 +349,7 @@ class _TotalSpentSlide extends StatelessWidget {
           Text(
             data.hasActivity ? 'You spent' : 'Spending',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: _kDailyRecapInk.withValues(alpha: 0.85),
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
@@ -387,7 +359,7 @@ class _TotalSpentSlide extends StatelessWidget {
             data.hasActivity ? '฿$amount' : '฿0',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white,
+              color: _kDailyRecapInk,
               fontSize: 48,
               fontWeight: FontWeight.w900,
               letterSpacing: -0.5,
@@ -397,7 +369,7 @@ class _TotalSpentSlide extends StatelessWidget {
           Text(
             'on this day',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.85),
+              color: _kDailyRecapInk.withValues(alpha: 0.72),
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -431,7 +403,7 @@ class _TopCategorySlide extends StatelessWidget {
           Text(
             category != null ? 'Top category' : 'Categories',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: _kDailyRecapInk.withValues(alpha: 0.85),
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
@@ -441,7 +413,7 @@ class _TopCategorySlide extends StatelessWidget {
             category ?? '—',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white,
+              color: _kDailyRecapInk,
               fontSize: 36,
               fontWeight: FontWeight.w900,
             ),
@@ -451,7 +423,7 @@ class _TopCategorySlide extends StatelessWidget {
             Text(
               '฿$amount',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: _kDailyRecapInk.withValues(alpha: 0.88),
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
               ),
@@ -464,7 +436,7 @@ class _TopCategorySlide extends StatelessWidget {
                 : 'No expense categories for this day',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.85),
+              color: _kDailyRecapInk.withValues(alpha: 0.72),
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -497,7 +469,7 @@ class _TransactionCountSlide extends StatelessWidget {
           Text(
             '$n',
             style: const TextStyle(
-              color: Colors.white,
+              color: _kDailyRecapInk,
               fontSize: 64,
               fontWeight: FontWeight.w900,
             ),
@@ -507,7 +479,7 @@ class _TransactionCountSlide extends StatelessWidget {
             n == 1 ? 'transaction logged' : 'transactions logged',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: _kDailyRecapInk.withValues(alpha: 0.85),
               fontSize: 22,
               fontWeight: FontWeight.w700,
             ),
@@ -549,7 +521,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
           Text(
             'Biggest purchase',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: _kDailyRecapInk.withValues(alpha: 0.85),
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
@@ -560,7 +532,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Colors.white,
+                color: _kDailyRecapInk,
                 fontSize: 32,
                 fontWeight: FontWeight.w900,
               ),
@@ -569,7 +541,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
             Text(
               '฿$amount',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: _kDailyRecapInk.withValues(alpha: 0.88),
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
               ),
@@ -579,7 +551,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
               'No expenses to highlight',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: _kDailyRecapInk.withValues(alpha: 0.78),
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
               ),
@@ -587,6 +559,635 @@ class _BiggestExpenseSlide extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// One plotted sample on the spending timeline (x = pixels along chart, y = amount).
+class _TimelinePoint {
+  const _TimelinePoint({
+    required this.x,
+    required this.amountAbs,
+    required this.time,
+  });
+
+  final double x;
+  final double amountAbs;
+  final DateTime time;
+}
+
+String _formatChartAxisAmount(double v) {
+  if (v >= 1000000) return '฿${(v / 1000000).toStringAsFixed(1)}M';
+  if (v >= 1000) return '฿${(v / 1000).toStringAsFixed(1)}k';
+  return '฿${formatAmountWithComma(v, decimalDigits: 0)}';
+}
+
+String _formatTimelineClock(DateTime d) {
+  return '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+}
+
+class _SpendingTimelineSlide extends StatefulWidget {
+  const _SpendingTimelineSlide({
+    required this.data,
+    required this.backgroundColor,
+    required this.isActive,
+  });
+
+  final DailyRecapData data;
+  final Color backgroundColor;
+  final bool isActive;
+
+  @override
+  State<_SpendingTimelineSlide> createState() => _SpendingTimelineSlideState();
+}
+
+class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
+    with TickerProviderStateMixin {
+  static const _revealDuration = Duration(seconds: 10);
+  static const _pixelsPerMinute = 4.0;
+
+  /// Full local day 00:00 → 23:59:59 on the X axis.
+  static const _minutesInDay = 24 * 60.0;
+
+  late final AnimationController _revealController;
+  late final AnimationController _zoomController;
+  late final Animation<double> _zoomAnim;
+  late final ScrollController _scrollController;
+
+  List<_TimelinePoint> _cachedPoints = [];
+  double _cachedChartWidth = 0;
+  int _lastZoomedIndex = -1;
+  int? _zoomPointIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _revealController = AnimationController(
+      vsync: this,
+      duration: _revealDuration,
+    )..addListener(_onRevealTick);
+    _scrollController = ScrollController();
+
+    _zoomController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..addListener(_onZoomTick);
+    _zoomController.addStatusListener(_onZoomStatus);
+
+    _zoomAnim = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOutBack)),
+        weight: 6,
+      ),
+      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 5),
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 2,
+      ),
+    ]).animate(_zoomController);
+  }
+
+  void _onZoomTick() {
+    setState(() {});
+  }
+
+  void _onZoomStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _zoomPointIndex = null;
+      if (mounted) {
+        _revealController.forward();
+      }
+    }
+  }
+
+  void _onRevealTick() {
+    setState(() {});
+    _syncScroll();
+
+    if (_zoomController.isAnimating) return;
+
+    final cw = _cachedChartWidth;
+    if (cw <= 0) return;
+
+    final rx = _revealController.value * cw;
+    for (var i = _lastZoomedIndex + 1; i < _cachedPoints.length; i++) {
+      if (_cachedPoints[i].x <= rx) {
+        _lastZoomedIndex = i;
+        _zoomPointIndex = i;
+        _revealController.stop();
+        _zoomController.forward(from: 0);
+        break;
+      }
+    }
+  }
+
+  void _syncScroll() {
+    final c = _scrollController;
+    if (!c.hasClients) return;
+    final maxScroll = c.position.maxScrollExtent;
+    if (!maxScroll.isFinite || maxScroll <= 0) return;
+    c.jumpTo(_revealController.value.clamp(0.0, 1.0) * maxScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SpendingTimelineSlide oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _lastZoomedIndex = -1;
+      _zoomPointIndex = null;
+      _zoomController.reset();
+      _revealController.forward(from: 0);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _syncScroll();
+      });
+    }
+    if (!widget.isActive && oldWidget.isActive) {
+      _revealController.reset();
+      _zoomController.reset();
+      _zoomPointIndex = null;
+      _lastZoomedIndex = -1;
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _revealController.removeListener(_onRevealTick);
+    _revealController.dispose();
+    _zoomController.removeListener(_onZoomTick);
+    _zoomController.removeStatusListener(_onZoomStatus);
+    _zoomController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  List<ExpenseLog> _sortedExpenses() {
+    final list =
+        widget.data.logs.where((l) => l.amount < 0).toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return list;
+  }
+
+  DateTime _startOfRecapDay() {
+    final d = widget.data.date;
+    return DateTime(d.year, d.month, d.day);
+  }
+
+  /// Minutes from local midnight [0, 1440], including fractional minutes.
+  double _minutesSinceMidnight(DateTime t) {
+    final start = _startOfRecapDay();
+    final m = t.difference(start).inSeconds / 60.0;
+    return m.clamp(0.0, _minutesInDay);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expenses = _sortedExpenses();
+    if (expenses.isEmpty) {
+      return _SlideScaffold(
+        backgroundColor: widget.backgroundColor,
+        seed: 5,
+        decorativeText: '—',
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Your day in spending',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _kDailyRecapInk.withValues(alpha: 0.88),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Log an expense to see your timeline here',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _kDailyRecapInk.withValues(alpha: 0.72),
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                height: 1.35,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final media = MediaQuery.sizeOf(context);
+    final plotHeight = math.min(220.0, media.height * 0.32);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewportW = constraints.maxWidth;
+        final chartInnerW = viewportW - 52;
+        final chartWidth = math.max(
+          chartInnerW,
+          _minutesInDay * _pixelsPerMinute,
+        );
+
+        final points = <_TimelinePoint>[];
+        for (final e in expenses) {
+          final mins = _minutesSinceMidnight(e.createdAt);
+          final x = (mins / _minutesInDay) * chartWidth;
+          points.add(
+            _TimelinePoint(
+              x: x.clamp(0.0, chartWidth),
+              amountAbs: e.amount.abs(),
+              time: e.createdAt,
+            ),
+          );
+        }
+
+        final maxAmount = points
+            .map((p) => p.amountAbs)
+            .reduce(math.max)
+            .clamp(1.0, double.infinity);
+
+        _cachedPoints = points;
+        _cachedChartWidth = chartWidth;
+
+        final revealedX = _revealController.value * chartWidth;
+
+        return _SlideScaffold(
+          backgroundColor: widget.backgroundColor,
+          seed: 5,
+          decorativeText: '⌁',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Your day in spending',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _kDailyRecapInk.withValues(alpha: 0.92),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      width: 52,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _formatChartAxisAmount(maxAmount),
+                            style: TextStyle(
+                              color: _kDailyRecapInk.withValues(alpha: 0.55),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            _formatChartAxisAmount(maxAmount / 2),
+                            style: TextStyle(
+                              color: _kDailyRecapInk.withValues(alpha: 0.55),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            '฿0',
+                            style: TextStyle(
+                              color: _kDailyRecapInk.withValues(alpha: 0.55),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ClipRect(
+                        child: SingleChildScrollView(
+                          controller: _scrollController,
+                          scrollDirection: Axis.horizontal,
+                          physics: const NeverScrollableScrollPhysics(),
+                          child: SizedBox(
+                            width: chartWidth,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SizedBox(
+                                  height: plotHeight,
+                                  width: chartWidth,
+                                  child: CustomPaint(
+                                    painter: _TimelineChartPainter(
+                                      points: points,
+                                      progress: _revealController.value,
+                                      revealedX: revealedX,
+                                      maxAmount: maxAmount,
+                                      chartWidth: chartWidth,
+                                      zoomPointIndex: _zoomPointIndex,
+                                      zoomValue: _zoomAnim.value,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 44,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      SizedBox(
+                                        height: 14,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            for (final label in const [
+                                              '00:00',
+                                              '06:00',
+                                              '12:00',
+                                              '18:00',
+                                              '23:59',
+                                            ])
+                                              Text(
+                                                label,
+                                                style: TextStyle(
+                                                  color: _kDailyRecapInk
+                                                      .withValues(alpha: 0.42),
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            for (final p in points)
+                                              Positioned(
+                                                left: p.x - 18,
+                                                top: 0,
+                                                child: Text(
+                                                  _formatTimelineClock(p.time),
+                                                  style: TextStyle(
+                                                    color: _kDailyRecapInk
+                                                        .withValues(alpha: 0.58),
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TimelineChartPainter extends CustomPainter {
+  _TimelineChartPainter({
+    required this.points,
+    required this.progress,
+    required this.revealedX,
+    required this.maxAmount,
+    required this.chartWidth,
+    this.zoomPointIndex,
+    this.zoomValue = 0.0,
+  });
+
+  final List<_TimelinePoint> points;
+  final double progress;
+  final double revealedX;
+  final double maxAmount;
+  final double chartWidth;
+  final int? zoomPointIndex;
+  final double zoomValue;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final maxA = maxAmount > 0 ? maxAmount : 1.0;
+
+    final gridPaint =
+        Paint()
+          ..color = _kDailyRecapInk.withValues(alpha: 0.12)
+          ..strokeWidth = 1;
+
+    double yAt(double amountAbs) {
+      const padY = 0.06;
+      final plotH = h * (1 - 2 * padY);
+      final top = h * padY;
+      return top + plotH * (1 - amountAbs / maxA);
+    }
+
+    for (var k = 0; k <= 2; k++) {
+      final amt = maxA * (1 - k / 2);
+      final y = yAt(amt);
+      canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
+    }
+
+    if (points.length < 2) {
+      _paintDotsOnly(canvas, size, maxA, yAt);
+      return;
+    }
+
+    final path = Path();
+    var started = false;
+    final rx = revealedX.clamp(0.0, w);
+
+    for (var i = 0; i < points.length; i++) {
+      final p = points[i];
+      final x = p.x;
+      final y = yAt(p.amountAbs);
+      if (x <= rx) {
+        if (!started) {
+          path.moveTo(x, y);
+          started = true;
+        } else {
+          path.lineTo(x, y);
+        }
+      } else {
+        if (i > 0 && started) {
+          final p0 = points[i - 1];
+          final x0 = p0.x;
+          final y0 = yAt(p0.amountAbs);
+          if (rx > x0 && (x - x0).abs() > 1e-6) {
+            final t = (rx - x0) / (x - x0);
+            final yi = y0 + t * (y - y0);
+            path.lineTo(rx, yi);
+          }
+        }
+        break;
+      }
+    }
+
+    final glow =
+        Paint()
+          ..color = _kDailyRecapInk.withValues(alpha: 0.22)
+          ..strokeWidth = 6
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round;
+
+    final line =
+        Paint()
+          ..color = _kDailyRecapInk.withValues(alpha: 0.92)
+          ..strokeWidth = 2.5
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round;
+
+    if (started) {
+      canvas.drawPath(path, glow);
+      canvas.drawPath(path, line);
+    }
+
+    _paintDots(canvas, size, maxA, yAt, rx);
+  }
+
+  void _paintDotsOnly(
+    Canvas canvas,
+    Size size,
+    double maxA,
+    double Function(double) yAt,
+  ) {
+    final h = size.height;
+    final rx = revealedX.clamp(0.0, size.width);
+    final window = chartWidth * 0.08;
+    _paintDotsLayer(canvas, size, maxA, yAt, rx, h, window);
+  }
+
+  void _paintDots(
+    Canvas canvas,
+    Size size,
+    double maxA,
+    double Function(double) yAt,
+    double rx,
+  ) {
+    final h = size.height;
+    final window = chartWidth * 0.08;
+    _paintDotsLayer(canvas, size, maxA, yAt, rx, h, window);
+  }
+
+  void _paintDotsLayer(
+    Canvas canvas,
+    Size size,
+    double maxA,
+    double Function(double) yAt,
+    double rx,
+    double h,
+    double window,
+  ) {
+    final dotFill =
+        Paint()
+          ..color = _kDailyRecapInk.withValues(alpha: 0.92)
+          ..style = PaintingStyle.fill;
+    final dotGlow =
+        Paint()
+          ..color = _kDailyRecapInk.withValues(alpha: 0.22)
+          ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 4);
+
+    for (var i = 0; i < points.length; i++) {
+      final p = points[i];
+      if (p.x > rx) continue;
+      final raw = rx - p.x;
+      var popT = 1.0;
+      if (raw < window) {
+        popT = (raw / window).clamp(0.0, 1.0);
+      }
+      final targetY = yAt(p.amountAbs);
+      final dotY =
+          ui.lerpDouble(h, targetY, Curves.easeOutBack.transform(popT)) ??
+          targetY;
+      var baseR = 6.0 * Curves.easeOutCubic.transform(popT);
+      final isZoomed = zoomPointIndex == i;
+      if (isZoomed) {
+        baseR += 12.0 * zoomValue;
+      }
+      final r = baseR;
+      if (r < 0.4 && !isZoomed) continue;
+      canvas.drawCircle(Offset(p.x, dotY), r + 2, dotGlow);
+      canvas.drawCircle(Offset(p.x, dotY), r, dotFill);
+      if (isZoomed && zoomValue > 0) {
+        _drawZoomLabel(canvas, p.x, dotY, r, p.amountAbs, zoomValue);
+      }
+    }
+  }
+
+  void _drawZoomLabel(
+    Canvas canvas,
+    double x,
+    double dotY,
+    double dotRadius,
+    double amountAbs,
+    double z,
+  ) {
+    final opacity = z.clamp(0.0, 1.0);
+    if (opacity <= 0) return;
+    final label = _formatChartAxisAmount(amountAbs);
+    final tp = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          color: _kDailyRecapInk.withValues(alpha: opacity),
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    const padH = 10.0;
+    const padV = 6.0;
+    final tw = tp.width + padH * 2;
+    final th = tp.height + padV * 2;
+    final top = math.max(4.0, dotY - dotRadius - 10 - th);
+    final left = x - tw / 2;
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(left, top, tw, th),
+      const Radius.circular(10),
+    );
+    canvas.drawRRect(
+      rect,
+      Paint()..color = _kDailyRecapInk.withValues(alpha: 0.08 * opacity),
+    );
+    tp.paint(canvas, Offset(left + padH, top + padV));
+  }
+
+  @override
+  bool shouldRepaint(covariant _TimelineChartPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.revealedX != revealedX ||
+        oldDelegate.points.length != points.length ||
+        oldDelegate.maxAmount != maxAmount ||
+        oldDelegate.chartWidth != chartWidth ||
+        oldDelegate.zoomPointIndex != zoomPointIndex ||
+        oldDelegate.zoomValue != zoomValue;
   }
 }
 
@@ -600,7 +1201,7 @@ class _OutroSlide extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SlideScaffold(
       backgroundColor: backgroundColor,
-      seed: 5,
+      seed: 6,
       decorativeText: '✓',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -609,7 +1210,7 @@ class _OutroSlide extends StatelessWidget {
             'Nice work tracking',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white,
+              color: _kDailyRecapInk,
               fontSize: 30,
               fontWeight: FontWeight.w900,
             ),
@@ -621,7 +1222,7 @@ class _OutroSlide extends StatelessWidget {
                 : 'Add a log tomorrow to build your streak',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: _kDailyRecapInk.withValues(alpha: 0.78),
               fontSize: 18,
               fontWeight: FontWeight.w600,
               height: 1.35,
@@ -646,7 +1247,7 @@ class _RecapBgPainter extends CustomPainter {
     final rng = math.Random(seed);
     final linePaint =
         Paint()
-          ..color = Colors.white.withValues(alpha: 0.12)
+          ..color = _kDailyRecapInk.withValues(alpha: 0.12)
           ..strokeWidth = 2.0
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round;
@@ -676,7 +1277,7 @@ class _RecapBgPainter extends CustomPainter {
       1.1,
       false,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.07)
+        ..color = _kDailyRecapInk.withValues(alpha: 0.07)
         ..strokeWidth = 55
         ..style = PaintingStyle.stroke,
     );
@@ -717,7 +1318,7 @@ class _SlideScaffold extends StatelessWidget {
               decorativeText!,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.09),
+                color: _kDailyRecapInk.withValues(alpha: 0.07),
                 fontSize: 220,
                 fontWeight: FontWeight.w900,
                 height: 1.0,
