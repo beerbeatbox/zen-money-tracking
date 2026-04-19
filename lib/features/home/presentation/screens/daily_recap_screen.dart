@@ -41,6 +41,84 @@ TextStyle _recapKickerStyle({double alpha = 0.55}) => TextStyle(
   height: 1.2,
 );
 
+const Duration _kRecapRevealDuration = Duration(milliseconds: 450);
+
+/// Fade + translate-up entrance for recap copy; replays when [isActive] becomes true.
+class _RecapReveal extends StatefulWidget {
+  const _RecapReveal({
+    required this.child,
+    required this.isActive,
+    this.delay = Duration.zero,
+  });
+
+  final Widget child;
+  final bool isActive;
+  final Duration delay;
+
+  @override
+  State<_RecapReveal> createState() => _RecapRevealState();
+}
+
+class _RecapRevealState extends State<_RecapReveal>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: _kRecapRevealDuration,
+    );
+    if (widget.isActive) {
+      _scheduleForward();
+    }
+  }
+
+  void _scheduleForward() {
+    Future<void>.delayed(widget.delay, () {
+      if (!mounted) return;
+      if (widget.isActive) {
+        _controller.forward(from: 0);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _RecapReveal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _scheduleForward();
+    } else if (!widget.isActive && oldWidget.isActive) {
+      _controller.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final v = Curves.easeOutCubic.transform(_controller.value);
+        return Opacity(
+          opacity: v,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - v)),
+            child: child,
+          ),
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
 class DailyRecapScreen extends ConsumerStatefulWidget {
   const DailyRecapScreen({super.key, required this.recapDate});
 
@@ -209,23 +287,41 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: _onPageChanged,
                   children: [
-                    _IntroSlide(data: data, backgroundColor: colors[0]),
-                    _TotalSpentSlide(data: data, backgroundColor: colors[1]),
-                    _TopCategorySlide(data: data, backgroundColor: colors[2]),
+                    _IntroSlide(
+                      data: data,
+                      backgroundColor: colors[0],
+                      isActive: _pageIndex == 0,
+                    ),
+                    _TotalSpentSlide(
+                      data: data,
+                      backgroundColor: colors[1],
+                      isActive: _pageIndex == 1,
+                    ),
+                    _TopCategorySlide(
+                      data: data,
+                      backgroundColor: colors[2],
+                      isActive: _pageIndex == 2,
+                    ),
                     _TransactionCountSlide(
                       data: data,
                       backgroundColor: colors[3],
+                      isActive: _pageIndex == 3,
                     ),
                     _BiggestExpenseSlide(
                       data: data,
                       backgroundColor: colors[4],
+                      isActive: _pageIndex == 4,
                     ),
                     _SpendingTimelineSlide(
                       data: data,
                       backgroundColor: colors[5],
                       isActive: _pageIndex == 5,
                     ),
-                    _OutroSlide(data: data, backgroundColor: colors[6]),
+                    _OutroSlide(
+                      data: data,
+                      backgroundColor: colors[6],
+                      isActive: _pageIndex == 6,
+                    ),
                   ],
                 ),
               ),
@@ -302,10 +398,15 @@ class _StoryProgressBar extends StatelessWidget {
 }
 
 class _IntroSlide extends StatelessWidget {
-  const _IntroSlide({required this.data, required this.backgroundColor});
+  const _IntroSlide({
+    required this.data,
+    required this.backgroundColor,
+    required this.isActive,
+  });
 
   final DailyRecapData data;
   final Color backgroundColor;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -318,23 +419,30 @@ class _IntroSlide extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            label.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: _recapKickerStyle(alpha: 0.65),
+          _RecapReveal(
+            isActive: isActive,
+            child: Text(
+              label.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: _recapKickerStyle(alpha: 0.65),
+            ),
           ),
           const SizedBox(height: 20),
-          Text(
-            data.hasActivity
-                ? 'Here\'s your spending recap'
-                : 'No transactions that day — tap through for a quick look',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.92),
-              fontSize: data.hasActivity ? 40 : 30,
-              fontWeight: FontWeight.w900,
-              height: 1.1,
-              letterSpacing: -0.8,
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 100),
+            child: Text(
+              data.hasActivity
+                  ? 'Here\'s your spending recap'
+                  : 'No transactions that day — tap through for a quick look',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _kDailyRecapInk.withValues(alpha: 0.92),
+                fontSize: data.hasActivity ? 40 : 30,
+                fontWeight: FontWeight.w900,
+                height: 1.1,
+                letterSpacing: -0.8,
+              ),
             ),
           ),
         ],
@@ -344,10 +452,15 @@ class _IntroSlide extends StatelessWidget {
 }
 
 class _TotalSpentSlide extends StatelessWidget {
-  const _TotalSpentSlide({required this.data, required this.backgroundColor});
+  const _TotalSpentSlide({
+    required this.data,
+    required this.backgroundColor,
+    required this.isActive,
+  });
 
   final DailyRecapData data;
   final Color backgroundColor;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -360,32 +473,43 @@ class _TotalSpentSlide extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            data.hasActivity ? 'YOU SPENT' : 'SPENDING',
-            textAlign: TextAlign.center,
-            style: _recapKickerStyle(alpha: 0.72),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            data.hasActivity ? '฿$amount' : '฿0',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: _kDailyRecapInk,
-              fontSize: 64,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1.2,
-              height: 1.05,
+          _RecapReveal(
+            isActive: isActive,
+            child: Text(
+              data.hasActivity ? 'YOU SPENT' : 'SPENDING',
+              textAlign: TextAlign.center,
+              style: _recapKickerStyle(alpha: 0.72),
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'ON THIS DAY',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.55),
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.8,
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 100),
+            child: Text(
+              data.hasActivity ? '฿$amount' : '฿0',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: _kDailyRecapInk,
+                fontSize: 64,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1.2,
+                height: 1.05,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 200),
+            child: Text(
+              'ON THIS DAY',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _kDailyRecapInk.withValues(alpha: 0.55),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1.8,
+              ),
             ),
           ),
         ],
@@ -395,10 +519,15 @@ class _TotalSpentSlide extends StatelessWidget {
 }
 
 class _TopCategorySlide extends StatelessWidget {
-  const _TopCategorySlide({required this.data, required this.backgroundColor});
+  const _TopCategorySlide({
+    required this.data,
+    required this.backgroundColor,
+    required this.isActive,
+  });
 
   final DailyRecapData data;
   final Color backgroundColor;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -415,46 +544,61 @@ class _TopCategorySlide extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            category != null ? 'TOP CATEGORY' : 'CATEGORIES',
-            textAlign: TextAlign.center,
-            style: _recapKickerStyle(alpha: 0.72),
+          _RecapReveal(
+            isActive: isActive,
+            child: Text(
+              category != null ? 'TOP CATEGORY' : 'CATEGORIES',
+              textAlign: TextAlign.center,
+              style: _recapKickerStyle(alpha: 0.72),
+            ),
           ),
           const SizedBox(height: 20),
-          Text(
-            category ?? '—',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: _kDailyRecapInk,
-              fontSize: 44,
-              fontWeight: FontWeight.w900,
-              height: 1.08,
-              letterSpacing: -1.0,
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 100),
+            child: Text(
+              category ?? '—',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: _kDailyRecapInk,
+                fontSize: 44,
+                fontWeight: FontWeight.w900,
+                height: 1.08,
+                letterSpacing: -1.0,
+              ),
             ),
           ),
           if (category != null) ...[
             const SizedBox(height: 12),
-            Text(
-              '฿$amount',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.88),
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
+            _RecapReveal(
+              isActive: isActive,
+              delay: const Duration(milliseconds: 200),
+              child: Text(
+                '฿$amount',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _kDailyRecapInk.withValues(alpha: 0.88),
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
           const SizedBox(height: 16),
-          Text(
-            category != null
-                ? 'Where most of your spending went'
-                : 'No expense categories for this day',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.58),
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              height: 1.35,
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 300),
+            child: Text(
+              category != null
+                  ? 'Where most of your spending went'
+                  : 'No expense categories for this day',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _kDailyRecapInk.withValues(alpha: 0.58),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                height: 1.35,
+              ),
             ),
           ),
         ],
@@ -467,10 +611,12 @@ class _TransactionCountSlide extends StatelessWidget {
   const _TransactionCountSlide({
     required this.data,
     required this.backgroundColor,
+    required this.isActive,
   });
 
   final DailyRecapData data;
   final Color backgroundColor;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -483,22 +629,29 @@ class _TransactionCountSlide extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            '$n',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: _kDailyRecapInk,
-              fontSize: 88,
-              fontWeight: FontWeight.w900,
-              height: 1.0,
-              letterSpacing: -3,
+          _RecapReveal(
+            isActive: isActive,
+            child: Text(
+              '$n',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: _kDailyRecapInk,
+                fontSize: 88,
+                fontWeight: FontWeight.w900,
+                height: 1.0,
+                letterSpacing: -3,
+              ),
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            n == 1 ? 'TRANSACTION LOGGED' : 'TRANSACTIONS LOGGED',
-            textAlign: TextAlign.center,
-            style: _recapKickerStyle(alpha: 0.75),
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 100),
+            child: Text(
+              n == 1 ? 'TRANSACTION LOGGED' : 'TRANSACTIONS LOGGED',
+              textAlign: TextAlign.center,
+              style: _recapKickerStyle(alpha: 0.75),
+            ),
           ),
         ],
       ),
@@ -510,10 +663,12 @@ class _BiggestExpenseSlide extends StatelessWidget {
   const _BiggestExpenseSlide({
     required this.data,
     required this.backgroundColor,
+    required this.isActive,
   });
 
   final DailyRecapData data;
   final Color backgroundColor;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -535,43 +690,58 @@ class _BiggestExpenseSlide extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            'BIGGEST PURCHASE',
-            textAlign: TextAlign.center,
-            style: _recapKickerStyle(alpha: 0.72),
+          _RecapReveal(
+            isActive: isActive,
+            child: Text(
+              'BIGGEST PURCHASE',
+              textAlign: TextAlign.center,
+              style: _recapKickerStyle(alpha: 0.72),
+            ),
           ),
           const SizedBox(height: 20),
           if (log != null && title != null) ...[
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: _kDailyRecapInk,
-                fontSize: 36,
-                fontWeight: FontWeight.w900,
-                height: 1.1,
-                letterSpacing: -0.6,
+            _RecapReveal(
+              isActive: isActive,
+              delay: const Duration(milliseconds: 100),
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: _kDailyRecapInk,
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  height: 1.1,
+                  letterSpacing: -0.6,
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              '฿$amount',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.88),
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
+            _RecapReveal(
+              isActive: isActive,
+              delay: const Duration(milliseconds: 200),
+              child: Text(
+                '฿$amount',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _kDailyRecapInk.withValues(alpha: 0.88),
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ] else
-            Text(
-              'No expenses to highlight',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.72),
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                height: 1.3,
+            _RecapReveal(
+              isActive: isActive,
+              delay: const Duration(milliseconds: 100),
+              child: Text(
+                'No expenses to highlight',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _kDailyRecapInk.withValues(alpha: 0.72),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  height: 1.3,
+                ),
               ),
             ),
         ],
@@ -1273,10 +1443,15 @@ class _TimelineChartPainter extends CustomPainter {
 }
 
 class _OutroSlide extends StatelessWidget {
-  const _OutroSlide({required this.data, required this.backgroundColor});
+  const _OutroSlide({
+    required this.data,
+    required this.backgroundColor,
+    required this.isActive,
+  });
 
   final DailyRecapData data;
   final Color backgroundColor;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -1288,34 +1463,45 @@ class _OutroSlide extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            'NICE WORK',
-            textAlign: TextAlign.center,
-            style: _recapKickerStyle(alpha: 0.65),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Nice work tracking',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _kDailyRecapInk,
-              fontSize: 40,
-              fontWeight: FontWeight.w900,
-              height: 1.1,
-              letterSpacing: -0.8,
+          _RecapReveal(
+            isActive: isActive,
+            child: Text(
+              'NICE WORK',
+              textAlign: TextAlign.center,
+              style: _recapKickerStyle(alpha: 0.65),
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            data.hasActivity
-                ? 'Keep logging to sharpen your insights'
-                : 'Add a log tomorrow to build your streak',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.62),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              height: 1.35,
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 100),
+            child: const Text(
+              'Nice work tracking',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _kDailyRecapInk,
+                fontSize: 40,
+                fontWeight: FontWeight.w900,
+                height: 1.1,
+                letterSpacing: -0.8,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _RecapReveal(
+            isActive: isActive,
+            delay: const Duration(milliseconds: 200),
+            child: Text(
+              data.hasActivity
+                  ? 'Keep logging to sharpen your insights'
+                  : 'Add a log tomorrow to build your streak',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _kDailyRecapInk.withValues(alpha: 0.62),
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                height: 1.35,
+              ),
             ),
           ),
         ],
