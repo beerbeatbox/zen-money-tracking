@@ -30,6 +30,17 @@ DateTime? parseDailyRecapDateFromQuery(String? value) {
 /// Ink color for text and chrome on daily recap light slides.
 const Color _kDailyRecapInk = Color(0xFF0A0A0A);
 
+/// Letter spacing for recap editorial kicker labels (uppercase).
+const double _kRecapKickerLetterSpacing = 2.5;
+
+TextStyle _recapKickerStyle({double alpha = 0.55}) => TextStyle(
+  color: _kDailyRecapInk.withValues(alpha: alpha),
+  fontSize: 12,
+  fontWeight: FontWeight.w600,
+  letterSpacing: _kRecapKickerLetterSpacing,
+  height: 1.2,
+);
+
 class DailyRecapScreen extends ConsumerStatefulWidget {
   const DailyRecapScreen({super.key, required this.recapDate});
 
@@ -184,7 +195,11 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: _kDailyRecapInk, size: 28),
+                  icon: const Icon(
+                    Icons.close,
+                    color: _kDailyRecapInk,
+                    size: 28,
+                  ),
                   onPressed: () => context.pop(),
                 ),
               ),
@@ -301,17 +316,14 @@ class _IntroSlide extends StatelessWidget {
       decorativeText: '${data.date.day}',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            label,
+            label.toUpperCase(),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: _kDailyRecapInk,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
+            style: _recapKickerStyle(alpha: 0.65),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Text(
             data.hasActivity
                 ? 'Here\'s your spending recap'
@@ -319,9 +331,10 @@ class _IntroSlide extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _kDailyRecapInk.withValues(alpha: 0.92),
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              height: 1.25,
+              fontSize: data.hasActivity ? 40 : 30,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+              letterSpacing: -0.8,
             ),
           ),
         ],
@@ -345,14 +358,12 @@ class _TotalSpentSlide extends StatelessWidget {
       decorativeText: '฿',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            data.hasActivity ? 'You spent' : 'Spending',
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.85),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+            data.hasActivity ? 'YOU SPENT' : 'SPENDING',
+            textAlign: TextAlign.center,
+            style: _recapKickerStyle(alpha: 0.72),
           ),
           const SizedBox(height: 16),
           Text(
@@ -360,18 +371,21 @@ class _TotalSpentSlide extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: _kDailyRecapInk,
-              fontSize: 48,
+              fontSize: 64,
               fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
+              letterSpacing: -1.2,
+              height: 1.05,
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            'on this day',
+            'ON THIS DAY',
+            textAlign: TextAlign.center,
             style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.72),
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              color: _kDailyRecapInk.withValues(alpha: 0.55),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 1.8,
             ),
           ),
         ],
@@ -399,14 +413,12 @@ class _TopCategorySlide extends StatelessWidget {
       decorativeText: '#1',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            category != null ? 'Top category' : 'Categories',
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.85),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+            category != null ? 'TOP CATEGORY' : 'CATEGORIES',
+            textAlign: TextAlign.center,
+            style: _recapKickerStyle(alpha: 0.72),
           ),
           const SizedBox(height: 20),
           Text(
@@ -414,17 +426,20 @@ class _TopCategorySlide extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: _kDailyRecapInk,
-              fontSize: 36,
+              fontSize: 44,
               fontWeight: FontWeight.w900,
+              height: 1.08,
+              letterSpacing: -1.0,
             ),
           ),
           if (category != null) ...[
             const SizedBox(height: 12),
             Text(
               '฿$amount',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: _kDailyRecapInk.withValues(alpha: 0.88),
-                fontSize: 24,
+                fontSize: 26,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -436,9 +451,10 @@ class _TopCategorySlide extends StatelessWidget {
                 : 'No expense categories for this day',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.72),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              color: _kDailyRecapInk.withValues(alpha: 0.58),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              height: 1.35,
             ),
           ),
         ],
@@ -465,24 +481,24 @@ class _TransactionCountSlide extends StatelessWidget {
       decorativeText: '$n',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             '$n',
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: _kDailyRecapInk,
-              fontSize: 64,
+              fontSize: 88,
               fontWeight: FontWeight.w900,
+              height: 1.0,
+              letterSpacing: -3,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            n == 1 ? 'transaction logged' : 'transactions logged',
+            n == 1 ? 'TRANSACTION LOGGED' : 'TRANSACTIONS LOGGED',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.85),
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
+            style: _recapKickerStyle(alpha: 0.75),
           ),
         ],
       ),
@@ -517,14 +533,12 @@ class _BiggestExpenseSlide extends StatelessWidget {
       decorativeText: '฿',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'Biggest purchase',
-            style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.85),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+            'BIGGEST PURCHASE',
+            textAlign: TextAlign.center,
+            style: _recapKickerStyle(alpha: 0.72),
           ),
           const SizedBox(height: 20),
           if (log != null && title != null) ...[
@@ -533,16 +547,19 @@ class _BiggestExpenseSlide extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: _kDailyRecapInk,
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.w900,
+                height: 1.1,
+                letterSpacing: -0.6,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               '฿$amount',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: _kDailyRecapInk.withValues(alpha: 0.88),
-                fontSize: 26,
+                fontSize: 28,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -551,9 +568,10 @@ class _BiggestExpenseSlide extends StatelessWidget {
               'No expenses to highlight',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.78),
+                color: _kDailyRecapInk.withValues(alpha: 0.72),
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
+                height: 1.3,
               ),
             ),
         ],
@@ -568,11 +586,13 @@ class _TimelinePoint {
     required this.x,
     required this.amountAbs,
     required this.time,
+    required this.category,
   });
 
   final double x;
   final double amountAbs;
   final DateTime time;
+  final String category;
 }
 
 String _formatChartAxisAmount(double v) {
@@ -618,6 +638,9 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
   int _lastZoomedIndex = -1;
   int? _zoomPointIndex;
 
+  /// After the final point’s zoom finishes, keep its label/dot visible.
+  int? _pinnedLastPointIndex;
+
   @override
   void initState() {
     super.initState();
@@ -658,10 +681,19 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
 
   void _onZoomStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
+      if (!mounted) return;
+      final reachedLastPoint =
+          _cachedPoints.isNotEmpty &&
+          _lastZoomedIndex >= _cachedPoints.length - 1;
       _zoomPointIndex = null;
-      if (mounted) {
-        _revealController.forward();
+      if (reachedLastPoint) {
+        _pinnedLastPointIndex = _lastZoomedIndex;
+        // Stop here: do not reveal the rest of the day past the final expense.
+        setState(() {});
+        return;
       }
+      _pinnedLastPointIndex = null;
+      _revealController.forward();
     }
   }
 
@@ -700,6 +732,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
     if (widget.isActive && !oldWidget.isActive) {
       _lastZoomedIndex = -1;
       _zoomPointIndex = null;
+      _pinnedLastPointIndex = null;
       _zoomController.reset();
       _revealController.forward(from: 0);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -710,6 +743,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
       _revealController.reset();
       _zoomController.reset();
       _zoomPointIndex = null;
+      _pinnedLastPointIndex = null;
       _lastZoomedIndex = -1;
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
@@ -757,24 +791,21 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
         decorativeText: '—',
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              'Your day in spending',
+              'YOUR DAY IN SPENDING',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.88),
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
+              style: _recapKickerStyle(alpha: 0.72),
             ),
             const SizedBox(height: 20),
             Text(
               'Log an expense to see your timeline here',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.72),
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
+                color: _kDailyRecapInk.withValues(alpha: 0.58),
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
                 height: 1.35,
               ),
             ),
@@ -804,6 +835,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
               x: x.clamp(0.0, chartWidth),
               amountAbs: e.amount.abs(),
               time: e.createdAt,
+              category: e.category,
             ),
           );
         }
@@ -823,53 +855,64 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
           seed: 5,
           decorativeText: '⌁',
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Your day in spending',
+                'YOUR DAY IN SPENDING',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _kDailyRecapInk.withValues(alpha: 0.92),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: _recapKickerStyle(alpha: 0.75),
               ),
               const SizedBox(height: 12),
-              Expanded(
+              SizedBox(
+                height: plotHeight + 44,
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      width: 52,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _formatChartAxisAmount(maxAmount),
-                            style: TextStyle(
-                              color: _kDailyRecapInk.withValues(alpha: 0.55),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 52,
+                          height: plotHeight,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatChartAxisAmount(maxAmount),
+                                style: TextStyle(
+                                  color: _kDailyRecapInk.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                _formatChartAxisAmount(maxAmount / 2),
+                                style: TextStyle(
+                                  color: _kDailyRecapInk.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                '฿0',
+                                style: TextStyle(
+                                  color: _kDailyRecapInk.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            _formatChartAxisAmount(maxAmount / 2),
-                            style: TextStyle(
-                              color: _kDailyRecapInk.withValues(alpha: 0.55),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            '฿0',
-                            style: TextStyle(
-                              color: _kDailyRecapInk.withValues(alpha: 0.55),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 44),
+                      ],
                     ),
                     Expanded(
                       child: ClipRect(
@@ -894,6 +937,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
                                       chartWidth: chartWidth,
                                       zoomPointIndex: _zoomPointIndex,
                                       zoomValue: _zoomAnim.value,
+                                      pinnedPointIndex: _pinnedLastPointIndex,
                                     ),
                                   ),
                                 ),
@@ -940,7 +984,9 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
                                                   _formatTimelineClock(p.time),
                                                   style: TextStyle(
                                                     color: _kDailyRecapInk
-                                                        .withValues(alpha: 0.58),
+                                                        .withValues(
+                                                          alpha: 0.58,
+                                                        ),
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w600,
                                                   ),
@@ -978,6 +1024,7 @@ class _TimelineChartPainter extends CustomPainter {
     required this.chartWidth,
     this.zoomPointIndex,
     this.zoomValue = 0.0,
+    this.pinnedPointIndex,
   });
 
   final List<_TimelinePoint> points;
@@ -987,6 +1034,7 @@ class _TimelineChartPainter extends CustomPainter {
   final double chartWidth;
   final int? zoomPointIndex;
   final double zoomValue;
+  final int? pinnedPointIndex;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1018,30 +1066,24 @@ class _TimelineChartPainter extends CustomPainter {
     }
 
     final path = Path();
-    var started = false;
     final rx = revealedX.clamp(0.0, w);
+    final baseline = yAt(0);
+    path.moveTo(0, baseline);
 
     for (var i = 0; i < points.length; i++) {
       final p = points[i];
       final x = p.x;
       final y = yAt(p.amountAbs);
       if (x <= rx) {
-        if (!started) {
-          path.moveTo(x, y);
-          started = true;
-        } else {
-          path.lineTo(x, y);
-        }
+        path.lineTo(x, y);
       } else {
-        if (i > 0 && started) {
-          final p0 = points[i - 1];
-          final x0 = p0.x;
-          final y0 = yAt(p0.amountAbs);
-          if (rx > x0 && (x - x0).abs() > 1e-6) {
-            final t = (rx - x0) / (x - x0);
-            final yi = y0 + t * (y - y0);
-            path.lineTo(rx, yi);
-          }
+        final p0 = i > 0 ? points[i - 1] : null;
+        final x0 = p0?.x ?? 0.0;
+        final y0 = p0 != null ? yAt(p0.amountAbs) : baseline;
+        if (rx > x0 && (x - x0).abs() > 1e-6) {
+          final t = (rx - x0) / (x - x0);
+          final yi = y0 + t * (y - y0);
+          path.lineTo(rx, yi);
         }
         break;
       }
@@ -1063,10 +1105,8 @@ class _TimelineChartPainter extends CustomPainter {
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round;
 
-    if (started) {
-      canvas.drawPath(path, glow);
-      canvas.drawPath(path, line);
-    }
+    canvas.drawPath(path, glow);
+    canvas.drawPath(path, line);
 
     _paintDots(canvas, size, maxA, yAt, rx);
   }
@@ -1116,26 +1156,40 @@ class _TimelineChartPainter extends CustomPainter {
     for (var i = 0; i < points.length; i++) {
       final p = points[i];
       if (p.x > rx) continue;
+      final isZoomed = zoomPointIndex == i;
+      final isPinned = pinnedPointIndex == i;
       final raw = rx - p.x;
       var popT = 1.0;
-      if (raw < window) {
+      if (!isZoomed && raw < window) {
         popT = (raw / window).clamp(0.0, 1.0);
       }
+      if (isPinned) popT = 1.0;
       final targetY = yAt(p.amountAbs);
       final dotY =
           ui.lerpDouble(h, targetY, Curves.easeOutBack.transform(popT)) ??
           targetY;
       var baseR = 6.0 * Curves.easeOutCubic.transform(popT);
-      final isZoomed = zoomPointIndex == i;
       if (isZoomed) {
         baseR += 12.0 * zoomValue;
+      } else if (isPinned) {
+        baseR += 3.0;
       }
       final r = baseR;
-      if (r < 0.4 && !isZoomed) continue;
+      if (r < 0.4 && !isZoomed && !isPinned) continue;
       canvas.drawCircle(Offset(p.x, dotY), r + 2, dotGlow);
       canvas.drawCircle(Offset(p.x, dotY), r, dotFill);
       if (isZoomed && zoomValue > 0) {
-        _drawZoomLabel(canvas, p.x, dotY, r, p.amountAbs, zoomValue);
+        _drawZoomLabel(
+          canvas,
+          p.x,
+          dotY,
+          r,
+          p.amountAbs,
+          p.category,
+          zoomValue,
+        );
+      } else if (isPinned) {
+        _drawZoomLabel(canvas, p.x, dotY, r, p.amountAbs, p.category, 1.0);
       }
     }
   }
@@ -1146,14 +1200,16 @@ class _TimelineChartPainter extends CustomPainter {
     double dotY,
     double dotRadius,
     double amountAbs,
+    String category,
     double z,
   ) {
     final opacity = z.clamp(0.0, 1.0);
     if (opacity <= 0) return;
-    final label = _formatChartAxisAmount(amountAbs);
-    final tp = TextPainter(
+    final amountLabel = _formatChartAxisAmount(amountAbs);
+    final categoryLabel = category.trim().isNotEmpty ? category.trim() : '—';
+    final tpAmount = TextPainter(
       text: TextSpan(
-        text: label,
+        text: amountLabel,
         style: TextStyle(
           color: _kDailyRecapInk.withValues(alpha: opacity),
           fontSize: 14,
@@ -1162,11 +1218,30 @@ class _TimelineChartPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
+    final tpCategory = TextPainter(
+      text: TextSpan(
+        text: categoryLabel,
+        style: TextStyle(
+          color: _kDailyRecapInk.withValues(alpha: 0.85 * opacity),
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 2,
+      ellipsis: '…',
+    )..layout(maxWidth: 200);
     const padH = 10.0;
     const padV = 6.0;
-    final tw = tp.width + padH * 2;
-    final th = tp.height + padV * 2;
-    final top = math.max(4.0, dotY - dotRadius - 10 - th);
+    const gapBetweenLines = 2.0;
+    final contentW = math.max(tpAmount.width, tpCategory.width);
+    final tw = contentW + padH * 2;
+    final th = padV * 2 + tpAmount.height + gapBetweenLines + tpCategory.height;
+    final aboveTop = dotY - dotRadius - 10 - th;
+    final top =
+        aboveTop < 0
+            ? dotY + dotRadius + 8
+            : aboveTop.clamp(4.0, double.infinity);
     final left = x - tw / 2;
     final rect = RRect.fromRectAndRadius(
       Rect.fromLTWH(left, top, tw, th),
@@ -1176,7 +1251,12 @@ class _TimelineChartPainter extends CustomPainter {
       rect,
       Paint()..color = _kDailyRecapInk.withValues(alpha: 0.08 * opacity),
     );
-    tp.paint(canvas, Offset(left + padH, top + padV));
+    final amountTop = top + padV;
+    tpAmount.paint(canvas, Offset(left + padH, amountTop));
+    tpCategory.paint(
+      canvas,
+      Offset(left + padH, amountTop + tpAmount.height + gapBetweenLines),
+    );
   }
 
   @override
@@ -1187,7 +1267,8 @@ class _TimelineChartPainter extends CustomPainter {
         oldDelegate.maxAmount != maxAmount ||
         oldDelegate.chartWidth != chartWidth ||
         oldDelegate.zoomPointIndex != zoomPointIndex ||
-        oldDelegate.zoomValue != zoomValue;
+        oldDelegate.zoomValue != zoomValue ||
+        oldDelegate.pinnedPointIndex != pinnedPointIndex;
   }
 }
 
@@ -1205,14 +1286,23 @@ class _OutroSlide extends StatelessWidget {
       decorativeText: '✓',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Text(
+            'NICE WORK',
+            textAlign: TextAlign.center,
+            style: _recapKickerStyle(alpha: 0.65),
+          ),
+          const SizedBox(height: 16),
           const Text(
             'Nice work tracking',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _kDailyRecapInk,
-              fontSize: 30,
+              fontSize: 40,
               fontWeight: FontWeight.w900,
+              height: 1.1,
+              letterSpacing: -0.8,
             ),
           ),
           const SizedBox(height: 16),
@@ -1222,9 +1312,9 @@ class _OutroSlide extends StatelessWidget {
                 : 'Add a log tomorrow to build your streak',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: _kDailyRecapInk.withValues(alpha: 0.78),
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              color: _kDailyRecapInk.withValues(alpha: 0.62),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
               height: 1.35,
             ),
           ),
