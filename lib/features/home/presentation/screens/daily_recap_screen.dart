@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/domain/entities/daily_recap_data.dart';
 import 'package:anti/features/home/presentation/controllers/daily_recap_controller.dart';
@@ -323,6 +325,8 @@ class _IntroSlide extends StatelessWidget {
     final label = _formatDayTitle(data.date);
     return _SlideScaffold(
       backgroundColor: backgroundColor,
+      seed: 0,
+      decorativeText: '${data.date.day}',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -365,6 +369,8 @@ class _TotalSpentSlide extends StatelessWidget {
     final amount = formatAmountWithComma(data.totalSpent, decimalDigits: 2);
     return _SlideScaffold(
       backgroundColor: backgroundColor,
+      seed: 1,
+      decorativeText: '฿',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -417,6 +423,8 @@ class _TopCategorySlide extends StatelessWidget {
     );
     return _SlideScaffold(
       backgroundColor: backgroundColor,
+      seed: 2,
+      decorativeText: '#1',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -481,6 +489,8 @@ class _TransactionCountSlide extends StatelessWidget {
     final n = data.transactionCount;
     return _SlideScaffold(
       backgroundColor: backgroundColor,
+      seed: 3,
+      decorativeText: '$n',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -531,6 +541,8 @@ class _BiggestExpenseSlide extends StatelessWidget {
 
     return _SlideScaffold(
       backgroundColor: backgroundColor,
+      seed: 4,
+      decorativeText: '฿',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -588,6 +600,8 @@ class _OutroSlide extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SlideScaffold(
       backgroundColor: backgroundColor,
+      seed: 5,
+      decorativeText: '✓',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -619,22 +633,103 @@ class _OutroSlide extends StatelessWidget {
   }
 }
 
+class _RecapBgPainter extends CustomPainter {
+  const _RecapBgPainter({required this.color, required this.seed});
+
+  final Color color;
+  final int seed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(Offset.zero & size, Paint()..color = color);
+
+    final rng = math.Random(seed);
+    final linePaint =
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.12)
+          ..strokeWidth = 2.0
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
+
+    final lineCount = 5 + rng.nextInt(3);
+    for (var i = 0; i < lineCount; i++) {
+      final y = size.height * rng.nextDouble();
+      final path = Path()..moveTo(-20, y);
+      path.cubicTo(
+        size.width * (0.2 + rng.nextDouble() * 0.3),
+        y + (rng.nextDouble() - 0.5) * size.height * 0.3,
+        size.width * (0.5 + rng.nextDouble() * 0.2),
+        y + (rng.nextDouble() - 0.5) * size.height * 0.3,
+        size.width + 20,
+        y + (rng.nextDouble() - 0.5) * size.height * 0.15,
+      );
+      canvas.drawPath(path, linePaint);
+    }
+
+    canvas.drawArc(
+      Rect.fromCenter(
+        center: Offset(size.width + 60, size.height + 60),
+        width: size.width * 1.1,
+        height: size.width * 1.1,
+      ),
+      math.pi,
+      1.1,
+      false,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.07)
+        ..strokeWidth = 55
+        ..style = PaintingStyle.stroke,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RecapBgPainter old) =>
+      old.color != color || old.seed != seed;
+}
+
 class _SlideScaffold extends StatelessWidget {
   const _SlideScaffold({
     required this.backgroundColor,
     required this.child,
+    required this.seed,
+    this.decorativeText,
   });
 
   final Color backgroundColor;
   final Widget child;
+  final int seed;
+  final String? decorativeText;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: backgroundColor,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: child,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CustomPaint(
+          painter: _RecapBgPainter(color: backgroundColor, seed: seed),
+        ),
+        if (decorativeText != null)
+          Positioned(
+            bottom: -30,
+            left: 0,
+            right: 0,
+            child: Text(
+              decorativeText!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.09),
+                fontSize: 220,
+                fontWeight: FontWeight.w900,
+                height: 1.0,
+              ),
+            ),
+          ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: child,
+        ),
+      ],
     );
   }
 }
