@@ -1,7 +1,9 @@
 import 'package:anti/core/utils/date_time_formatter.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:anti/features/home/domain/utils/dashboard_net_balance.dart';
 import 'package:anti/features/home/domain/utils/recurrence.dart';
+import 'package:anti/features/home/presentation/controllers/balance_snapshot_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
@@ -95,11 +97,16 @@ class DashboardController extends _$DashboardController {
   @override
   FutureOr<DashboardMonth> build(DateTime selectedMonth) async {
     ref.watch(expenseLogsProvider);
+    ref.watch(balanceSnapshotListControllerProvider);
     final scheduledAsync = ref.watch(scheduledTransactionsProvider);
     final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
     final budgetAsync = ref.watch(budgetSettingControllerProvider);
 
     final allLogs = await ref.read(expenseLogsProvider.future);
+    final balanceSnapshots = await ref.read(
+      balanceSnapshotListControllerProvider.future,
+    );
+    final latestSnapshot = pickLatestSnapshot(balanceSnapshots);
     final scheduledTransactions =
         scheduledAsync.value ?? const <ScheduledTransaction>[];
     final carryEnabled = carryAsync.value ?? false;
@@ -124,10 +131,14 @@ class DashboardController extends _$DashboardController {
           0,
         ).isAfter(DateUtils.dateOnly(DateTime.now()));
 
-    final carryBalance =
-        (carryEnabled && canCarry) ? _calculateNetBalance(previousLogs) : 0.0;
-
-    final netBalance = _calculateNetBalance(scopedLogs) + carryBalance;
+    final netBalance = dashboardNetBalance(
+      latestSnapshot: latestSnapshot,
+      allLogs: sortedLogs,
+      scopedLogs: scopedLogs,
+      previousMonthLogs: previousLogs,
+      carryEnabled: carryEnabled,
+      canCarry: canCarry,
+    );
     final income = _calculateIncome(scopedLogs);
     final spent = _calculateSpent(scopedLogs);
     final itemsLabel = _logsCountLabel(scopedLogs.length);
@@ -183,9 +194,6 @@ class DashboardController extends _$DashboardController {
     );
   }
 }
-
-double _calculateNetBalance(List<ExpenseLog> logs) =>
-    logs.fold<double>(0.0, (total, log) => total + log.amount);
 
 double _calculateIncome(List<ExpenseLog> logs) => logs
     .where((log) => log.amount > 0)

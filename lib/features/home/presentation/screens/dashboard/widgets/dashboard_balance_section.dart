@@ -10,11 +10,13 @@ class DashboardBalanceSection extends ConsumerWidget {
     required this.netBalance,
     required this.projectedBalance,
     required this.showProjected,
+    required this.onUpdateBalance,
   });
 
   final double netBalance;
   final double projectedBalance;
   final bool showProjected;
+  final VoidCallback onUpdateBalance;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,6 +50,22 @@ class DashboardBalanceSection extends ConsumerWidget {
             isMasked: isMasked,
           ),
         ],
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: onUpdateBalance,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blue,
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
+            ),
+            child: const Text('Update your balance'),
+          ),
+        ),
       ],
     );
   }
