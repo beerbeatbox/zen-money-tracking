@@ -38,7 +38,7 @@ Anti is a Flutter application that demonstrates best practices in mobile app dev
 ## 🛠 Tech Stack
 
 ### Core Framework
-- **Flutter** `3.29.3` (managed via FVM)
+- **Flutter** `3.38.2` (managed via FVM)
 - **Dart SDK** `^3.7.0`
 
 ### State Management & Dependency Injection
@@ -105,7 +105,7 @@ lib/
 
 ### Prerequisites
 
-- Flutter SDK `3.29.3` (or use FVM to manage versions)
+- Flutter SDK `3.38.2` (or use FVM to manage versions)
 - Dart SDK `^3.7.0`
 - FVM (Flutter Version Management) - [Installation Guide](https://fvm.app/docs/getting_started/installation)
 
