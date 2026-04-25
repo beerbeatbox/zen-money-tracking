@@ -39,11 +39,11 @@ class SettingsService {
   Future<void> setScheduledNotificationsEnabled(bool enabled) =>
       _repository.setScheduledNotificationsEnabled(enabled);
 
-  Future<bool> getDailyRecapNotificationEnabled() =>
-      _repository.getDailyRecapNotificationEnabled();
+  Future<bool> getWeeklyRecapNotificationEnabled() =>
+      _repository.getWeeklyRecapNotificationEnabled();
 
-  Future<void> setDailyRecapNotificationEnabled(bool enabled) =>
-      _repository.setDailyRecapNotificationEnabled(enabled);
+  Future<void> setWeeklyRecapNotificationEnabled(bool enabled) =>
+      _repository.setWeeklyRecapNotificationEnabled(enabled);
 
   Future<BottomNavStyle> getBottomNavStyle() => _repository.getBottomNavStyle();
 

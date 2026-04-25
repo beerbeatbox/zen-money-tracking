@@ -53,10 +53,10 @@ class _MyAppState extends ConsumerState<MyApp> {
     final reminders = await settingsService.getExpenseReminders();
     await notificationService.rescheduleAllReminders(reminders);
 
-    final dailyRecapEnabled =
-        await settingsService.getDailyRecapNotificationEnabled();
-    if (dailyRecapEnabled) {
-      await notificationService.scheduleDailyRecapNotification();
+    final weeklyRecapEnabled =
+        await settingsService.getWeeklyRecapNotificationEnabled();
+    if (weeklyRecapEnabled) {
+      await notificationService.scheduleWeeklyRecapNotification();
     }
   }
 

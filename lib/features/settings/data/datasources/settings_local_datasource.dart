@@ -32,6 +32,8 @@ class SettingsLocalDatasource {
   static const _scheduledNotificationsEnabledKey = 'scheduled_notifications_enabled';
   static const _dailyRecapNotificationEnabledKey =
       'daily_recap_notification_enabled';
+  static const _weeklyRecapNotificationEnabledKey =
+      'weekly_recap_notification_enabled';
   static const _bottomNavStyleKey = 'bottom_nav_style';
 
   Future<File> _ensureFile() async {
@@ -151,16 +153,24 @@ class SettingsLocalDatasource {
     await _writeMap(map);
   }
 
-  Future<bool> readDailyRecapNotificationEnabled() async {
+  Future<bool> readWeeklyRecapNotificationEnabled() async {
     final map = await _readMap();
-    final raw = map[_dailyRecapNotificationEnabledKey];
-    if (raw is bool) return raw;
+    if (map.containsKey(_weeklyRecapNotificationEnabledKey)) {
+      final raw = map[_weeklyRecapNotificationEnabledKey];
+      if (raw is bool) return raw;
+    }
+    final legacy = map[_dailyRecapNotificationEnabledKey];
+    if (legacy is bool) {
+      map[_weeklyRecapNotificationEnabledKey] = legacy;
+      await _writeMap(map);
+      return legacy;
+    }
     return true;
   }
 
-  Future<void> writeDailyRecapNotificationEnabled(bool enabled) async {
+  Future<void> writeWeeklyRecapNotificationEnabled(bool enabled) async {
     final map = await _readMap();
-    map[_dailyRecapNotificationEnabledKey] = enabled;
+    map[_weeklyRecapNotificationEnabledKey] = enabled;
     await _writeMap(map);
   }
 

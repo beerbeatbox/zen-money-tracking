@@ -1,6 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/widgets/section_card.dart';
-import 'package:anti/features/settings/presentation/controllers/daily_recap_notification_controller.dart';
+import 'package:anti/features/settings/presentation/controllers/weekly_recap_notification_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/expense_reminder_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/notification_settings_controller.dart';
 import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
@@ -23,7 +23,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheduledNotificationsAsync =
         ref.watch(notificationSettingsControllerProvider);
-    final dailyRecapAsync = ref.watch(dailyRecapNotificationControllerProvider);
+    final weeklyRecapAsync = ref.watch(weeklyRecapNotificationControllerProvider);
     final remindersAsync = ref.watch(expenseReminderControllerProvider);
 
     return Scaffold(
@@ -49,12 +49,12 @@ class NotificationSettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               SectionCard(
-                child: _DailyRecapNotificationSection(
-                  dailyRecapAsync: dailyRecapAsync,
+                child: _WeeklyRecapNotificationSection(
+                  weeklyRecapAsync: weeklyRecapAsync,
                   onToggle: (value) async {
                     await ref
                         .read(
-                          dailyRecapNotificationControllerProvider.notifier,
+                          weeklyRecapNotificationControllerProvider.notifier,
                         )
                         .setEnabled(value);
                   },
@@ -196,19 +196,19 @@ class _ScheduledNotificationsSection extends StatelessWidget {
   }
 }
 
-class _DailyRecapNotificationSection extends StatelessWidget {
-  const _DailyRecapNotificationSection({
-    required this.dailyRecapAsync,
+class _WeeklyRecapNotificationSection extends StatelessWidget {
+  const _WeeklyRecapNotificationSection({
+    required this.weeklyRecapAsync,
     required this.onToggle,
   });
 
-  final AsyncValue<bool> dailyRecapAsync;
+  final AsyncValue<bool> weeklyRecapAsync;
   final Future<void> Function(bool) onToggle;
 
   @override
   Widget build(BuildContext context) {
-    final enabled = dailyRecapAsync.value ?? true;
-    final canToggle = !dailyRecapAsync.isLoading;
+    final enabled = weeklyRecapAsync.value ?? true;
+    final canToggle = !weeklyRecapAsync.isLoading;
 
     return Row(
       children: [
@@ -228,7 +228,7 @@ class _DailyRecapNotificationSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'DAILY RECAP',
+                'WEEKLY RECAP',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -238,7 +238,7 @@ class _DailyRecapNotificationSection extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Get your daily spending recap every morning at 8 AM',
+                'Get a nudge on Mondays at 8 AM to review last week in Insight',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

@@ -11,7 +11,6 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../features/home/domain/entities/scheduled_transaction.dart';
-import '../../features/home/presentation/screens/daily_recap_screen.dart';
 import '../router/app_router.dart';
 
 class NotificationService {
@@ -19,8 +18,8 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  /// Fixed ID for the daily recap notification (avoid 100000–999999: scheduled txns).
-  static const int dailyRecapNotificationId = 50000;
+  /// Fixed ID for the weekly recap notification (avoid 100000–999999: scheduled txns).
+  static const int weeklyRecapNotificationId = 50000;
 
   static const _timezoneChannel = MethodChannel(
     'com.dopaminelab.thumby/timezone',
@@ -193,14 +192,8 @@ class NotificationService {
       try {
         final data = jsonDecode(payload) as Map<String, dynamic>;
         final type = data['type'] as String?;
-        if (type == 'daily_recap') {
-          final dateStr = data['date'] as String?;
-          final parsed = parseDailyRecapDateFromQuery(dateStr);
-          final fallback = DateTime.now().subtract(const Duration(days: 1));
-          final date = parsed ?? fallback;
-          navigatorKey.currentContext!.go(
-            '${AppRouter.dailyRecap.path}?date=${formatDailyRecapQueryDate(date)}',
-          );
+        if (type == 'daily_recap' || type == 'weekly_recap') {
+          // Open app only; user opens the recap from Insight.
           return;
         }
         final scheduledId = data['scheduledId'] as String?;
@@ -582,7 +575,7 @@ class NotificationService {
     }
   }
 
-  Future<bool> scheduleDailyRecapNotification() async {
+  Future<bool> scheduleWeeklyRecapNotification() async {
     try {
       if (!_initialized) await initialize();
 
@@ -590,7 +583,7 @@ class NotificationService {
         _permissionsGranted = await hasPermissions();
         if (!_permissionsGranted) {
           developer.log(
-            'Cannot schedule daily recap: permissions not granted',
+            'Cannot schedule weekly recap: permissions not granted',
             name: 'NotificationService',
           );
           return false;
@@ -606,30 +599,38 @@ class NotificationService {
         8,
         0,
       );
-      if (scheduledDate.isBefore(now)) {
+      while (scheduledDate.weekday != DateTime.monday) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 7));
+      }
 
-      final recapDate = scheduledDate.subtract(const Duration(days: 1));
-      final dateStr =
-          '${recapDate.year}-${recapDate.month.toString().padLeft(2, '0')}-${recapDate.day.toString().padLeft(2, '0')}';
-      final payload = jsonEncode({'type': 'daily_recap', 'date': dateStr});
+      final dayOnly = DateTime(
+        scheduledDate.year,
+        scheduledDate.month,
+        scheduledDate.day,
+      );
+      final lastWeekMonday = dayOnly.subtract(const Duration(days: 7));
+      final weekStr =
+          '${lastWeekMonday.year}-${lastWeekMonday.month.toString().padLeft(2, '0')}-${lastWeekMonday.day.toString().padLeft(2, '0')}';
+      final payload = jsonEncode({'type': 'weekly_recap', 'week': weekStr});
 
       developer.log(
-        'Scheduling daily recap notification for $scheduledDate (recap date $dateStr)',
+        'Scheduling weekly recap for $scheduledDate (week key $weekStr)',
         name: 'NotificationService',
       );
 
       await _notifications.zonedSchedule(
-        dailyRecapNotificationId,
-        'Your daily recap is ready',
-        'See yesterday\'s spending insights',
+        weeklyRecapNotificationId,
+        'Your weekly recap is ready',
+        'Check Insight for last week\'s spending',
         scheduledDate,
         const NotificationDetails(
           android: AndroidNotificationDetails(
-            'daily_recap',
-            'Daily recap',
-            channelDescription: 'Summary of your previous day\'s spending',
+            'weekly_recap',
+            'Weekly recap',
+            channelDescription: 'Reminders to review your weekly spending in Insight',
             importance: Importance.high,
             priority: Priority.high,
           ),
@@ -637,21 +638,21 @@ class NotificationService {
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
-            threadIdentifier: 'daily_recap',
+            threadIdentifier: 'weekly_recap',
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
         payload: payload,
       );
 
       final pending = await _notifications.pendingNotificationRequests();
-      return pending.any((n) => n.id == dailyRecapNotificationId);
+      return pending.any((n) => n.id == weeklyRecapNotificationId);
     } catch (e, stackTrace) {
       developer.log(
-        'Error scheduling daily recap notification: $e',
+        'Error scheduling weekly recap notification: $e',
         name: 'NotificationService',
         error: e,
         stackTrace: stackTrace,
@@ -660,17 +661,17 @@ class NotificationService {
     }
   }
 
-  Future<void> cancelDailyRecapNotification() async {
+  Future<void> cancelWeeklyRecapNotification() async {
     try {
       if (!_initialized) return;
-      await _notifications.cancel(dailyRecapNotificationId);
+      await _notifications.cancel(weeklyRecapNotificationId);
       developer.log(
-        'Cancelled daily recap notification',
+        'Cancelled weekly recap notification',
         name: 'NotificationService',
       );
     } catch (e) {
       developer.log(
-        'Error cancelling daily recap notification: $e',
+        'Error cancelling weekly recap notification: $e',
         name: 'NotificationService',
       );
     }
