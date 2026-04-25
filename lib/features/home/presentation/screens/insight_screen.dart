@@ -6,14 +6,14 @@ import 'package:anti/core/widgets/section_card.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/features/home/presentation/controllers/daily_recap_controller.dart';
+import 'package:anti/features/home/presentation/controllers/weekly_recap_controller.dart';
 import 'package:anti/features/home/presentation/controllers/insight_month_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/widgets/category_ranking_section.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_category_line_chart.dart';
-import 'package:anti/features/home/presentation/widgets/daily_recap_card.dart';
+import 'package:anti/features/home/presentation/widgets/weekly_recap_card.dart';
 import 'package:anti/features/home/presentation/widgets/monthly_income_spent_line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -215,7 +215,7 @@ class _MonthContent extends StatelessWidget {
       key: ValueKey('${selectedMonth.year}-${selectedMonth.month}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _DailyRecapSection(),
+        const _WeeklyRecapSection(),
         const SizedBox(height: 16),
         SectionCard(
           child: MonthlyIncomeSpentLineChart(
@@ -371,21 +371,21 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-class _DailyRecapSection extends ConsumerWidget {
-  const _DailyRecapSection();
+class _WeeklyRecapSection extends ConsumerWidget {
+  const _WeeklyRecapSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncLogs = ref.watch(expenseLogsProvider);
     return asyncLogs.when(
       data: (logs) {
-        final summaries = summarizeLastDaysWithActivity(logs, 7);
+        final summaries = summarizeLastWeeksWithActivity(logs, 6);
         if (summaries.isEmpty) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Daily recap',
+              'Weekly recap',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -394,13 +394,13 @@ class _DailyRecapSection extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 156,
+              height: 168,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: summaries.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder:
-                    (context, i) => DailyRecapCard(summary: summaries[i]),
+                    (context, i) => WeeklyRecapCard(summary: summaries[i]),
               ),
             ),
           ],

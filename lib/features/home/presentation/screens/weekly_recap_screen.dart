@@ -2,21 +2,22 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/home/domain/entities/daily_recap_data.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/presentation/controllers/daily_recap_controller.dart';
+import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
+import 'package:anti/features/home/presentation/controllers/weekly_recap_controller.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Query value for `/daily-recap?date=YYYY-MM-DD` (local calendar date).
-String formatDailyRecapQueryDate(DateTime date) {
-  final d = normalizeToLocalDate(date);
-  return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+/// Query value for `/weekly-recap?week=YYYY-MM-DD` (local Monday; any day in that week is normalized by callers).
+String formatWeeklyRecapQueryDate(DateTime monday) {
+  final m = startOfLocalWeekMonday(normalizeToLocalDate(monday));
+  return '${m.year}-${m.month.toString().padLeft(2, '0')}-${m.day.toString().padLeft(2, '0')}';
 }
 
-/// Parses `YYYY-MM-DD` as a local calendar date.
-DateTime? parseDailyRecapDateFromQuery(String? value) {
+/// Parses `YYYY-MM-DD` as a local calendar date; used for the week= query (Monday of the week to show).
+DateTime? parseWeeklyRecapDateFromQuery(String? value) {
   if (value == null || value.isEmpty) return null;
   final parts = value.split('-');
   if (parts.length != 3) return null;
@@ -24,17 +25,17 @@ DateTime? parseDailyRecapDateFromQuery(String? value) {
   final m = int.tryParse(parts[1]);
   final d = int.tryParse(parts[2]);
   if (y == null || m == null || d == null) return null;
-  return DateTime(y, m, d);
+  return startOfLocalWeekMonday(DateTime(y, m, d));
 }
 
-/// Ink color for text and chrome on daily recap light slides.
-const Color _kDailyRecapInk = Color(0xFF0A0A0A);
+/// Ink color for text and chrome on weekly recap light slides.
+const Color _kWeeklyRecapInk = Color(0xFF0A0A0A);
 
 /// Letter spacing for recap editorial kicker labels (uppercase).
 const double _kRecapKickerLetterSpacing = 2.5;
 
 TextStyle _recapKickerStyle({double alpha = 0.55}) => TextStyle(
-  color: _kDailyRecapInk.withValues(alpha: alpha),
+  color: _kWeeklyRecapInk.withValues(alpha: alpha),
   fontSize: 12,
   fontWeight: FontWeight.w600,
   letterSpacing: _kRecapKickerLetterSpacing,
@@ -119,16 +120,17 @@ class _RecapRevealState extends State<_RecapReveal>
   }
 }
 
-class DailyRecapScreen extends ConsumerStatefulWidget {
-  const DailyRecapScreen({super.key, required this.recapDate});
+class WeeklyRecapScreen extends ConsumerStatefulWidget {
+  const WeeklyRecapScreen({super.key, required this.recapWeekAnchor});
 
-  final DateTime recapDate;
+  /// Any local date in the week to show; the screen uses that week (Mon–Sun).
+  final DateTime recapWeekAnchor;
 
   @override
-  ConsumerState<DailyRecapScreen> createState() => _DailyRecapScreenState();
+  ConsumerState<WeeklyRecapScreen> createState() => _WeeklyRecapScreenState();
 }
 
-class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
+class _WeeklyRecapScreenState extends ConsumerState<WeeklyRecapScreen> {
   static const _slideCount = 7;
 
   late final PageController _pageController;
@@ -210,15 +212,16 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final day = normalizeToLocalDate(widget.recapDate);
-    final asyncData = ref.watch(dailyRecapControllerProvider(day));
+    final monday =
+        startOfLocalWeekMonday(normalizeToLocalDate(widget.recapWeekAnchor));
+    final asyncData = ref.watch(weeklyRecapControllerProvider(monday));
 
     return asyncData.when(
-      data: (data) => _buildStory(context, data),
+      data: (WeeklyRecapData data) => _buildStory(context, data),
       loading:
           () => const Scaffold(
             body: Center(
-              child: CircularProgressIndicator(color: _kDailyRecapInk),
+              child: CircularProgressIndicator(color: _kWeeklyRecapInk),
             ),
             backgroundColor: Color(0xFFF5F5F5),
           ),
@@ -228,7 +231,7 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
             appBar: AppBar(
               backgroundColor: const Color(0xFFF5F5F5),
               leading: IconButton(
-                icon: const Icon(Icons.close, color: _kDailyRecapInk),
+                icon: const Icon(Icons.close, color: _kWeeklyRecapInk),
                 onPressed: () => context.pop(),
               ),
             ),
@@ -239,7 +242,7 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
                   'Something went wrong. Close and try again.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: _kDailyRecapInk,
+                    color: _kWeeklyRecapInk,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -249,8 +252,8 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
     );
   }
 
-  Widget _buildStory(BuildContext context, DailyRecapData data) {
-    final colors = _slideBackgrounds(data.hasActivity);
+  Widget _buildStory(BuildContext context, WeeklyRecapData recap) {
+    final colors = _slideBackgrounds(recap.hasActivity);
 
     return Scaffold(
       backgroundColor: colors[_pageIndex.clamp(0, _slideCount - 1)],
@@ -275,7 +278,7 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
                 child: IconButton(
                   icon: const Icon(
                     Icons.close,
-                    color: _kDailyRecapInk,
+                    color: _kWeeklyRecapInk,
                     size: 28,
                   ),
                   onPressed: () => context.pop(),
@@ -288,37 +291,37 @@ class _DailyRecapScreenState extends ConsumerState<DailyRecapScreen> {
                   onPageChanged: _onPageChanged,
                   children: [
                     _IntroSlide(
-                      data: data,
+                      data: recap,
                       backgroundColor: colors[0],
                       isActive: _pageIndex == 0,
                     ),
                     _TotalSpentSlide(
-                      data: data,
+                      data: recap,
                       backgroundColor: colors[1],
                       isActive: _pageIndex == 1,
                     ),
                     _TopCategorySlide(
-                      data: data,
+                      data: recap,
                       backgroundColor: colors[2],
                       isActive: _pageIndex == 2,
                     ),
                     _TransactionCountSlide(
-                      data: data,
+                      data: recap,
                       backgroundColor: colors[3],
                       isActive: _pageIndex == 3,
                     ),
                     _BiggestExpenseSlide(
-                      data: data,
+                      data: recap,
                       backgroundColor: colors[4],
                       isActive: _pageIndex == 4,
                     ),
                     _SpendingTimelineSlide(
-                      data: data,
+                      data: recap,
                       backgroundColor: colors[5],
                       isActive: _pageIndex == 5,
                     ),
                     _OutroSlide(
-                      data: data,
+                      data: recap,
                       backgroundColor: colors[6],
                       isActive: _pageIndex == 6,
                     ),
@@ -376,14 +379,14 @@ class _StoryProgressBar extends StatelessWidget {
                       Container(
                         height: 3,
                         width: constraints.maxWidth,
-                        color: _kDailyRecapInk.withValues(alpha: 0.18),
+                        color: _kWeeklyRecapInk.withValues(alpha: 0.18),
                       ),
                       Positioned(
                         left: 0,
                         top: 0,
                         height: 3,
                         width: w,
-                        child: const ColoredBox(color: _kDailyRecapInk),
+                        child: const ColoredBox(color: _kWeeklyRecapInk),
                       ),
                     ],
                   );
@@ -404,17 +407,17 @@ class _IntroSlide extends StatelessWidget {
     required this.isActive,
   });
 
-  final DailyRecapData data;
+  final WeeklyRecapData data;
   final Color backgroundColor;
   final bool isActive;
 
   @override
   Widget build(BuildContext context) {
-    final label = _formatDayTitle(data.date);
+    final label = _formatWeekRangeKicker(data.weekStart, data.weekEnd);
     return _SlideScaffold(
       backgroundColor: backgroundColor,
       seed: 0,
-      decorativeText: '${data.date.day}',
+      decorativeText: '${data.weekStart.day}',
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -434,10 +437,10 @@ class _IntroSlide extends StatelessWidget {
             child: Text(
               data.hasActivity
                   ? 'Here\'s your spending recap'
-                  : 'No transactions that day — tap through for a quick look',
+                  : 'A quiet week — tap through for a quick look',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.92),
+                color: _kWeeklyRecapInk.withValues(alpha: 0.92),
                 fontSize: data.hasActivity ? 40 : 30,
                 fontWeight: FontWeight.w900,
                 height: 1.1,
@@ -458,7 +461,7 @@ class _TotalSpentSlide extends StatelessWidget {
     required this.isActive,
   });
 
-  final DailyRecapData data;
+  final WeeklyRecapData data;
   final Color backgroundColor;
   final bool isActive;
 
@@ -489,7 +492,7 @@ class _TotalSpentSlide extends StatelessWidget {
               data.hasActivity ? '฿$amount' : '฿0',
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: _kDailyRecapInk,
+                color: _kWeeklyRecapInk,
                 fontSize: 64,
                 fontWeight: FontWeight.w900,
                 letterSpacing: -1.2,
@@ -502,10 +505,10 @@ class _TotalSpentSlide extends StatelessWidget {
             isActive: isActive,
             delay: const Duration(milliseconds: 200),
             child: Text(
-              'ON THIS DAY',
+              'THIS WEEK',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.55),
+                color: _kWeeklyRecapInk.withValues(alpha: 0.55),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 1.8,
@@ -525,7 +528,7 @@ class _TopCategorySlide extends StatelessWidget {
     required this.isActive,
   });
 
-  final DailyRecapData data;
+  final WeeklyRecapData data;
   final Color backgroundColor;
   final bool isActive;
 
@@ -560,7 +563,7 @@ class _TopCategorySlide extends StatelessWidget {
               category ?? '—',
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: _kDailyRecapInk,
+                color: _kWeeklyRecapInk,
                 fontSize: 44,
                 fontWeight: FontWeight.w900,
                 height: 1.08,
@@ -577,7 +580,7 @@ class _TopCategorySlide extends StatelessWidget {
                 '฿$amount',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _kDailyRecapInk.withValues(alpha: 0.88),
+                  color: _kWeeklyRecapInk.withValues(alpha: 0.88),
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                 ),
@@ -591,10 +594,10 @@ class _TopCategorySlide extends StatelessWidget {
             child: Text(
               category != null
                   ? 'Where most of your spending went'
-                  : 'No expense categories for this day',
+                  : 'No expense categories this week',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.58),
+                color: _kWeeklyRecapInk.withValues(alpha: 0.58),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 height: 1.35,
@@ -614,7 +617,7 @@ class _TransactionCountSlide extends StatelessWidget {
     required this.isActive,
   });
 
-  final DailyRecapData data;
+  final WeeklyRecapData data;
   final Color backgroundColor;
   final bool isActive;
 
@@ -635,7 +638,7 @@ class _TransactionCountSlide extends StatelessWidget {
               '$n',
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: _kDailyRecapInk,
+                color: _kWeeklyRecapInk,
                 fontSize: 88,
                 fontWeight: FontWeight.w900,
                 height: 1.0,
@@ -666,7 +669,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
     required this.isActive,
   });
 
-  final DailyRecapData data;
+  final WeeklyRecapData data;
   final Color backgroundColor;
   final bool isActive;
 
@@ -707,7 +710,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
                 title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: _kDailyRecapInk,
+                  color: _kWeeklyRecapInk,
                   fontSize: 36,
                   fontWeight: FontWeight.w900,
                   height: 1.1,
@@ -723,7 +726,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
                 '฿$amount',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _kDailyRecapInk.withValues(alpha: 0.88),
+                  color: _kWeeklyRecapInk.withValues(alpha: 0.88),
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
                 ),
@@ -737,7 +740,7 @@ class _BiggestExpenseSlide extends StatelessWidget {
                 'No expenses to highlight',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _kDailyRecapInk.withValues(alpha: 0.72),
+                  color: _kWeeklyRecapInk.withValues(alpha: 0.72),
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   height: 1.3,
@@ -775,6 +778,12 @@ String _formatTimelineClock(DateTime d) {
   return '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 }
 
+const _weekdayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+String _formatTimelineWeekTime(DateTime d) {
+  return '${_weekdayShort[d.weekday - 1]} ${_formatTimelineClock(d)}';
+}
+
 class _SpendingTimelineSlide extends StatefulWidget {
   const _SpendingTimelineSlide({
     required this.data,
@@ -782,7 +791,7 @@ class _SpendingTimelineSlide extends StatefulWidget {
     required this.isActive,
   });
 
-  final DailyRecapData data;
+  final WeeklyRecapData data;
   final Color backgroundColor;
   final bool isActive;
 
@@ -793,10 +802,10 @@ class _SpendingTimelineSlide extends StatefulWidget {
 class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
     with TickerProviderStateMixin {
   static const _revealDuration = Duration(seconds: 10);
-  static const _pixelsPerMinute = 4.0;
+  static const _pixelsPerMinute = 0.55;
 
-  /// Full local day 00:00 → 23:59:59 on the X axis.
-  static const _minutesInDay = 24 * 60.0;
+  /// Monday 00:00 through Sunday 23:59 on the X axis.
+  static const _minutesInWeek = 7 * 24 * 60.0;
 
   late final AnimationController _revealController;
   late final AnimationController _zoomController;
@@ -858,7 +867,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
       _zoomPointIndex = null;
       if (reachedLastPoint) {
         _pinnedLastPointIndex = _lastZoomedIndex;
-        // Stop here: do not reveal the rest of the day past the final expense.
+        // Stop here: do not reveal the rest of the week past the final expense.
         setState(() {});
         return;
       }
@@ -939,16 +948,16 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
     return list;
   }
 
-  DateTime _startOfRecapDay() {
-    final d = widget.data.date;
+  DateTime _startOfRecapWeek() {
+    final d = widget.data.weekStart;
     return DateTime(d.year, d.month, d.day);
   }
 
-  /// Minutes from local midnight [0, 1440], including fractional minutes.
-  double _minutesSinceMidnight(DateTime t) {
-    final start = _startOfRecapDay();
+  /// Minutes from Monday 00:00, capped at one week.
+  double _minutesSinceWeekStart(DateTime t) {
+    final start = _startOfRecapWeek();
     final m = t.difference(start).inSeconds / 60.0;
-    return m.clamp(0.0, _minutesInDay);
+    return m.clamp(0.0, _minutesInWeek);
   }
 
   @override
@@ -964,16 +973,16 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              'YOUR DAY IN SPENDING',
+              'YOUR WEEK IN SPENDING',
               textAlign: TextAlign.center,
               style: _recapKickerStyle(alpha: 0.72),
             ),
             const SizedBox(height: 20),
             Text(
-              'Log an expense to see your timeline here',
+              'Log an expense to see your week here',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.58),
+                color: _kWeeklyRecapInk.withValues(alpha: 0.58),
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 height: 1.35,
@@ -993,13 +1002,13 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
         final chartInnerW = viewportW - 52;
         final chartWidth = math.max(
           chartInnerW,
-          _minutesInDay * _pixelsPerMinute,
+          _minutesInWeek * _pixelsPerMinute,
         );
 
         final points = <_TimelinePoint>[];
         for (final e in expenses) {
-          final mins = _minutesSinceMidnight(e.createdAt);
-          final x = (mins / _minutesInDay) * chartWidth;
+          final mins = _minutesSinceWeekStart(e.createdAt);
+          final x = (mins / _minutesInWeek) * chartWidth;
           points.add(
             _TimelinePoint(
               x: x.clamp(0.0, chartWidth),
@@ -1029,7 +1038,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'YOUR DAY IN SPENDING',
+                'YOUR WEEK IN SPENDING',
                 textAlign: TextAlign.center,
                 style: _recapKickerStyle(alpha: 0.75),
               ),
@@ -1051,7 +1060,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
                               Text(
                                 _formatChartAxisAmount(maxAmount),
                                 style: TextStyle(
-                                  color: _kDailyRecapInk.withValues(
+                                  color: _kWeeklyRecapInk.withValues(
                                     alpha: 0.55,
                                   ),
                                   fontSize: 11,
@@ -1061,7 +1070,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
                               Text(
                                 _formatChartAxisAmount(maxAmount / 2),
                                 style: TextStyle(
-                                  color: _kDailyRecapInk.withValues(
+                                  color: _kWeeklyRecapInk.withValues(
                                     alpha: 0.55,
                                   ),
                                   fontSize: 11,
@@ -1071,7 +1080,7 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
                               Text(
                                 '฿0',
                                 style: TextStyle(
-                                  color: _kDailyRecapInk.withValues(
+                                  color: _kWeeklyRecapInk.withValues(
                                     alpha: 0.55,
                                   ),
                                   fontSize: 11,
@@ -1124,16 +1133,18 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             for (final label in const [
-                                              '00:00',
-                                              '06:00',
-                                              '12:00',
-                                              '18:00',
-                                              '23:59',
+                                              'Mon',
+                                              'Tue',
+                                              'Wed',
+                                              'Thu',
+                                              'Fri',
+                                              'Sat',
+                                              'Sun',
                                             ])
                                               Text(
                                                 label,
                                                 style: TextStyle(
-                                                  color: _kDailyRecapInk
+                                                  color: _kWeeklyRecapInk
                                                       .withValues(alpha: 0.42),
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w600,
@@ -1151,13 +1162,15 @@ class _SpendingTimelineSlideState extends State<_SpendingTimelineSlide>
                                                 left: p.x - 18,
                                                 top: 0,
                                                 child: Text(
-                                                  _formatTimelineClock(p.time),
+                                                  _formatTimelineWeekTime(
+                                                    p.time,
+                                                  ),
                                                   style: TextStyle(
-                                                    color: _kDailyRecapInk
+                                                    color: _kWeeklyRecapInk
                                                         .withValues(
                                                           alpha: 0.58,
                                                         ),
-                                                    fontSize: 10,
+                                                    fontSize: 9,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
@@ -1214,7 +1227,7 @@ class _TimelineChartPainter extends CustomPainter {
 
     final gridPaint =
         Paint()
-          ..color = _kDailyRecapInk.withValues(alpha: 0.12)
+          ..color = _kWeeklyRecapInk.withValues(alpha: 0.12)
           ..strokeWidth = 1;
 
     double yAt(double amountAbs) {
@@ -1261,7 +1274,7 @@ class _TimelineChartPainter extends CustomPainter {
 
     final glow =
         Paint()
-          ..color = _kDailyRecapInk.withValues(alpha: 0.22)
+          ..color = _kWeeklyRecapInk.withValues(alpha: 0.22)
           ..strokeWidth = 6
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round
@@ -1269,7 +1282,7 @@ class _TimelineChartPainter extends CustomPainter {
 
     final line =
         Paint()
-          ..color = _kDailyRecapInk.withValues(alpha: 0.92)
+          ..color = _kWeeklyRecapInk.withValues(alpha: 0.92)
           ..strokeWidth = 2.5
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round
@@ -1316,11 +1329,11 @@ class _TimelineChartPainter extends CustomPainter {
   ) {
     final dotFill =
         Paint()
-          ..color = _kDailyRecapInk.withValues(alpha: 0.92)
+          ..color = _kWeeklyRecapInk.withValues(alpha: 0.92)
           ..style = PaintingStyle.fill;
     final dotGlow =
         Paint()
-          ..color = _kDailyRecapInk.withValues(alpha: 0.22)
+          ..color = _kWeeklyRecapInk.withValues(alpha: 0.22)
           ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 4);
 
     for (var i = 0; i < points.length; i++) {
@@ -1381,7 +1394,7 @@ class _TimelineChartPainter extends CustomPainter {
       text: TextSpan(
         text: amountLabel,
         style: TextStyle(
-          color: _kDailyRecapInk.withValues(alpha: opacity),
+          color: _kWeeklyRecapInk.withValues(alpha: opacity),
           fontSize: 14,
           fontWeight: FontWeight.w700,
         ),
@@ -1392,7 +1405,7 @@ class _TimelineChartPainter extends CustomPainter {
       text: TextSpan(
         text: categoryLabel,
         style: TextStyle(
-          color: _kDailyRecapInk.withValues(alpha: 0.85 * opacity),
+          color: _kWeeklyRecapInk.withValues(alpha: 0.85 * opacity),
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -1419,7 +1432,7 @@ class _TimelineChartPainter extends CustomPainter {
     );
     canvas.drawRRect(
       rect,
-      Paint()..color = _kDailyRecapInk.withValues(alpha: 0.08 * opacity),
+      Paint()..color = _kWeeklyRecapInk.withValues(alpha: 0.08 * opacity),
     );
     final amountTop = top + padV;
     tpAmount.paint(canvas, Offset(left + padH, amountTop));
@@ -1449,7 +1462,7 @@ class _OutroSlide extends StatelessWidget {
     required this.isActive,
   });
 
-  final DailyRecapData data;
+  final WeeklyRecapData data;
   final Color backgroundColor;
   final bool isActive;
 
@@ -1479,7 +1492,7 @@ class _OutroSlide extends StatelessWidget {
               'Nice work tracking',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk,
+                color: _kWeeklyRecapInk,
                 fontSize: 40,
                 fontWeight: FontWeight.w900,
                 height: 1.1,
@@ -1494,10 +1507,10 @@ class _OutroSlide extends StatelessWidget {
             child: Text(
               data.hasActivity
                   ? 'Keep logging to sharpen your insights'
-                  : 'Add a log tomorrow to build your streak',
+                  : 'Add a log to build your streak',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.62),
+                color: _kWeeklyRecapInk.withValues(alpha: 0.62),
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 height: 1.35,
@@ -1523,7 +1536,7 @@ class _RecapBgPainter extends CustomPainter {
     final rng = math.Random(seed);
     final linePaint =
         Paint()
-          ..color = _kDailyRecapInk.withValues(alpha: 0.12)
+          ..color = _kWeeklyRecapInk.withValues(alpha: 0.12)
           ..strokeWidth = 2.0
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round;
@@ -1553,7 +1566,7 @@ class _RecapBgPainter extends CustomPainter {
       1.1,
       false,
       Paint()
-        ..color = _kDailyRecapInk.withValues(alpha: 0.07)
+        ..color = _kWeeklyRecapInk.withValues(alpha: 0.07)
         ..strokeWidth = 55
         ..style = PaintingStyle.stroke,
     );
@@ -1594,7 +1607,7 @@ class _SlideScaffold extends StatelessWidget {
               decorativeText!,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _kDailyRecapInk.withValues(alpha: 0.07),
+                color: _kWeeklyRecapInk.withValues(alpha: 0.07),
                 fontSize: 220,
                 fontWeight: FontWeight.w900,
                 height: 1.0,
@@ -1611,16 +1624,7 @@ class _SlideScaffold extends StatelessWidget {
   }
 }
 
-String _formatDayTitle(DateTime date) {
-  const weekdays = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ];
+String _formatWeekRangeKicker(DateTime weekStart, DateTime weekEnd) {
   const months = [
     'Jan',
     'Feb',
@@ -1635,7 +1639,13 @@ String _formatDayTitle(DateTime date) {
     'Nov',
     'Dec',
   ];
-  final wd = weekdays[date.weekday - 1];
-  final m = months[date.month - 1];
-  return '$wd, $m ${date.day}, ${date.year}';
+  final a = months[weekStart.month - 1];
+  final b = months[weekEnd.month - 1];
+  if (weekStart.month == weekEnd.month && weekStart.year == weekEnd.year) {
+    return '$a ${weekStart.day}–${weekEnd.day}, ${weekStart.year}';
+  }
+  if (weekStart.year == weekEnd.year) {
+    return '$a ${weekStart.day} – $b ${weekEnd.day}, ${weekStart.year}';
+  }
+  return '$a ${weekStart.day}, ${weekStart.year} – $b ${weekEnd.day}, ${weekEnd.year}';
 }

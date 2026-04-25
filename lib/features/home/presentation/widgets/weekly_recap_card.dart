@@ -1,33 +1,35 @@
 import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/home/presentation/controllers/daily_recap_controller.dart';
-import 'package:anti/features/home/presentation/screens/daily_recap_screen.dart';
+import 'package:anti/features/home/presentation/controllers/weekly_recap_controller.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
+import 'package:anti/features/home/presentation/screens/weekly_recap_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 
-class DailyRecapCard extends StatelessWidget {
-  const DailyRecapCard({
+class WeeklyRecapCard extends StatelessWidget {
+  const WeeklyRecapCard({
     super.key,
     required this.summary,
   });
 
-  final DailyRecapDaySummary summary;
+  final WeeklyRecapWeekSummary summary;
 
   @override
   Widget build(BuildContext context) {
     final amount = formatAmountWithComma(summary.totalSpent, decimalDigits: 2);
-    final dateLabel = _shortDate(summary.date);
+    final weekEnd = endOfLocalWeekSunday(summary.weekStart);
+    final dateLabel = _formatWeekRangeLine(summary.weekStart, weekEnd);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap:
             () => context.push(
-              '${AppRouter.dailyRecap.path}?date=${formatDailyRecapQueryDate(summary.date)}',
+              '${AppRouter.weeklyRecap.path}?week=${formatWeeklyRecapQueryDate(summary.weekStart)}',
             ),
         borderRadius: BorderRadius.circular(20),
         child: Ink(
-          width: 200,
+          width: 220,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -50,7 +52,7 @@ class DailyRecapCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Daily recap',
+                      'Weekly recap',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -95,7 +97,7 @@ class DailyRecapCard extends StatelessWidget {
   }
 }
 
-String _shortDate(DateTime date) {
+String _formatWeekRangeLine(DateTime weekStart, DateTime weekEnd) {
   const months = [
     'Jan',
     'Feb',
@@ -110,5 +112,13 @@ String _shortDate(DateTime date) {
     'Nov',
     'Dec',
   ];
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  final a = months[weekStart.month - 1];
+  final b = months[weekEnd.month - 1];
+  if (weekStart.month == weekEnd.month && weekStart.year == weekEnd.year) {
+    return '$a ${weekStart.day}–${weekEnd.day}, ${weekStart.year}';
+  }
+  if (weekStart.year == weekEnd.year) {
+    return '$a ${weekStart.day} – $b ${weekEnd.day}, ${weekStart.year}';
+  }
+  return '$a ${weekStart.day}, ${weekStart.year} – $b ${weekEnd.day}, ${weekEnd.year}';
 }

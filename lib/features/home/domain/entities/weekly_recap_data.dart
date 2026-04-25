@@ -2,9 +2,10 @@ import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:flutter/foundation.dart';
 
 @immutable
-class DailyRecapData {
-  const DailyRecapData({
-    required this.date,
+class WeeklyRecapData {
+  const WeeklyRecapData({
+    required this.weekStart,
+    required this.weekEnd,
     required this.totalSpent,
     required this.totalIncome,
     required this.topCategory,
@@ -14,8 +15,11 @@ class DailyRecapData {
     required this.logs,
   });
 
-  /// Calendar date this recap covers (local, date-only).
-  final DateTime date;
+  /// Monday of the week (local, date-only).
+  final DateTime weekStart;
+
+  /// Sunday of the week (local, date-only).
+  final DateTime weekEnd;
   final double totalSpent;
   final double totalIncome;
   final String? topCategory;

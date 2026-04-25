@@ -7,7 +7,8 @@ import '../../features/home/domain/entities/expense_log.dart';
 import '../../features/home/domain/entities/scheduled_transaction.dart';
 import '../../features/home/presentation/screens/add_scheduled_transaction_screen.dart';
 import '../../features/home/presentation/screens/budget_screen.dart';
-import '../../features/home/presentation/screens/daily_recap_screen.dart';
+import '../../features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
+import '../../features/home/presentation/screens/weekly_recap_screen.dart';
 import '../../features/home/presentation/screens/dashboard_screen.dart';
 import '../../features/home/presentation/screens/expense_log_detail_screen.dart';
 import '../../features/home/presentation/screens/expense_logs_csv_screen.dart';
@@ -43,7 +44,7 @@ enum AppRouter {
   addScheduledTransaction,
   scheduledTransactionDetail,
   expenseLogDetail,
-  dailyRecap;
+  weeklyRecap;
 
   String get path {
     switch (this) {
@@ -81,8 +82,8 @@ enum AppRouter {
         return '/scheduled-transactions/:id';
       case AppRouter.expenseLogDetail:
         return '/logs/:id';
-      case AppRouter.dailyRecap:
-        return '/daily-recap';
+      case AppRouter.weeklyRecap:
+        return '/weekly-recap';
     }
   }
 }
@@ -220,14 +221,31 @@ GoRouter appRouter(Ref ref) {
         },
       ),
       GoRoute(
+        path: '/daily-recap',
+        redirect: (context, state) {
+          final d =
+              state.uri.queryParameters['date'] ?? state.uri.queryParameters['week'];
+          if (d != null && d.isNotEmpty) {
+            return Uri(
+              path: AppRouter.weeklyRecap.path,
+              queryParameters: {'week': d},
+            ).toString();
+          }
+          return AppRouter.weeklyRecap.path;
+        },
+      ),
+      GoRoute(
         parentNavigatorKey: rootNavigatorKey,
-        path: AppRouter.dailyRecap.path,
-        name: AppRouter.dailyRecap.name,
+        path: AppRouter.weeklyRecap.path,
+        name: AppRouter.weeklyRecap.name,
         builder: (context, state) {
-          final raw = state.uri.queryParameters['date'];
-          final parsed = parseDailyRecapDateFromQuery(raw);
-          final fallback = DateTime.now().subtract(const Duration(days: 1));
-          return DailyRecapScreen(recapDate: parsed ?? fallback);
+          final raw = state.uri.queryParameters['week'];
+          final parsed = parseWeeklyRecapDateFromQuery(raw);
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+          final thisMonday = startOfLocalWeekMonday(today);
+          final fallback = thisMonday.subtract(const Duration(days: 7));
+          return WeeklyRecapScreen(recapWeekAnchor: parsed ?? fallback);
         },
       ),
       GoRoute(

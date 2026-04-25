@@ -1,11 +1,11 @@
-import 'package:anti/features/home/domain/entities/daily_recap_data.dart';
+import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'daily_recap_controller.g.dart';
+part 'weekly_recap_controller.g.dart';
 
 /// Normalizes to local calendar date (year-month-day only).
 DateTime normalizeToLocalDate(DateTime date) {
@@ -13,17 +13,18 @@ DateTime normalizeToLocalDate(DateTime date) {
 }
 
 @riverpod
-class DailyRecapController extends _$DailyRecapController {
+class WeeklyRecapController extends _$WeeklyRecapController {
   @override
-  FutureOr<DailyRecapData> build(DateTime date) async {
-    final day = normalizeToLocalDate(date);
+  FutureOr<WeeklyRecapData> build(DateTime date) async {
+    final weekStart = startOfLocalWeekMonday(normalizeToLocalDate(date));
+    final weekEnd = endOfLocalWeekSunday(weekStart);
     ref.watch(expenseLogsProvider);
     final allLogs = await ref.read(expenseLogsProvider.future);
-    final dayLogs = [...filterLogsByDay(allLogs, day)]
+    final weekLogs = [...filterLogsInLocalWeek(allLogs, weekStart)]
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-    final expenses = dayLogs.where((l) => l.amount < 0).toList();
-    final incomeLogs = dayLogs.where((l) => l.amount >= 0).toList();
+    final expenses = weekLogs.where((l) => l.amount < 0).toList();
+    final incomeLogs = weekLogs.where((l) => l.amount >= 0).toList();
 
     final totalSpent = expenses.fold<double>(
       0,
@@ -56,44 +57,46 @@ class DailyRecapController extends _$DailyRecapController {
       }
     }
 
-    return DailyRecapData(
-      date: day,
+    return WeeklyRecapData(
+      weekStart: weekStart,
+      weekEnd: weekEnd,
       totalSpent: totalSpent,
       totalIncome: totalIncome,
       topCategory: topCategory,
       topCategoryAmount: topCategoryAmount,
-      transactionCount: dayLogs.length,
+      transactionCount: weekLogs.length,
       biggestExpense: biggestExpense,
-      logs: dayLogs,
+      logs: weekLogs,
     );
   }
 }
 
-/// Sync summary for Insight cards without async churn (uses same rules as [DailyRecapController]).
+/// Sync summary for Insight cards without async churn (uses same rules as [WeeklyRecapController]).
 @immutable
-class DailyRecapDaySummary {
-  const DailyRecapDaySummary({
-    required this.date,
+class WeeklyRecapWeekSummary {
+  const WeeklyRecapWeekSummary({
+    required this.weekStart,
     required this.totalSpent,
     required this.transactionCount,
   });
 
-  final DateTime date;
+  final DateTime weekStart;
   final double totalSpent;
   final int transactionCount;
 }
 
-List<DailyRecapDaySummary> summarizeLastDaysWithActivity(
+List<WeeklyRecapWeekSummary> summarizeLastWeeksWithActivity(
   List<ExpenseLog> allLogs,
-  int dayCount,
+  int maxWeeks,
 ) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final summaries = <DailyRecapDaySummary>[];
+  final thisMonday = startOfLocalWeekMonday(today);
+  final summaries = <WeeklyRecapWeekSummary>[];
 
-  for (var i = 0; i < dayCount; i++) {
-    final day = today.subtract(Duration(days: i));
-    final logs = filterLogsByDay(allLogs, day);
+  for (var w = 0; w < maxWeeks; w++) {
+    final weekStart = thisMonday.subtract(Duration(days: 7 * w));
+    final logs = filterLogsInLocalWeek(allLogs, weekStart);
     if (logs.isEmpty) continue;
 
     final expenses = logs.where((l) => l.amount < 0);
@@ -102,8 +105,8 @@ List<DailyRecapDaySummary> summarizeLastDaysWithActivity(
       (sum, l) => sum + l.amount.abs(),
     );
     summaries.add(
-      DailyRecapDaySummary(
-        date: day,
+      WeeklyRecapWeekSummary(
+        weekStart: weekStart,
         totalSpent: totalSpent,
         transactionCount: logs.length,
       ),
