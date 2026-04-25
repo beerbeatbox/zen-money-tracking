@@ -112,9 +112,7 @@ struct ThumbySpendingEntryView: View {
         formatter.currencySymbol = "฿"
         formatter.maximumFractionDigits = hasFraction ? 2 : 0
         formatter.minimumFractionDigits = hasFraction ? 2 : 0
-        let formatted = formatter.string(from: NSNumber(value: abs(entry.amount))) ?? "฿0"
-        // Add minus sign prefix to show spending as negative
-        return "-\(formatted)"
+        return formatter.string(from: NSNumber(value: abs(entry.amount))) ?? "฿0"
     }
 
     private var formattedBudget: String? {
