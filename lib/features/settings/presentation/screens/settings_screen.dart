@@ -2,6 +2,7 @@ import 'package:anti/core/constants/app_sizes.dart';
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/router/app_router.dart';
 import 'package:anti/core/widgets/section_card.dart';
+import 'package:anti/features/home/presentation/screens/dashboard/widgets/update_balance_bottom_sheet.dart';
 import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
 import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
@@ -192,6 +193,13 @@ class _SettingsList extends StatelessWidget {
                 icon: HeroIcons.banknotes,
                 title: 'Budget',
                 onTap: () => context.pushNamed(AppRouter.budget.name),
+              ),
+              const SizedBox(height: 12),
+              _SettingsCard(
+                icon: HeroIcons.scale,
+                title: 'Update your balance',
+                subtitle: 'Set the amount you have now',
+                onTap: () => showUpdateBalanceBottomSheet(context, ref),
               ),
               const SizedBox(height: 12),
               _SettingsCard(

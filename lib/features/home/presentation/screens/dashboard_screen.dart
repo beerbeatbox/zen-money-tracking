@@ -23,7 +23,6 @@ import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_spending_section.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/widgets/edit_dashboard_drawer.dart';
-import 'package:anti/features/home/presentation/screens/dashboard/widgets/update_balance_bottom_sheet.dart';
 import 'package:anti/features/home/presentation/screens/dashboard_events.dart';
 import 'package:anti/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
@@ -156,7 +155,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     double? todayBudgetRemaining,
     double? todaySpending,
     double? recommendedDailyBudgetWithBuffer,
-    required VoidCallback onUpdateBalance,
   }) {
     final sections = <DashboardSectionId>[];
     final widgets = <Widget>[];
@@ -181,7 +179,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               netBalance: netBalance,
               projectedBalance: projectedBalance,
               showProjected: showProjected,
-              onUpdateBalance: onUpdateBalance,
             ),
           );
         case DashboardSectionId.incomeSpent:
@@ -391,7 +388,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 todaySpending: vm.todaySpending,
                 recommendedDailyBudgetWithBuffer:
                     vm.sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
-                onUpdateBalance: () => showUpdateBalanceBottomSheet(context, ref),
               ),
               onSwipeToPreviousMonth:
                   () =>

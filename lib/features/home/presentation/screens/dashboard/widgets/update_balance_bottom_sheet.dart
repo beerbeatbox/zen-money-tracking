@@ -1,4 +1,6 @@
 import 'package:anti/core/constants/app_sizes.dart';
+import 'package:anti/core/utils/date_time_formatter.dart';
+import 'package:anti/core/utils/formatters.dart';
 import 'package:anti/features/home/presentation/controllers/balance_snapshot_controller.dart';
 import 'package:anti/features/home/presentation/controllers/dashboard_controller.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ Future<void> showUpdateBalanceBottomSheet(
 ) async {
   await showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
@@ -85,6 +88,40 @@ class _UpdateBalanceFormState extends ConsumerState<_UpdateBalanceForm> {
     );
   }
 
+  Widget _buildCurrentBalanceCard() {
+    final latestSnapshotAsync = ref.watch(latestBalanceSnapshotProvider);
+
+    return latestSnapshotAsync.when(
+      data: (snapshot) {
+        if (snapshot == null) {
+          return const _CurrentBalanceCard(
+            title: 'Your current balance',
+            amountLabel: 'Ready to set',
+            subtitle: 'Add your balance to get started.',
+          );
+        }
+
+        return _CurrentBalanceCard(
+          title: 'Your current balance',
+          amountLabel: formatNetBalance(snapshot.amount),
+          subtitle: 'Updated ${formatDateLabel(snapshot.effectiveAt)}',
+        );
+      },
+      loading:
+          () => const _CurrentBalanceCard(
+            title: 'Your current balance',
+            amountLabel: 'Loading...',
+            subtitle: 'Checking your latest balance.',
+          ),
+      error:
+          (_, __) => const _CurrentBalanceCard(
+            title: 'Your current balance',
+            amountLabel: 'Ready to update',
+            subtitle: 'Enter the amount you have now.',
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -110,6 +147,8 @@ class _UpdateBalanceFormState extends ConsumerState<_UpdateBalanceForm> {
             height: 1.35,
           ),
         ),
+        const SizedBox(height: Sizes.kP16),
+        _buildCurrentBalanceCard(),
         const SizedBox(height: Sizes.kP24),
         TextField(
           controller: _amountController,
@@ -178,6 +217,63 @@ class _UpdateBalanceFormState extends ConsumerState<_UpdateBalanceForm> {
           child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
         ),
       ],
+    );
+  }
+}
+
+class _CurrentBalanceCard extends StatelessWidget {
+  const _CurrentBalanceCard({
+    required this.title,
+    required this.amountLabel,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String amountLabel;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(Sizes.kP16),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.4,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: Sizes.kP8),
+          Text(
+            amountLabel,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: Sizes.kP4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
