@@ -1,5 +1,6 @@
 import 'package:anti/core/extensions/widget_extension.dart';
 import 'package:anti/core/widgets/section_card.dart';
+import 'package:anti/features/settings/presentation/controllers/weekly_recap_notification_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/expense_reminder_controller.dart';
 import 'package:anti/features/settings/presentation/controllers/notification_settings_controller.dart';
 import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
@@ -22,6 +23,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheduledNotificationsAsync =
         ref.watch(notificationSettingsControllerProvider);
+    final weeklyRecapAsync = ref.watch(weeklyRecapNotificationControllerProvider);
     final remindersAsync = ref.watch(expenseReminderControllerProvider);
 
     return Scaffold(
@@ -41,6 +43,19 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   onToggle: (value) async {
                     await ref
                         .read(notificationSettingsControllerProvider.notifier)
+                        .setEnabled(value);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              SectionCard(
+                child: _WeeklyRecapNotificationSection(
+                  weeklyRecapAsync: weeklyRecapAsync,
+                  onToggle: (value) async {
+                    await ref
+                        .read(
+                          weeklyRecapNotificationControllerProvider.notifier,
+                        )
                         .setEnabled(value);
                   },
                 ),
@@ -159,6 +174,71 @@ class _ScheduledNotificationsSection extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Get notified daily at 9 AM for due scheduled payments',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Switch(
+          value: enabled,
+          onChanged: canToggle ? onToggle : null,
+          activeColor: Colors.green,
+          inactiveThumbColor: Colors.black,
+          inactiveTrackColor: Colors.grey[300],
+        ),
+      ],
+    );
+  }
+}
+
+class _WeeklyRecapNotificationSection extends StatelessWidget {
+  const _WeeklyRecapNotificationSection({
+    required this.weeklyRecapAsync,
+    required this.onToggle,
+  });
+
+  final AsyncValue<bool> weeklyRecapAsync;
+  final Future<void> Function(bool) onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = weeklyRecapAsync.value ?? true;
+    final canToggle = !weeklyRecapAsync.isLoading;
+
+    return Row(
+      children: [
+        const SizedBox(
+          width: 32,
+          height: 32,
+          child: HeroIcon(
+            HeroIcons.sparkles,
+            style: HeroIconStyle.outline,
+            color: Colors.black,
+            size: 22,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'WEEKLY RECAP',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Get a nudge on Mondays at 8 AM to review last week in Insight',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

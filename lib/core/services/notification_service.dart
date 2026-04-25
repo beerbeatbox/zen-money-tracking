@@ -18,6 +18,9 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
+  /// Fixed ID for the weekly recap notification (avoid 100000–999999: scheduled txns).
+  static const int weeklyRecapNotificationId = 50000;
+
   static const _timezoneChannel = MethodChannel(
     'com.dopaminelab.thumby/timezone',
   );
@@ -188,6 +191,11 @@ class NotificationService {
     if (payload != null && payload.isNotEmpty) {
       try {
         final data = jsonDecode(payload) as Map<String, dynamic>;
+        final type = data['type'] as String?;
+        if (type == 'daily_recap' || type == 'weekly_recap') {
+          // Open app only; user opens the recap from Insight.
+          return;
+        }
         final scheduledId = data['scheduledId'] as String?;
         if (scheduledId != null) {
           // Navigate to scheduled transaction detail
@@ -562,6 +570,108 @@ class NotificationService {
     } catch (e) {
       developer.log(
         'Error cancelling scheduled transaction notification: $e',
+        name: 'NotificationService',
+      );
+    }
+  }
+
+  Future<bool> scheduleWeeklyRecapNotification() async {
+    try {
+      if (!_initialized) await initialize();
+
+      if (!_permissionsGranted) {
+        _permissionsGranted = await hasPermissions();
+        if (!_permissionsGranted) {
+          developer.log(
+            'Cannot schedule weekly recap: permissions not granted',
+            name: 'NotificationService',
+          );
+          return false;
+        }
+      }
+
+      final now = tz.TZDateTime.now(tz.local);
+      var scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        8,
+        0,
+      );
+      while (scheduledDate.weekday != DateTime.monday) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 7));
+      }
+
+      final dayOnly = DateTime(
+        scheduledDate.year,
+        scheduledDate.month,
+        scheduledDate.day,
+      );
+      final lastWeekMonday = dayOnly.subtract(const Duration(days: 7));
+      final weekStr =
+          '${lastWeekMonday.year}-${lastWeekMonday.month.toString().padLeft(2, '0')}-${lastWeekMonday.day.toString().padLeft(2, '0')}';
+      final payload = jsonEncode({'type': 'weekly_recap', 'week': weekStr});
+
+      developer.log(
+        'Scheduling weekly recap for $scheduledDate (week key $weekStr)',
+        name: 'NotificationService',
+      );
+
+      await _notifications.zonedSchedule(
+        weeklyRecapNotificationId,
+        'Your weekly recap is ready',
+        'Check Insight for last week\'s spending',
+        scheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'weekly_recap',
+            'Weekly recap',
+            channelDescription: 'Reminders to review your weekly spending in Insight',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            threadIdentifier: 'weekly_recap',
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        payload: payload,
+      );
+
+      final pending = await _notifications.pendingNotificationRequests();
+      return pending.any((n) => n.id == weeklyRecapNotificationId);
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error scheduling weekly recap notification: $e',
+        name: 'NotificationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
+
+  Future<void> cancelWeeklyRecapNotification() async {
+    try {
+      if (!_initialized) return;
+      await _notifications.cancel(weeklyRecapNotificationId);
+      developer.log(
+        'Cancelled weekly recap notification',
+        name: 'NotificationService',
+      );
+    } catch (e) {
+      developer.log(
+        'Error cancelling weekly recap notification: $e',
         name: 'NotificationService',
       );
     }

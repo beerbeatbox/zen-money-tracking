@@ -511,7 +511,8 @@ class _DashboardStateWrapper extends ConsumerStatefulWidget {
       _DashboardStateWrapperState();
 }
 
-class _DashboardStateWrapperState extends ConsumerState<_DashboardStateWrapper> {
+class _DashboardStateWrapperState
+    extends ConsumerState<_DashboardStateWrapper> {
   late final ScrollController _scrollController;
 
   @override
