@@ -385,7 +385,7 @@ class _WeeklyRecapSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Weekly recap',
+              'Weekly Money Review',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,

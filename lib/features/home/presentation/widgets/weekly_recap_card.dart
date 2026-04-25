@@ -52,7 +52,7 @@ class WeeklyRecapCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Weekly recap',
+                      'Weekly Money Review',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,

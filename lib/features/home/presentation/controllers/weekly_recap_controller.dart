@@ -1,7 +1,8 @@
-import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
 import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
 import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
+import 'package:anti/features/home/presentation/utils/weekly_review_aggregation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -24,7 +25,7 @@ class WeeklyRecapController extends _$WeeklyRecapController {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     final expenses = weekLogs.where((l) => l.amount < 0).toList();
-    final incomeLogs = weekLogs.where((l) => l.amount >= 0).toList();
+    final incomeLogs = weekLogs.where((l) => l.amount > 0).toList();
 
     final totalSpent = expenses.fold<double>(
       0,
@@ -35,11 +36,7 @@ class WeeklyRecapController extends _$WeeklyRecapController {
       (sum, l) => sum + l.amount,
     );
 
-    final byCategory = <String, double>{};
-    for (final l in expenses) {
-      byCategory[l.category] =
-          (byCategory[l.category] ?? 0) + l.amount.abs();
-    }
+    final byCategory = categoryAmounts(expenses);
     String? topCategory;
     var topCategoryAmount = 0.0;
     for (final e in byCategory.entries) {
@@ -57,6 +54,81 @@ class WeeklyRecapController extends _$WeeklyRecapController {
       }
     }
 
+    final previousMonday = weekStart.subtract(const Duration(days: 7));
+    final previousWeekTotalSpent = totalSpentInWeek(allLogs, previousMonday);
+
+    final fourPriorMondays = <DateTime>[
+      for (var i = 1; i <= 4; i++) weekStart.subtract(Duration(days: 7 * i)),
+    ];
+    var baselineSum = 0.0;
+    for (final m in fourPriorMondays) {
+      baselineSum += totalSpentInWeek(allLogs, m);
+    }
+    final baselineAverageSpent = baselineSum / 4.0;
+    const hasBaselineForAverage = true;
+
+    final spentChangeVsPreviousAmount = totalSpent - previousWeekTotalSpent;
+    final spentChangeVsPreviousPercent =
+        previousWeekTotalSpent > 0
+            ? (spentChangeVsPreviousAmount / previousWeekTotalSpent) * 100.0
+            : null;
+
+    final dailySpendingTotals = dailyExpenseTotalsForWeek(
+      expenses,
+      weekStart,
+    );
+    final dailyCategorySpending = computeDailyCategorySpending(
+      expenses,
+      weekStart,
+    );
+    final busiestSpendingDayIndex = busiestDayIndex(dailySpendingTotals);
+    final categoryBreakdownSorted = sortedCategoryList(byCategory);
+    final topCategoryShare =
+        totalSpent > 0 ? topCategoryAmount / totalSpent : 0.0;
+    final biggestExpenseShare =
+        (biggestExpense != null && totalSpent > 0)
+            ? biggestExpense.amount.abs() / totalSpent
+            : 0.0;
+
+    final smallPurchaseThresholdUsed = smallPurchaseThreshold(totalSpent);
+    final sm = smallPurchases(expenses, smallPurchaseThresholdUsed);
+    final categoryShift = computeCategoryShift(
+      allLogs,
+      weekStart,
+      byCategory,
+    );
+
+    final monthInfo = monthSpentToDateForWeek(
+      allLogs,
+      weekStart,
+      weekEnd,
+    );
+    final monthlyProjected = projectMonthEndFromPace(
+      monthInfo.monthToDate,
+      monthInfo.daysUsed,
+      monthInfo.daysInMonth,
+    );
+
+    final pattern = detectPattern(
+      totalSpent: totalSpent,
+      daily: dailySpendingTotals,
+      expenseCount: expenses.length,
+      smallPurchaseCount: sm.count,
+      biggestShare: biggestExpenseShare,
+      pctVsPrevious: spentChangeVsPreviousPercent,
+      topCategory: topCategory,
+    );
+
+    final nextMove = computeNextMove(
+      totalSpent: totalSpent,
+      shift: categoryShift,
+      pattern: pattern,
+      monthlyProjected: monthlyProjected,
+      spentChangePercent: spentChangeVsPreviousPercent,
+      smallPurchaseTotal: sm.total,
+      smallPurchaseCount: sm.count,
+    );
+
     return WeeklyRecapData(
       weekStart: weekStart,
       weekEnd: weekEnd,
@@ -65,8 +137,31 @@ class WeeklyRecapController extends _$WeeklyRecapController {
       topCategory: topCategory,
       topCategoryAmount: topCategoryAmount,
       transactionCount: weekLogs.length,
+      expenseCount: expenses.length,
+      incomeCount: incomeLogs.length,
       biggestExpense: biggestExpense,
       logs: weekLogs,
+      previousWeekTotalSpent: previousWeekTotalSpent,
+      baselineAverageSpent: baselineAverageSpent,
+      hasBaselineForAverage: hasBaselineForAverage,
+      spentChangeVsPreviousAmount: spentChangeVsPreviousAmount,
+      spentChangeVsPreviousPercent: spentChangeVsPreviousPercent,
+      dailySpendingTotals: dailySpendingTotals,
+      dailyCategorySpending: dailyCategorySpending,
+      busiestSpendingDayIndex: busiestSpendingDayIndex,
+      categoryBreakdownSorted: categoryBreakdownSorted,
+      topCategoryShare: topCategoryShare,
+      categoryShift: categoryShift,
+      biggestExpenseShare: biggestExpenseShare,
+      smallPurchaseTotal: sm.total,
+      smallPurchaseCount: sm.count,
+      smallPurchaseThresholdUsed: smallPurchaseThresholdUsed,
+      monthSpentInCalendarMonth: monthInfo.monthToDate,
+      monthProjectionDaysUsed: monthInfo.daysUsed,
+      monthDaysInMonth: monthInfo.daysInMonth,
+      monthlyProjectedSpent: monthlyProjected,
+      reviewPattern: pattern,
+      nextMove: nextMove,
     );
   }
 }
