@@ -16,6 +16,7 @@ import '../../features/home/presentation/screens/insight_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transaction_detail_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transactions_screen.dart';
 import '../../features/home/presentation/screens/scheduled_transactions_search_screen.dart';
+import '../../features/home/presentation/widgets/animated_branch_container.dart';
 import '../../features/home/presentation/widgets/scaffold_with_nav_bar.dart';
 import '../../features/home/router/profile_router.dart';
 import '../../features/onboarding/router/onboarding_router.dart';
@@ -110,9 +111,15 @@ GoRouter appRouter(Ref ref) {
           ).toString();
         },
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, navigationShell) {
           return ScaffoldWithNavBar(navigationShell: navigationShell);
+        },
+        navigatorContainerBuilder: (context, navigationShell, children) {
+          return AnimatedBranchContainer(
+            currentIndex: navigationShell.currentIndex,
+            children: children,
+          );
         },
         branches: [
           StatefulShellBranch(
