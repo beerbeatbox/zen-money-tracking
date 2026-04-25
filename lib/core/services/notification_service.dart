@@ -623,14 +623,14 @@ class NotificationService {
 
       await _notifications.zonedSchedule(
         weeklyRecapNotificationId,
-        'Your weekly recap is ready',
-        'Check Insight for last week\'s spending',
+        'Your Weekly Money Review is ready',
+        'Open Insight to see last week at a glance',
         scheduledDate,
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'weekly_recap',
-            'Weekly recap',
-            channelDescription: 'Reminders to review your weekly spending in Insight',
+            'Weekly Money Review',
+            channelDescription: 'Reminders to open your Weekly Money Review in Insight',
             importance: Importance.high,
             priority: Priority.high,
           ),

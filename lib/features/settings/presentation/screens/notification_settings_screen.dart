@@ -228,7 +228,7 @@ class _WeeklyRecapNotificationSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'WEEKLY RECAP',
+                'WEEKLY MONEY REVIEW',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -238,7 +238,7 @@ class _WeeklyRecapNotificationSection extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Get a nudge on Mondays at 8 AM to review last week in Insight',
+                'Get a nudge on Mondays at 8 AM to open your Weekly Money Review in Insight',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
