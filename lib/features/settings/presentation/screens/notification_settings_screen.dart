@@ -187,7 +187,7 @@ class _ScheduledNotificationsSection extends StatelessWidget {
         Switch(
           value: enabled,
           onChanged: canToggle ? onToggle : null,
-          activeColor: Colors.green,
+          activeThumbColor: Colors.green,
           inactiveThumbColor: Colors.black,
           inactiveTrackColor: Colors.grey[300],
         ),
@@ -252,7 +252,7 @@ class _WeeklyRecapNotificationSection extends StatelessWidget {
         Switch(
           value: enabled,
           onChanged: canToggle ? onToggle : null,
-          activeColor: Colors.green,
+          activeThumbColor: Colors.green,
           inactiveThumbColor: Colors.black,
           inactiveTrackColor: Colors.grey[300],
         ),

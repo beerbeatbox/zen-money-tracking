@@ -432,7 +432,7 @@ class _ActiveSubscriptionToggle extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.green,
+            activeThumbColor: Colors.green,
             inactiveThumbColor: Colors.black,
             inactiveTrackColor: Colors.grey[300],
           ),

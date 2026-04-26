@@ -130,8 +130,9 @@ class ScheduledTransactionTile extends ConsumerWidget {
     final today = DateUtils.dateOnly(now);
     final scheduledDay = DateUtils.dateOnly(scheduledDate);
 
-    if (!scheduledDate.isAfter(now) && scheduledDay.isBefore(today))
+    if (!scheduledDate.isAfter(now) && scheduledDay.isBefore(today)) {
       return 'Overdue';
+    }
     if (scheduledDay == today) return 'Due today';
 
     final daysUntil = scheduledDay.difference(today).inDays;
