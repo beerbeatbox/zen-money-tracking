@@ -64,6 +64,7 @@ dev_dependencies:
   riverpod_generator: ^3.0.3
   build_runner: ^2.7.1
   rps: ^0.7.0
+  flutter_launcher_icons: ^0.14.2
 
 dependency_overrides:
   vector_math: 2.2.0
@@ -78,6 +79,12 @@ scripts:
     get: flutter pub get
     upgrade: flutter pub upgrade
   clean: flutter clean && flutter pub get
+
+# App launcher icons: run `dart run flutter_launcher_icons` after changes.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/brand/app_icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
