@@ -27,6 +27,27 @@ class DashboardDueNowSection extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 18,
+              color: Colors.red[700],
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Mark these paid or update dates so your balance stays accurate.',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         ...List.generate(items.length, (index) {
           final item = items[index];

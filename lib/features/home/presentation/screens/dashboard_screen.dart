@@ -240,7 +240,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final spaced = <Widget>[];
 
     for (var index = 0; index < widgets.length; index++) {
-      spaced.add(SectionCard(child: widgets[index]));
+      final section = sections[index];
+      final isDueNow = section == DashboardSectionId.dueNow;
+      spaced.add(
+        SectionCard(
+          backgroundColor:
+              isDueNow ? const Color(0xFFFFEBEE) : null,
+          borderColor: isDueNow ? const Color(0xFFF44336) : null,
+          child: widgets[index],
+        ),
+      );
       if (index == widgets.length - 1) continue;
       spaced.add(SizedBox(height: _spacingAfterSection(sections[index])));
     }
