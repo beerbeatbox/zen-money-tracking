@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:anti/core/utils/local_week.dart';
-import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
-import 'package:anti/features/home/presentation/controllers/weekly_recap_controller.dart';
-import 'package:anti/features/home/presentation/utils/weekly_review_aggregation.dart';
-import 'package:anti/features/home/presentation/widgets/weekly_money_review/weekly_recap_chrome.dart';
-import 'package:anti/features/home/presentation/widgets/weekly_money_review/weekly_review_slides.dart';
+import 'package:baht/core/utils/local_week.dart';
+import 'package:baht/features/home/domain/entities/weekly_recap_data.dart';
+import 'package:baht/features/home/presentation/controllers/weekly_recap_controller.dart';
+import 'package:baht/features/home/presentation/utils/weekly_review_aggregation.dart';
+import 'package:baht/features/home/presentation/widgets/weekly_money_review/weekly_recap_chrome.dart';
+import 'package:baht/features/home/presentation/widgets/weekly_money_review/weekly_review_slides.dart';
 
 /// Query value for `/weekly-recap?week=YYYY-MM-DD` (local Monday; any day in that week is normalized by callers).
 String formatWeeklyRecapQueryDate(DateTime monday) {

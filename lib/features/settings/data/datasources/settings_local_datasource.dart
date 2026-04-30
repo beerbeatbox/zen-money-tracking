@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:baht/features/settings/domain/entities/bottom_nav_style.dart';
 
 part 'settings_local_datasource.g.dart';
 

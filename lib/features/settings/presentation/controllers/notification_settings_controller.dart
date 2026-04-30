@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/core/services/notification_service.dart';
-import 'package:anti/features/home/domain/usecases/scheduled_transaction_service.dart';
-import 'package:anti/features/settings/domain/usecases/settings_service.dart';
+import 'package:baht/core/services/notification_service.dart';
+import 'package:baht/features/home/domain/usecases/scheduled_transaction_service.dart';
+import 'package:baht/features/settings/domain/usecases/settings_service.dart';
 
 part 'notification_settings_controller.g.dart';
 

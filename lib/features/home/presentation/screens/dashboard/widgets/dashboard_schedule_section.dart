@@ -1,8 +1,8 @@
-import 'package:anti/core/controllers/amount_mask_controller.dart';
-import 'package:anti/core/router/app_router.dart';
-import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
-import 'package:anti/features/home/presentation/widgets/scheduled_transaction_tile.dart';
+import 'package:baht/core/controllers/amount_mask_controller.dart';
+import 'package:baht/core/router/app_router.dart';
+import 'package:baht/core/utils/formatters.dart';
+import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:baht/features/home/presentation/widgets/scheduled_transaction_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

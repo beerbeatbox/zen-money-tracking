@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anti/core/controllers/amount_mask_controller.dart';
-import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/categories/domain/entities/category.dart';
-import 'package:anti/features/categories/domain/usecases/category_service.dart';
-import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
-import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:baht/core/controllers/amount_mask_controller.dart';
+import 'package:baht/core/utils/formatters.dart';
+import 'package:baht/features/categories/domain/entities/category.dart';
+import 'package:baht/features/categories/domain/usecases/category_service.dart';
+import 'package:baht/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:baht/features/categories/presentation/widgets/category_name_with_emoji.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
 class CategoryRankingSection extends ConsumerWidget {
   const CategoryRankingSection({
     super.key,

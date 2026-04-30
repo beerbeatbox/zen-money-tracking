@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/home/presentation/controllers/dashboard_controller.dart';
-import 'package:anti/features/settings/data/datasources/settings_local_datasource.dart';
-import 'package:anti/features/settings/domain/usecases/settings_service.dart';
+import 'package:baht/features/home/presentation/controllers/dashboard_controller.dart';
+import 'package:baht/features/settings/data/datasources/settings_local_datasource.dart';
+import 'package:baht/features/settings/domain/usecases/settings_service.dart';
 
 part 'budget_setting_controller.g.dart';
 

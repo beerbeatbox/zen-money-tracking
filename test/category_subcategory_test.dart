@@ -1,6 +1,6 @@
-import 'package:anti/features/categories/data/models/category_model.dart';
-import 'package:anti/features/categories/domain/entities/category.dart';
-import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
+import 'package:baht/features/categories/data/models/category_model.dart';
+import 'package:baht/features/categories/domain/entities/category.dart';
+import 'package:baht/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

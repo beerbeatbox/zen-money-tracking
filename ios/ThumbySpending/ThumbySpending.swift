@@ -175,7 +175,7 @@ struct ThumbySpendingEntryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         // Tapping the widget opens the app in "Quick Add" mode.
         // Note the triple slash so the deep-link path becomes `/quick-add`.
-        .widgetURL(URL(string: "anti:///quick-add?type=expense")!)
+        .widgetURL(URL(string: "baht:///quick-add?type=expense")!)
     }
 }
 

@@ -1,10 +1,10 @@
-import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/core/widgets/section_card.dart';
-import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
-import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
-import 'package:anti/features/home/presentation/utils/scheduled_payment_validation.dart';
-import 'package:anti/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
-import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
+import 'package:baht/core/extensions/widget_extension.dart';
+import 'package:baht/core/widgets/section_card.dart';
+import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:baht/features/home/presentation/controllers/scheduled_transaction_controller.dart';
+import 'package:baht/features/home/presentation/utils/scheduled_payment_validation.dart';
+import 'package:baht/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
+import 'package:baht/features/home/presentation/widgets/outlined_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -432,7 +432,7 @@ class _ActiveSubscriptionToggle extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.green,
+            activeThumbColor: Colors.green,
             inactiveThumbColor: Colors.black,
             inactiveTrackColor: Colors.grey[300],
           ),

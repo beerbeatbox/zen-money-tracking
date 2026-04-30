@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:anti/features/home/presentation/widgets/outlined_action_button.dart';
+import 'package:baht/features/home/presentation/widgets/outlined_action_button.dart';
 
 class OutlinedConfirmationDialog extends StatelessWidget {
   const OutlinedConfirmationDialog({

@@ -1,8 +1,8 @@
-import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
-import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
-import 'package:anti/features/home/presentation/utils/weekly_review_aggregation.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/domain/entities/weekly_recap_data.dart';
+import 'package:baht/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
+import 'package:baht/features/home/presentation/utils/weekly_review_aggregation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

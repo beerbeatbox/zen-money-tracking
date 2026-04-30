@@ -1,9 +1,9 @@
-import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/core/widgets/section_card.dart';
-import 'package:anti/features/settings/presentation/controllers/weekly_recap_notification_controller.dart';
-import 'package:anti/features/settings/presentation/controllers/expense_reminder_controller.dart';
-import 'package:anti/features/settings/presentation/controllers/notification_settings_controller.dart';
-import 'package:anti/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
+import 'package:baht/core/extensions/widget_extension.dart';
+import 'package:baht/core/widgets/section_card.dart';
+import 'package:baht/features/settings/presentation/controllers/weekly_recap_notification_controller.dart';
+import 'package:baht/features/settings/presentation/controllers/expense_reminder_controller.dart';
+import 'package:baht/features/settings/presentation/controllers/notification_settings_controller.dart';
+import 'package:baht/features/settings/presentation/widgets/reminder_time_picker_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -187,7 +187,7 @@ class _ScheduledNotificationsSection extends StatelessWidget {
         Switch(
           value: enabled,
           onChanged: canToggle ? onToggle : null,
-          activeColor: Colors.green,
+          activeThumbColor: Colors.green,
           inactiveThumbColor: Colors.black,
           inactiveTrackColor: Colors.grey[300],
         ),
@@ -252,7 +252,7 @@ class _WeeklyRecapNotificationSection extends StatelessWidget {
         Switch(
           value: enabled,
           onChanged: canToggle ? onToggle : null,
-          activeColor: Colors.green,
+          activeThumbColor: Colors.green,
           inactiveThumbColor: Colors.black,
           inactiveTrackColor: Colors.grey[300],
         ),

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/home/data/models/scheduled_transaction_model.dart';
+import 'package:baht/features/home/data/models/scheduled_transaction_model.dart';
 
 part 'scheduled_transaction_local_datasource.g.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:anti/core/controllers/amount_mask_controller.dart';
-import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:baht/core/controllers/amount_mask_controller.dart';
+import 'package:baht/core/utils/formatters.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
 
 class WeeklyStreak extends ConsumerWidget {
   const WeeklyStreak({

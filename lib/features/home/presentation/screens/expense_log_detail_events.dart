@@ -1,5 +1,5 @@
-import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 mixin ExpenseLogDetailEvents {
