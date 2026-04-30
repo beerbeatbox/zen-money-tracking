@@ -59,7 +59,7 @@ class InsightScreen extends ConsumerWidget {
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
-                onResetMonth: () {
+                onLongPressMonthLabel: () {
                   ref
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(DateTime.now());
@@ -100,7 +100,7 @@ class InsightScreen extends ConsumerWidget {
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
-                onResetMonth: () {
+                onLongPressMonthLabel: () {
                   ref
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(DateTime.now());
@@ -127,7 +127,7 @@ class InsightScreen extends ConsumerWidget {
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(picked);
                 },
-                onResetMonth: () {
+                onLongPressMonthLabel: () {
                   ref
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(DateTime.now());
@@ -148,7 +148,7 @@ class _HeaderSection extends StatelessWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onPickMonth,
-    required this.onResetMonth,
+    required this.onLongPressMonthLabel,
   });
 
   final DateTime selectedMonth;
@@ -156,31 +156,21 @@ class _HeaderSection extends StatelessWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final ValueChanged<DateTime> onPickMonth;
-  final VoidCallback onResetMonth;
+  final VoidCallback onLongPressMonthLabel;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Insight',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: Colors.black,
-              ),
-            ),
-            IconButton(
-              onPressed: onResetMonth,
-              icon: const Icon(Icons.refresh, color: Colors.black),
-              tooltip: 'Reset to current month',
-            ),
-          ],
+        const Text(
+          'Insight',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.4,
+            color: Colors.black,
+          ),
         ),
         const SizedBox(height: 12),
         DashboardTopBar(
@@ -195,6 +185,7 @@ class _HeaderSection extends StatelessWidget {
             if (picked == null) return;
             onPickMonth(picked);
           },
+          onLongPressMonthLabel: onLongPressMonthLabel,
         ),
         const SizedBox(height: 16),
         const SizedBox(height: 24),
@@ -249,7 +240,7 @@ class _InsightStateWrapper extends ConsumerStatefulWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onPickMonth,
-    required this.onResetMonth,
+    required this.onLongPressMonthLabel,
     required this.onRefresh,
     required this.child,
   });
@@ -259,7 +250,7 @@ class _InsightStateWrapper extends ConsumerStatefulWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final ValueChanged<DateTime> onPickMonth;
-  final VoidCallback onResetMonth;
+  final VoidCallback onLongPressMonthLabel;
   final Future<void> Function() onRefresh;
   final Widget child;
 
@@ -328,7 +319,7 @@ class _InsightStateWrapperState extends ConsumerState<_InsightStateWrapper> {
               onPreviousMonth: widget.onPreviousMonth,
               onNextMonth: widget.onNextMonth,
               onPickMonth: widget.onPickMonth,
-              onResetMonth: widget.onResetMonth,
+              onLongPressMonthLabel: widget.onLongPressMonthLabel,
             ),
             widget.child,
           ],

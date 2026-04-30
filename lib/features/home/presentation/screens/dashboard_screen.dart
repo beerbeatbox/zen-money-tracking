@@ -325,19 +325,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                               );
                             },
                           ),
-                          IconButton(
-                            onPressed: () {
-                              ref
-                                  .read(dashboardSelectedMonthProvider.notifier)
-                                  .setMonth(DateTime.now());
-                            },
-                            icon: const HeroIcon(
-                              HeroIcons.arrowPath,
-                              style: HeroIconStyle.outline,
-                              color: Colors.black,
-                            ),
-                            tooltip: 'Reset to current month',
-                          ),
                         ],
                       ),
                     ],
@@ -364,6 +351,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       ref
                           .read(dashboardSelectedMonthProvider.notifier)
                           .setMonth(picked);
+                    },
+                    onLongPressMonthLabel: () {
+                      ref
+                          .read(dashboardSelectedMonthProvider.notifier)
+                          .setMonth(DateTime.now());
                     },
                   ),
                   const SizedBox(height: 16),
@@ -431,7 +423,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                             .read(amountMaskControllerProvider.notifier)
                             .toggle(),
                 onRefresh: _refreshDashboard,
-                onResetMonth: () {
+                onLongPressMonthLabel: () {
                   ref
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(DateTime.now());
@@ -468,7 +460,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                             .read(amountMaskControllerProvider.notifier)
                             .toggle(),
                 onRefresh: _refreshDashboard,
-                onResetMonth: () {
+                onLongPressMonthLabel: () {
                   ref
                       .read(dashboardSelectedMonthProvider.notifier)
                       .setMonth(DateTime.now());
@@ -489,10 +481,10 @@ class _DashboardStateWrapper extends ConsumerStatefulWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     this.onTapMonthLabel,
+    required this.onLongPressMonthLabel,
     required this.isMasked,
     required this.onToggleMask,
     required this.onRefresh,
-    required this.onResetMonth,
     required this.child,
   });
 
@@ -500,10 +492,10 @@ class _DashboardStateWrapper extends ConsumerStatefulWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final Future<void> Function()? onTapMonthLabel;
+  final VoidCallback onLongPressMonthLabel;
   final bool isMasked;
   final VoidCallback onToggleMask;
   final Future<void> Function() onRefresh;
-  final VoidCallback onResetMonth;
   final Widget child;
 
   @override
@@ -601,11 +593,6 @@ class _DashboardStateWrapperState
                         );
                       },
                     ),
-                    IconButton(
-                      onPressed: widget.onResetMonth,
-                      icon: const Icon(Icons.refresh, color: Colors.black),
-                      tooltip: 'Reset to current month',
-                    ),
                   ],
                 ),
               ],
@@ -616,6 +603,7 @@ class _DashboardStateWrapperState
               onPreviousMonth: widget.onPreviousMonth,
               onNextMonth: widget.onNextMonth,
               onTapMonthLabel: widget.onTapMonthLabel,
+              onLongPressMonthLabel: widget.onLongPressMonthLabel,
             ),
             const SizedBox(height: 16),
             const SizedBox(height: 24),
