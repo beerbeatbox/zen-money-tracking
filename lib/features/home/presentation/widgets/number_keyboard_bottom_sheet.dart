@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/core/utils/date_time_formatter.dart';
-import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/categories/domain/entities/category.dart';
-import 'package:anti/features/categories/domain/usecases/category_service.dart';
-import 'package:anti/features/categories/presentation/controllers/categories_controller.dart';
-import 'package:anti/features/categories/presentation/widgets/category_name_with_emoji.dart';
-import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
-import 'package:anti/features/home/presentation/widgets/expense_type_toggle.dart';
-import 'package:anti/features/home/presentation/widgets/log_time_picker_dialog.dart';
-import 'package:anti/core/router/app_router.dart';
+import 'package:baht/core/extensions/widget_extension.dart';
+import 'package:baht/core/utils/date_time_formatter.dart';
+import 'package:baht/core/utils/formatters.dart';
+import 'package:baht/features/categories/domain/entities/category.dart';
+import 'package:baht/features/categories/domain/usecases/category_service.dart';
+import 'package:baht/features/categories/presentation/controllers/categories_controller.dart';
+import 'package:baht/features/categories/presentation/widgets/category_name_with_emoji.dart';
+import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:baht/features/home/presentation/widgets/expense_type_toggle.dart';
+import 'package:baht/features/home/presentation/widgets/log_time_picker_dialog.dart';
+import 'package:baht/core/router/app_router.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

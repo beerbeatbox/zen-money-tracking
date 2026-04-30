@@ -4,7 +4,7 @@ void main() {
   final config = AppConfig(
     environment: Environment.dev,
     apiBaseUrl: 'https://dev-api.example.com',
-    appTitle: 'Anti Dev',
+    appTitle: 'Baht Dev',
   );
   mainCommon(config);
 }

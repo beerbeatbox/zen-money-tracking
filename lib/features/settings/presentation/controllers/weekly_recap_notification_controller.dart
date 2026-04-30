@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:anti/core/services/notification_service.dart';
-import 'package:anti/features/settings/domain/usecases/settings_service.dart';
+import 'package:baht/core/services/notification_service.dart';
+import 'package:baht/features/settings/domain/usecases/settings_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'weekly_recap_notification_controller.g.dart';

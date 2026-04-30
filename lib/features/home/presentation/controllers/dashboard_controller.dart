@@ -1,15 +1,15 @@
-import 'package:anti/core/utils/date_time_formatter.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
-import 'package:anti/features/home/domain/utils/dashboard_net_balance.dart';
-import 'package:anti/features/home/domain/utils/recurrence.dart';
-import 'package:anti/features/home/presentation/controllers/balance_snapshot_controller.dart';
-import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/features/home/presentation/controllers/scheduled_transaction_controller.dart';
-import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
-import 'package:anti/features/settings/data/datasources/settings_local_datasource.dart';
-import 'package:anti/features/settings/presentation/controllers/budget_setting_controller.dart';
-import 'package:anti/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
+import 'package:baht/core/utils/date_time_formatter.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:baht/features/home/domain/utils/dashboard_net_balance.dart';
+import 'package:baht/features/home/domain/utils/recurrence.dart';
+import 'package:baht/features/home/presentation/controllers/balance_snapshot_controller.dart';
+import 'package:baht/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:baht/features/home/presentation/controllers/scheduled_transaction_controller.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
+import 'package:baht/features/settings/data/datasources/settings_local_datasource.dart';
+import 'package:baht/features/settings/presentation/controllers/budget_setting_controller.dart';
+import 'package:baht/features/settings/presentation/controllers/carry_balance_setting_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

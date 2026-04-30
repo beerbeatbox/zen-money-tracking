@@ -1,7 +1,7 @@
-import 'package:anti/features/home/data/models/balance_snapshot_model.dart';
-import 'package:anti/features/home/domain/entities/balance_snapshot.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/domain/utils/dashboard_net_balance.dart';
+import 'package:baht/features/home/data/models/balance_snapshot_model.dart';
+import 'package:baht/features/home/domain/entities/balance_snapshot.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/domain/utils/dashboard_net_balance.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ExpenseLog _log({

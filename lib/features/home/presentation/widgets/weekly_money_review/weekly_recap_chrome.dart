@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
+import 'package:baht/features/home/domain/entities/weekly_recap_data.dart';
 import 'package:flutter/material.dart';
 
 /// Shared ink, motion, and slide chrome for Weekly Money Review.

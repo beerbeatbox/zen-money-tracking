@@ -1,6 +1,6 @@
-import 'package:anti/features/categories/data/datasources/category_local_datasource.dart';
-import 'package:anti/features/categories/data/models/category_model.dart';
-import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:baht/features/categories/data/datasources/category_local_datasource.dart';
+import 'package:baht/features/categories/data/models/category_model.dart';
+import 'package:baht/features/categories/domain/entities/category.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'category_repository.g.dart';

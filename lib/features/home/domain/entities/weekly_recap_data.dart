@@ -1,4 +1,4 @@
-import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
 import 'package:flutter/foundation.dart';
 
 /// How spending behaved relative to the user’s own patterns.

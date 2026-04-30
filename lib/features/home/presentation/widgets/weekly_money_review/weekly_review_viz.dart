@@ -1,6 +1,6 @@
 import 'dart:math' as math;
-import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
-import 'package:anti/features/home/presentation/widgets/weekly_money_review/weekly_recap_chrome.dart';
+import 'package:baht/features/home/domain/entities/weekly_recap_data.dart';
+import 'package:baht/features/home/presentation/widgets/weekly_money_review/weekly_recap_chrome.dart';
 import 'package:flutter/material.dart';
 
 /// Three mini bars: this week, last week, and your usual week (4-week average).

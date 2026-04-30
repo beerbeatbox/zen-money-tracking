@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:baht/features/settings/domain/entities/bottom_nav_style.dart';
 import 'package:flutter/widgets.dart';
 
 class Sizes {

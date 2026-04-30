@@ -1,5 +1,5 @@
-import 'package:anti/features/home/data/repositories/balance_snapshot_repository.dart';
-import 'package:anti/features/home/domain/entities/balance_snapshot.dart';
+import 'package:baht/features/home/data/repositories/balance_snapshot_repository.dart';
+import 'package:baht/features/home/domain/entities/balance_snapshot.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'balance_snapshot_service.g.dart';

@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:anti/core/extensions/widget_extension.dart';
-import 'package:anti/core/router/app_router.dart';
+import 'package:baht/core/extensions/widget_extension.dart';
+import 'package:baht/core/router/app_router.dart';
 
 import '../../domain/entities/feature_flags.dart';
 import '../controllers/onboarding_controller.dart';

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/home/data/models/balance_snapshot_model.dart';
+import 'package:baht/features/home/data/models/balance_snapshot_model.dart';
 
 part 'balance_snapshot_local_datasource.g.dart';
 

@@ -1,6 +1,6 @@
-import 'package:anti/core/constants/app_sizes.dart';
-import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
-import 'package:anti/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
+import 'package:baht/core/constants/app_sizes.dart';
+import 'package:baht/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:baht/features/settings/presentation/controllers/bottom_nav_style_setting_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
