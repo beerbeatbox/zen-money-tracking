@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/settings/domain/usecases/settings_service.dart';
+import 'package:baht/features/settings/domain/usecases/settings_service.dart';
 
 part 'carry_balance_setting_controller.g.dart';
 

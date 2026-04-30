@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/categories/data/repositories/category_repository.dart';
-import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:baht/features/categories/data/repositories/category_repository.dart';
+import 'package:baht/features/categories/domain/entities/category.dart';
 
 part 'category_service.g.dart';
 

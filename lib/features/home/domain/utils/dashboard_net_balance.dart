@@ -1,5 +1,5 @@
-import 'package:anti/features/home/domain/entities/balance_snapshot.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/domain/entities/balance_snapshot.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
 
 /// Returns the most recent snapshot by [BalanceSnapshot.effectiveAt], or null.
 BalanceSnapshot? pickLatestSnapshot(List<BalanceSnapshot> snapshots) {

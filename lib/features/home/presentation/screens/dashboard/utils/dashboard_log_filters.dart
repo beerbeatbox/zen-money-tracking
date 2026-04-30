@@ -1,6 +1,6 @@
-import 'package:anti/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
 
-export 'package:anti/core/utils/local_week.dart' show
+export 'package:baht/core/utils/local_week.dart' show
     endOfLocalWeekSunday,
     filterLogsInLocalWeek,
     startOfLocalWeekMonday;

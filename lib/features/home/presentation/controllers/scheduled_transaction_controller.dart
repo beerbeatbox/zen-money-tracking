@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:anti/core/services/notification_service.dart';
-import 'package:anti/features/home/domain/entities/scheduled_transaction.dart';
-import 'package:anti/features/home/domain/usecases/expense_log_service.dart';
-import 'package:anti/features/home/domain/usecases/scheduled_transaction_service.dart';
-import 'package:anti/features/home/presentation/controllers/expense_log_actions_controller.dart';
-import 'package:anti/features/settings/domain/usecases/settings_service.dart';
+import 'package:baht/core/services/notification_service.dart';
+import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:baht/features/home/domain/usecases/expense_log_service.dart';
+import 'package:baht/features/home/domain/usecases/scheduled_transaction_service.dart';
+import 'package:baht/features/home/presentation/controllers/expense_log_actions_controller.dart';
+import 'package:baht/features/settings/domain/usecases/settings_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'scheduled_transaction_controller.g.dart';

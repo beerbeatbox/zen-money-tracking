@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/home/domain/entities/dashboard_layout.dart';
-import 'package:anti/features/home/domain/usecases/dashboard_layout_service.dart';
+import 'package:baht/features/home/domain/entities/dashboard_layout.dart';
+import 'package:baht/features/home/domain/usecases/dashboard_layout_service.dart';
 
 part 'dashboard_layout_controller.g.dart';
 

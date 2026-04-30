@@ -1,9 +1,9 @@
-import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/home/presentation/controllers/weekly_recap_controller.dart';
-import 'package:anti/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
-import 'package:anti/features/home/presentation/screens/weekly_recap_screen.dart';
+import 'package:baht/core/utils/formatters.dart';
+import 'package:baht/features/home/presentation/controllers/weekly_recap_controller.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/utils/dashboard_log_filters.dart';
+import 'package:baht/features/home/presentation/screens/weekly_recap_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:anti/core/router/app_router.dart';
+import 'package:baht/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 
 class WeeklyRecapCard extends StatelessWidget {

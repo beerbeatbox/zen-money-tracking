@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:anti/core/utils/local_week.dart';
-import 'package:anti/features/home/domain/entities/expense_log.dart';
-import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
+import 'package:baht/core/utils/local_week.dart';
+import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/domain/entities/weekly_recap_data.dart';
 
 /// Total spent (expenses only) in the local week starting [weekStartMonday].
 double totalSpentInWeek(

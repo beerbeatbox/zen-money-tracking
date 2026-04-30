@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:anti/features/home/domain/entities/balance_snapshot.dart';
-import 'package:anti/features/home/domain/usecases/balance_snapshot_service.dart';
-import 'package:anti/features/home/domain/utils/dashboard_net_balance.dart'
+import 'package:baht/features/home/domain/entities/balance_snapshot.dart';
+import 'package:baht/features/home/domain/usecases/balance_snapshot_service.dart';
+import 'package:baht/features/home/domain/utils/dashboard_net_balance.dart'
     show pickLatestSnapshot;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

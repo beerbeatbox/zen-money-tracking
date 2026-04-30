@@ -1,4 +1,4 @@
-import 'package:anti/features/home/domain/entities/balance_snapshot.dart';
+import 'package:baht/features/home/domain/entities/balance_snapshot.dart';
 
 class BalanceSnapshotModel {
   const BalanceSnapshotModel({

@@ -23,13 +23,13 @@ String formatNetBalance(double amount) {
 String formatCurrencySignedMasked(double amount, {required bool isMasked}) {
   if (!isMasked) return formatCurrencySigned(amount);
   final sign = amount < 0 ? '-' : (amount > 0 ? '+' : '');
-  return '${sign}฿*****';
+  return '$sign฿*****';
 }
 
 String formatNetBalanceMasked(double amount, {required bool isMasked}) {
   if (!isMasked) return formatNetBalance(amount);
   final sign = amount < 0 ? '-' : '';
-  return '${sign}฿*****';
+  return '$sign฿*****';
 }
 
 String formatCurrencyUnsignedMasked(double amount, {required bool isMasked}) {

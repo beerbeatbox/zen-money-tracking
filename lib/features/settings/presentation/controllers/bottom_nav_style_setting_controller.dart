@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/settings/domain/entities/bottom_nav_style.dart';
-import 'package:anti/features/settings/domain/usecases/settings_service.dart';
+import 'package:baht/features/settings/domain/entities/bottom_nav_style.dart';
+import 'package:baht/features/settings/domain/usecases/settings_service.dart';
 
 part 'bottom_nav_style_setting_controller.g.dart';
 

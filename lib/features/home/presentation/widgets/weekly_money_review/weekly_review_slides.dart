@@ -1,8 +1,8 @@
-import 'package:anti/core/utils/formatters.dart';
-import 'package:anti/features/home/domain/entities/weekly_recap_data.dart';
-import 'package:anti/features/home/presentation/utils/weekly_review_aggregation.dart';
-import 'package:anti/features/home/presentation/widgets/weekly_money_review/weekly_recap_chrome.dart';
-import 'package:anti/features/home/presentation/widgets/weekly_money_review/weekly_review_viz.dart';
+import 'package:baht/core/utils/formatters.dart';
+import 'package:baht/features/home/domain/entities/weekly_recap_data.dart';
+import 'package:baht/features/home/presentation/utils/weekly_review_aggregation.dart';
+import 'package:baht/features/home/presentation/widgets/weekly_money_review/weekly_recap_chrome.dart';
+import 'package:baht/features/home/presentation/widgets/weekly_money_review/weekly_review_viz.dart';
 import 'package:flutter/material.dart';
 
 const _weekdayShort = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

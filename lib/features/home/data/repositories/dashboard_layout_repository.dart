@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/home/data/datasources/dashboard_layout_local_datasource.dart';
-import 'package:anti/features/home/domain/entities/dashboard_layout.dart';
+import 'package:baht/features/home/data/datasources/dashboard_layout_local_datasource.dart';
+import 'package:baht/features/home/domain/entities/dashboard_layout.dart';
 
 part 'dashboard_layout_repository.g.dart';
 

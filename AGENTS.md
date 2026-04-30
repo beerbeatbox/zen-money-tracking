@@ -120,7 +120,7 @@ class WidgetName extends StatelessWidget {
 ```dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // If navigation needed
-import 'package:anti/core/extensions/widget_extension.dart'; // Optional extensions
+import 'package:baht/core/extensions/widget_extension.dart'; // Optional extensions
 
 class ScreenName extends StatelessWidget {
   const ScreenName({super.key});

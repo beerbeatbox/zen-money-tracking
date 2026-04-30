@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:anti/features/categories/domain/entities/category.dart';
-import 'package:anti/features/categories/domain/usecases/category_service.dart';
+import 'package:baht/features/categories/domain/entities/category.dart';
+import 'package:baht/features/categories/domain/usecases/category_service.dart';
 
 part 'categories_controller.g.dart';
 

@@ -1,4 +1,4 @@
-import 'package:anti/features/categories/domain/entities/category.dart';
+import 'package:baht/features/categories/domain/entities/category.dart';
 
 class CategoryModel {
   final String id;
