@@ -240,9 +240,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final spaced = <Widget>[];
 
     for (var index = 0; index < widgets.length; index++) {
-      final bg = sections[index] == DashboardSectionId.dueNow
-          ? const Color(0xFFFFF0EC)
-          : Colors.white;
+      final bg =
+          sections[index] == DashboardSectionId.dueNow
+              ? const Color(0xFFFFF0EC)
+              : Colors.white;
       final card = SectionCard(backgroundColor: bg, child: widgets[index]);
       spaced.add(
         sections[index] == DashboardSectionId.dueNow
@@ -367,7 +368,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     },
                   ),
                   const SizedBox(height: 16),
-                  const SizedBox(height: 24),
                 ],
               ),
               monthContent: _buildMonthContent(
@@ -614,7 +614,6 @@ class _DashboardStateWrapperState
               onLongPressMonthLabel: widget.onLongPressMonthLabel,
             ),
             const SizedBox(height: 16),
-            const SizedBox(height: 24),
             widget.child,
           ],
         ),
