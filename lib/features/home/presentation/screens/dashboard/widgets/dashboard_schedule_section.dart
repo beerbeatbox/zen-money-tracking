@@ -310,7 +310,7 @@ class _UpcomingTopCorner extends StatelessWidget {
 }
 
 class _UpcomingTopCornerPainter extends CustomPainter {
-  static const _blob = Color(0xFFCCDEFF);
+  static const _blob = Color(0xFFADCAFF);
   static const _dot = Color(0xFF8CB4E8);
 
   @override
@@ -342,7 +342,7 @@ class _UpcomingTopCornerPainter extends CustomPainter {
 
     final dotPaint =
         Paint()
-          ..color = _dot.withValues(alpha: 0.72)
+          ..color = _dot.withValues(alpha: 0.90)
           ..style = PaintingStyle.fill;
 
     canvas.drawCircle(Offset(w * 0.62, h * 0.20), 3.8, dotPaint);

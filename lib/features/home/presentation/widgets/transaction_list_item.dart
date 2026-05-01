@@ -24,9 +24,8 @@ class TransactionListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isIncome = amount > 0;
-    final amountColor = isIncome
-        ? (Colors.green[700] ?? Colors.green)
-        : Colors.black;
+    const brandTeal = Color(0xFF1A5C52);
+    final amountColor = isIncome ? brandTeal : Colors.black;
 
     final amountText = formatCurrencySignedMasked(
       amount,
@@ -41,7 +40,9 @@ class TransactionListItem extends ConsumerWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: isIncome
+                ? brandTeal.withValues(alpha: 0.08)
+                : Colors.grey[100]!,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(

@@ -199,7 +199,7 @@ class _DueNowTopCorner extends StatelessWidget {
 }
 
 class _DueNowTopCornerPainter extends CustomPainter {
-  static const _blob = Color(0xFFFFD5C8);
+  static const _blob = Color(0xFFFFBBA8);
   static const _dot = Color(0xFFE8A090);
 
   @override
@@ -232,7 +232,7 @@ class _DueNowTopCornerPainter extends CustomPainter {
 
     final dotPaint =
         Paint()
-          ..color = _dot.withValues(alpha: 0.72)
+          ..color = _dot.withValues(alpha: 0.90)
           ..style = PaintingStyle.fill;
 
     // Near top-right (“inner” side of blob, still upper area)
@@ -242,4 +242,5 @@ class _DueNowTopCornerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DueNowTopCornerPainter oldDelegate) => false;
+
 }

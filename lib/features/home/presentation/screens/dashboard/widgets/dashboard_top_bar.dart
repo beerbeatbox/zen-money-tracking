@@ -22,7 +22,7 @@ class DashboardTopBar extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onPreviousMonth,
-          icon: const Icon(Icons.chevron_left, color: Colors.black),
+          icon: const Icon(Icons.chevron_left, color: Color(0xFF1A5C52)),
           tooltip: 'Previous month',
         ),
         Expanded(
@@ -33,35 +33,52 @@ class DashboardTopBar extends StatelessWidget {
                   ? () => onTapMonthLabel!.call()
                   : null,
               onLongPress: onLongPressMonthLabel,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    monthYearLabel,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
-                      color: Colors.black,
-                    ),
-                  ),
-                  if (onTapMonthLabel != null) ...[
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.expand_more,
-                      size: 20,
-                      color: Colors.black.withValues(alpha: 0.8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
-                ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      monthYearLabel,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                        color: Color(0xFF1A5C52),
+                      ),
+                    ),
+                    if (onTapMonthLabel != null) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.expand_more,
+                        size: 20,
+                        color: const Color(0xFF1A5C52).withValues(alpha: 0.8),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
         IconButton(
           onPressed: onNextMonth,
-          icon: const Icon(Icons.chevron_right, color: Colors.black),
+          icon: const Icon(Icons.chevron_right, color: Color(0xFF1A5C52)),
           tooltip: 'Next month',
         ),
       ],

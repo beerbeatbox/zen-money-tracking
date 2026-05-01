@@ -45,7 +45,9 @@ class DashboardRecentLogsSection extends ConsumerWidget {
           children: [
             Text(
               'Transactions',
-              style: DashboardSectionHeaderStyles.titleStyle(color: Colors.black),
+              style: DashboardSectionHeaderStyles.titleStyle(
+                color: const Color(0xFF1A5C52),
+              ),
             ),
             Text(
               itemsLabel,
@@ -84,15 +86,7 @@ class _DatedLogsList extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _dateLabel(group.date),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.3,
-                      color: Colors.black,
-                    ),
-                  ),
+                  _DateLabel(date: group.date),
                   Text(
                     _calculateDayTotal(group.logs, isMasked: isMasked),
                     style: const TextStyle(
@@ -105,7 +99,7 @@ class _DatedLogsList extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              const DashboardDoodleDivider.zigzag(color: Colors.black26),
+              const DashboardDoodleDivider.zigzag(color: Colors.black38),
               const SizedBox(height: 10),
               ...List.generate(group.logs.length, (logIndex) {
                 final log = group.logs[logIndex];
@@ -140,13 +134,6 @@ class _DatedLogsList extends StatelessWidget {
     return groups;
   }
 
-  String _dateLabel(DateTime date) {
-    final today = DateUtils.dateOnly(DateTime.now());
-    final baseLabel = formatDateWithWeekday(date);
-    final isToday = date.isAtSameMomentAs(today);
-    return isToday ? '$baseLabel (Today)' : baseLabel;
-  }
-
   String _calculateDayTotal(List<ExpenseLog> logs, {required bool isMasked}) {
     final total = logs.fold<double>(0.0, (sum, log) => sum + log.amount);
     return formatCurrencySignedMasked(total, isMasked: isMasked);
@@ -158,6 +145,45 @@ class _LogGroup {
 
   final DateTime date;
   final List<ExpenseLog> logs;
+}
+
+class _DateLabel extends StatelessWidget {
+  const _DateLabel({required this.date});
+
+  final DateTime date;
+
+  static const _brandGreen = Color(0xFF1A5C52);
+
+  @override
+  Widget build(BuildContext context) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final isToday = date.isAtSameMomentAs(today);
+    final baseLabel = formatDateWithWeekday(date);
+
+    const baseStyle = TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.3,
+      color: Colors.black,
+    );
+
+    if (!isToday) {
+      return Text(baseLabel, style: baseStyle);
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: baseStyle,
+        children: [
+          TextSpan(text: baseLabel),
+          const TextSpan(
+            text: ' (Today)',
+            style: TextStyle(color: _brandGreen),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _LogTile extends ConsumerWidget {

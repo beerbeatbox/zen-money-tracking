@@ -10,25 +10,38 @@ class DashboardSpendingSection extends ConsumerWidget {
     super.key,
     required this.todaySpending,
     required this.netBalance,
+    this.todayBudgetRemaining,
   });
 
   final double todaySpending;
   final double netBalance;
+  final double? todayBudgetRemaining;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMasked = ref.watch(amountMaskControllerProvider);
+
+    final remaining = todayBudgetRemaining;
+    final bool isOverBudget = (remaining ?? 0) < 0;
+
+    final double? budgetProgress = () {
+      if (remaining == null) return null;
+      final total = todaySpending + remaining;
+      if (total <= 0) return null;
+      return (todaySpending / total).clamp(0.0, 1.0);
+    }();
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        const Positioned(right: -8, top: -8, child: _SpendingBlob()),
+        const Positioned(right: -12, top: -12, child: _SpendingBlob()),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Spent today',
               style: DashboardSectionHeaderStyles.titleStyle(
-                color: Colors.grey[700]!,
+                color: Colors.white.withValues(alpha: 0.65),
               ),
             ),
             const SizedBox(
@@ -40,11 +53,22 @@ class DashboardSpendingSection extends ConsumerWidget {
                 fontSize: 42,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.4,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 4),
-            const DashboardDoodleDivider.curl(color: Color(0xFF6BADA0)),
+            const DashboardDoodleDivider.curl(
+              color: Color(0x73FFFFFF),
+            ),
+            if (budgetProgress != null) ...[
+              const SizedBox(height: 14),
+              _BudgetProgressBar(
+                progress: budgetProgress,
+                remaining: remaining!,
+                isOverBudget: isOverBudget,
+                isMasked: isMasked,
+              ),
+            ],
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -55,7 +79,7 @@ class DashboardSpendingSection extends ConsumerWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
-                    color: Colors.grey[700],
+                    color: Colors.white.withValues(alpha: 0.65),
                   ),
                 ),
                 _BalanceBadge(
@@ -64,6 +88,64 @@ class DashboardSpendingSection extends ConsumerWidget {
               ],
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _BudgetProgressBar extends StatelessWidget {
+  const _BudgetProgressBar({
+    required this.progress,
+    required this.remaining,
+    required this.isOverBudget,
+    required this.isMasked,
+  });
+
+  final double progress;
+  final double remaining;
+  final bool isOverBudget;
+  final bool isMasked;
+
+  static const _amberColor = Color(0xFFFFBBA8);
+
+  @override
+  Widget build(BuildContext context) {
+    final absLabel = formatCurrencyUnsignedMasked(
+      remaining.abs(),
+      isMasked: isMasked,
+    );
+    final label = isOverBudget ? '$absLabel over budget' : '$absLabel left today';
+
+    final barColor = isOverBudget
+        ? _amberColor.withValues(alpha: 0.85)
+        : Colors.white;
+    final trackColor = isOverBudget
+        ? _amberColor.withValues(alpha: 0.20)
+        : Colors.white.withValues(alpha: 0.20);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 4,
+            backgroundColor: trackColor,
+            valueColor: AlwaysStoppedAnimation<Color>(barColor),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isOverBudget
+                ? _amberColor.withValues(alpha: 0.85)
+                : Colors.white.withValues(alpha: 0.55),
+          ),
         ),
       ],
     );
@@ -80,7 +162,7 @@ class _BalanceBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A5C52),
+        color: Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -103,7 +185,7 @@ class _SpendingBlob extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: const Size(140, 110),
+      size: const Size(180, 140),
       painter: _SpendingBlobPainter(),
     );
   }
@@ -114,10 +196,9 @@ class _SpendingBlobPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final blobPaint =
         Paint()
-          ..color = const Color(0xFFD4EDE8)
+          ..color = const Color(0xFF2E7A6A)
           ..style = PaintingStyle.fill;
 
-    // Organic blob shape in upper-right
     final path = Path();
     path.moveTo(size.width * 0.55, size.height * 0.05);
     path.cubicTo(
@@ -147,10 +228,9 @@ class _SpendingBlobPainter extends CustomPainter {
     path.close();
     canvas.drawPath(path, blobPaint);
 
-    // Small scattered dots
     final dotPaint =
         Paint()
-          ..color = const Color(0xFF6BADA0).withValues(alpha: 0.55)
+          ..color = Colors.white.withValues(alpha: 0.25)
           ..style = PaintingStyle.fill;
 
     final dots = [

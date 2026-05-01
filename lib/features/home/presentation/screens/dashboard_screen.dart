@@ -141,6 +141,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     required List<ScheduledTransaction> scheduledThisMonth,
     required List<ScheduledTransaction> dueNow,
     double? todaySpending,
+    double? todayBudgetRemaining,
   }) {
     final sections = <DashboardSectionId>[];
     final widgets = <Widget>[];
@@ -153,6 +154,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             DashboardSpendingSection(
               todaySpending: todaySpending ?? 0.0,
               netBalance: netBalance,
+              todayBudgetRemaining: todayBudgetRemaining,
             ),
           );
         case DashboardSectionId.dueNow:
@@ -199,6 +201,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     for (var index = 0; index < widgets.length; index++) {
       final bg = switch (sections[index]) {
+        DashboardSectionId.spentToday => const Color(0xFF1A5C52),
         DashboardSectionId.dueNow => const Color(0xFFFFF0EC),
         DashboardSectionId.upcoming => const Color(0xFFEFF6FF),
         _ => Colors.white,
@@ -219,7 +222,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     return spaced;
   }
 
-  double _spacingAfterSection(DashboardSectionId _) => 16;
+  double _spacingAfterSection(DashboardSectionId section) =>
+      section == DashboardSectionId.spentToday ? 24 : 16;
 
   @override
   Widget build(BuildContext context) {
@@ -238,10 +242,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     });
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: SafeArea(
-        bottom: false,
-        child: vmAsync.when(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEEF2F1), Color(0xFFE5E9E8)],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: vmAsync.when(
           data: (vm) {
             return DashboardMonthPager(
               selectedMonth: selectedMonth,
@@ -255,9 +266,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       const Text(
                         'Dashboard',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
+                          letterSpacing: 0.8,
                           color: Colors.black,
                         ),
                       ),
@@ -270,7 +281,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         icon: HeroIcon(
                           isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
                           style: HeroIconStyle.outline,
-                          color: Colors.black,
+                          color: const Color(0xFF1A5C52),
                         ),
                         tooltip: isMasked ? 'Show amounts' : 'Hide amounts',
                       ),
@@ -317,6 +328,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 scheduledThisMonth: vm.scheduledThisMonth,
                 dueNow: vm.dueNow,
                 todaySpending: vm.todaySpending,
+                todayBudgetRemaining: vm.todayBudgetRemaining,
               ),
               onSwipeToPreviousMonth:
                   () =>
@@ -406,6 +418,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   onRetry: () => refreshExpenseLogs(ref),
                 ),
               ),
+          ),
         ),
       ),
     );
@@ -502,9 +515,9 @@ class _DashboardStateWrapperState
                 const Text(
                   'Dashboard',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+                    letterSpacing: 0.8,
                     color: Colors.black,
                   ),
                 ),
@@ -513,7 +526,7 @@ class _DashboardStateWrapperState
                   icon: HeroIcon(
                     widget.isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
                     style: HeroIconStyle.outline,
-                    color: Colors.black,
+                    color: const Color(0xFF1A5C52),
                   ),
                   tooltip: widget.isMasked ? 'Show amounts' : 'Hide amounts',
                 ),
