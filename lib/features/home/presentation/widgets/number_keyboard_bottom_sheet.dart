@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:baht/core/extensions/widget_extension.dart';
+import 'package:baht/core/router/app_router.dart';
 import 'package:baht/core/utils/date_time_formatter.dart';
 import 'package:baht/core/utils/formatters.dart';
 import 'package:baht/features/categories/domain/entities/category.dart';
@@ -10,8 +12,6 @@ import 'package:baht/features/categories/presentation/widgets/category_name_with
 import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:baht/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:baht/features/home/presentation/widgets/log_time_picker_dialog.dart';
-import 'package:baht/core/router/app_router.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -126,10 +126,7 @@ class NumberKeyboardBottomSheet extends ConsumerStatefulWidget {
       _NumberKeyboardBottomSheetState();
 }
 
-enum _SheetStep {
-  amount,
-  details,
-}
+enum _SheetStep { amount, details }
 
 class _NumberKeyboardBottomSheetState
     extends ConsumerState<NumberKeyboardBottomSheet> {
@@ -584,8 +581,7 @@ class _NumberKeyboardBottomSheetState
                                 const SizedBox(height: 12),
                                 _IntervalPicker(
                                   count: _intervalCount ?? 1,
-                                  unit:
-                                      _intervalUnit ?? IntervalUnit.months,
+                                  unit: _intervalUnit ?? IntervalUnit.months,
                                   onChanged: _setInterval,
                                 ),
                               ],
@@ -1237,7 +1233,8 @@ class _CategorySection extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _AddSubCategoryChip(
-                    onTap: () => context.push(AppRouter.categoryManagement.path),
+                    onTap:
+                        () => context.push(AppRouter.categoryManagement.path),
                   ),
                 ),
               ],
@@ -1303,11 +1300,7 @@ class _AddSubCategoryChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.add,
-            size: 16,
-            color: Colors.grey[600],
-          ),
+          Icon(Icons.add, size: 16, color: Colors.grey[600]),
           const SizedBox(width: 4),
           Text(
             'Add Sub-category',

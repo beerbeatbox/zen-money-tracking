@@ -256,10 +256,7 @@ class ScheduledTransactionDetailScreen extends ConsumerWidget {
               ? 'Removed from your schedule.'
               : 'Your next due date is updated.';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text(message),
-        ),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),
       );
       context.pop();
     } catch (_) {
@@ -598,8 +595,7 @@ class _ScheduledActionsRow extends ConsumerWidget {
       // One-time items are removed after conversion. Due now (dashboard) flow
       // should return after marking paid; recurring from Scheduled stays here.
       if (!context.mounted) return;
-      if (item.frequency == PaymentFrequency.oneTime ||
-          openedFromDueNow) {
+      if (item.frequency == PaymentFrequency.oneTime || openedFromDueNow) {
         context.pop();
       }
     } catch (_) {
