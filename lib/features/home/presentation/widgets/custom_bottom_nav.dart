@@ -41,6 +41,8 @@ class _FloatingBottomNav extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final VoidCallback onAddPressed;
 
+  static const _activeColor = Color(0xFF2D4A3E);
+
   void _handleTabTap(int index, {required bool isActive}) {
     if (isActive) return;
     navigationShell.goBranch(index);
@@ -49,6 +51,7 @@ class _FloatingBottomNav extends StatelessWidget {
   Widget _buildNavIcon({
     required VoidCallback onTap,
     required HeroIcons icon,
+    required String label,
     required String semanticLabel,
     required bool isActive,
   }) {
@@ -56,15 +59,43 @@ class _FloatingBottomNav extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        height: 64,
-        child: Center(
-          child: HeroIcon(
-            icon,
-            style: isActive ? HeroIconStyle.solid : HeroIconStyle.outline,
-            color: Colors.white,
-            size: 24,
-            semanticLabel: semanticLabel,
-          ),
+        height: 72,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (isActive)
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _activeColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: HeroIcon(
+                  icon,
+                  style: HeroIconStyle.solid,
+                  color: Colors.white,
+                  size: 22,
+                  semanticLabel: semanticLabel,
+                ),
+              )
+            else
+              HeroIcon(
+                icon,
+                style: HeroIconStyle.outline,
+                color: Colors.grey[500]!,
+                size: 24,
+                semanticLabel: semanticLabel,
+              ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.black87 : Colors.grey[500],
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -78,10 +109,10 @@ class _FloatingBottomNav extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: Color(0xFFE05C4B),
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.add, color: Colors.grey[900], size: 28),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }
@@ -103,12 +134,12 @@ class _FloatingBottomNav extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.grey[900],
+            color: Colors.white,
             borderRadius: BorderRadius.circular(40),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 12,
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 16,
                 spreadRadius: 0,
                 offset: const Offset(0, 4),
               ),
@@ -124,6 +155,7 @@ class _FloatingBottomNav extends StatelessWidget {
                   child: _buildNavIcon(
                     onTap: () => _handleTabTap(0, isActive: isHomeActive),
                     icon: HeroIcons.home,
+                    label: 'Home',
                     semanticLabel: 'Dashboard',
                     isActive: isHomeActive,
                   ),
@@ -132,6 +164,7 @@ class _FloatingBottomNav extends StatelessWidget {
                   child: _buildNavIcon(
                     onTap: () => _handleTabTap(1, isActive: isInsightActive),
                     icon: HeroIcons.chartBar,
+                    label: 'Analytics',
                     semanticLabel: 'Insight',
                     isActive: isInsightActive,
                   ),
@@ -141,6 +174,7 @@ class _FloatingBottomNav extends StatelessWidget {
                   child: _buildNavIcon(
                     onTap: () => _handleTabTap(2, isActive: isScheduleActive),
                     icon: HeroIcons.rectangleStack,
+                    label: 'Schedule',
                     semanticLabel: 'Scheduled payments',
                     isActive: isScheduleActive,
                   ),
@@ -149,6 +183,7 @@ class _FloatingBottomNav extends StatelessWidget {
                   child: _buildNavIcon(
                     onTap: () => _handleTabTap(3, isActive: isSettingsActive),
                     icon: HeroIcons.cog6Tooth,
+                    label: 'Settings',
                     semanticLabel: 'Settings',
                     isActive: isSettingsActive,
                   ),
