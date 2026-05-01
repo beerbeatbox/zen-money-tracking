@@ -39,7 +39,7 @@ class DashboardSpendingSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Spent today',
+              "Today's spending",
               style: DashboardSectionHeaderStyles.titleStyle(
                 color: Colors.white.withValues(alpha: 0.65),
               ),
@@ -63,8 +63,9 @@ class DashboardSpendingSection extends ConsumerWidget {
             if (budgetProgress != null) ...[
               const SizedBox(height: 14),
               _BudgetProgressBar(
+                dailyBudgetAmount: todaySpending + remaining!,
                 progress: budgetProgress,
-                remaining: remaining!,
+                remaining: remaining,
                 isOverBudget: isOverBudget,
                 isMasked: isMasked,
               ),
@@ -96,12 +97,14 @@ class DashboardSpendingSection extends ConsumerWidget {
 
 class _BudgetProgressBar extends StatelessWidget {
   const _BudgetProgressBar({
+    required this.dailyBudgetAmount,
     required this.progress,
     required this.remaining,
     required this.isOverBudget,
     required this.isMasked,
   });
 
+  final double dailyBudgetAmount;
   final double progress;
   final double remaining;
   final bool isOverBudget;
@@ -124,9 +127,31 @@ class _BudgetProgressBar extends StatelessWidget {
         ? _amberColor.withValues(alpha: 0.20)
         : Colors.white.withValues(alpha: 0.20);
 
+    final dailyBudgetRowStyle = TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.6,
+      color: Colors.white.withValues(alpha: 0.65),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Daily budget', style: dailyBudgetRowStyle),
+            const SizedBox(width: 6),
+            Text(
+              formatCurrencyUnsignedMasked(
+                dailyBudgetAmount.clamp(0.0, double.infinity),
+                isMasked: isMasked,
+              ),
+              style: dailyBudgetRowStyle,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
