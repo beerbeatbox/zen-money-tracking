@@ -22,7 +22,6 @@ import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_spending_section.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
-import 'package:baht/features/home/presentation/screens/dashboard/widgets/edit_dashboard_drawer.dart';
 import 'package:baht/features/home/presentation/screens/dashboard_events.dart';
 import 'package:baht/features/home/presentation/widgets/month_picker_dialog.dart';
 import 'package:baht/features/home/presentation/widgets/number_keyboard_bottom_sheet.dart';
@@ -278,7 +277,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      endDrawer: const EditDashboardDrawer(),
       body: SafeArea(
         bottom: false,
         child: vmAsync.when(
@@ -302,39 +300,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                           color: Colors.black,
                         ),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            onPressed:
-                                () =>
-                                    ref
-                                        .read(
-                                          amountMaskControllerProvider.notifier,
-                                        )
-                                        .toggle(),
-                            icon: HeroIcon(
-                              isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
-                              style: HeroIconStyle.outline,
-                              color: Colors.black,
-                            ),
-                            tooltip: isMasked ? 'Show amounts' : 'Hide amounts',
-                          ),
-                          Builder(
-                            builder: (context) {
-                              return IconButton(
-                                onPressed:
-                                    () => Scaffold.of(context).openEndDrawer(),
-                                icon: const HeroIcon(
-                                  HeroIcons.pencil,
-                                  style: HeroIconStyle.outline,
-                                  color: Colors.black,
-                                ),
-                                tooltip: 'Edit dashboard',
-                              );
-                            },
-                          ),
-                        ],
+                      IconButton(
+                        onPressed:
+                            () =>
+                                ref
+                                    .read(
+                                      amountMaskControllerProvider.notifier,
+                                    )
+                                    .toggle(),
+                        icon: HeroIcon(
+                          isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
+                          style: HeroIconStyle.outline,
+                          color: Colors.black,
+                        ),
+                        tooltip: isMasked ? 'Show amounts' : 'Hide amounts',
                       ),
                     ],
                   ),
@@ -579,29 +558,14 @@ class _DashboardStateWrapperState
                     color: Colors.black,
                   ),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      onPressed: widget.onToggleMask,
-                      icon: HeroIcon(
-                        widget.isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
-                        style: HeroIconStyle.outline,
-                        color: Colors.black,
-                      ),
-                      tooltip:
-                          widget.isMasked ? 'Show amounts' : 'Hide amounts',
-                    ),
-                    Builder(
-                      builder: (context) {
-                        return IconButton(
-                          onPressed: () => Scaffold.of(context).openEndDrawer(),
-                          icon: const Icon(Icons.edit, color: Colors.black),
-                          tooltip: 'Edit dashboard',
-                        );
-                      },
-                    ),
-                  ],
+                IconButton(
+                  onPressed: widget.onToggleMask,
+                  icon: HeroIcon(
+                    widget.isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
+                    style: HeroIconStyle.outline,
+                    color: Colors.black,
+                  ),
+                  tooltip: widget.isMasked ? 'Show amounts' : 'Hide amounts',
                 ),
               ],
             ),
