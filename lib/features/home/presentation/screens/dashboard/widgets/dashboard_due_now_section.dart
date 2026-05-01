@@ -14,8 +14,6 @@ class DashboardDueNowSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (items.isEmpty) return const SizedBox.shrink();
-
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -48,23 +46,36 @@ class DashboardDueNowSection extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: DashboardSectionHeaderStyles.spacingBelowTitle),
-            ...List.generate(items.length, (index) {
-              final item = items[index];
-              final isLast = index == items.length - 1;
-              return Padding(
-                padding: EdgeInsets.only(bottom: isLast ? 0 : 32),
-                child: ScheduledTransactionTile(
-                  item: item,
-                  onEdit:
-                      () => context.push(
-                        '${AppRouter.scheduledTransactionDetail.path.replaceFirst(':id', item.id)}?dueNow=1',
-                        extra: item,
-                      ),
-                  showStatusLabel: true,
+            const SizedBox(
+              height: DashboardSectionHeaderStyles.spacingBelowTitle,
+            ),
+            if (items.isEmpty)
+              Text(
+                'You are all caught up — nothing needs attention today.',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  height: 1.35,
+                  color: Colors.grey[600],
                 ),
-              );
-            }),
+              )
+            else
+              ...List.generate(items.length, (index) {
+                final item = items[index];
+                final isLast = index == items.length - 1;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : 32),
+                  child: ScheduledTransactionTile(
+                    item: item,
+                    onEdit:
+                        () => context.push(
+                          '${AppRouter.scheduledTransactionDetail.path.replaceFirst(':id', item.id)}?dueNow=1',
+                          extra: item,
+                        ),
+                    showStatusLabel: true,
+                  ),
+                );
+              }),
           ],
         ),
       ],
@@ -131,4 +142,3 @@ class _DueNowTopCornerPainter extends CustomPainter {
   @override
   bool shouldRepaint(_DueNowTopCornerPainter oldDelegate) => false;
 }
-

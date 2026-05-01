@@ -2,21 +2,16 @@ import 'package:baht/core/constants/app_sizes.dart';
 import 'package:baht/core/controllers/amount_mask_controller.dart';
 import 'package:baht/core/utils/date_time_formatter.dart';
 import 'package:baht/core/widgets/section_card.dart';
-import 'package:baht/features/home/domain/entities/dashboard_layout.dart';
+import 'package:baht/features/home/domain/entities/dashboard_sections.dart';
 import 'package:baht/features/home/domain/entities/expense_log.dart';
 import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:baht/features/home/presentation/controllers/dashboard_controller.dart';
-import 'package:baht/features/home/presentation/controllers/dashboard_layout_controller.dart';
 import 'package:baht/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:baht/features/home/presentation/controllers/expense_log_actions_controller.dart';
 import 'package:baht/features/home/presentation/controllers/scheduled_transaction_controller.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/dashboard_quick_add_handler.dart';
-import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_balance_section.dart';
-import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_budget_left_section.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_due_now_section.dart';
-import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_income_spent_row.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
-import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_month_end_sufficiency_card.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_recent_logs_section.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_schedule_section.dart';
@@ -138,61 +133,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Widget _buildMonthContent({
-    required DashboardLayout layout,
     required double netBalance,
-    required double projectedBalance,
-    required bool showProjected,
-    required double income,
-    required double spent,
     required List<ExpenseLog> scopedLogs,
     required DateTime selectedMonth,
     required String itemsLabel,
     required String monthYearLabel,
     required List<ScheduledTransaction> scheduledThisMonth,
     required List<ScheduledTransaction> dueNow,
-    required MonthEndSufficiencyBreakdown? sufficiencyBreakdown,
-    double? todayBudgetRemaining,
     double? todaySpending,
-    double? recommendedDailyBudgetWithBuffer,
   }) {
     final sections = <DashboardSectionId>[];
     final widgets = <Widget>[];
 
-    for (final section in layout.active) {
+    for (final section in kDashboardSectionOrder) {
       switch (section) {
-        case DashboardSectionId.budgetLeftToday:
-          if (todayBudgetRemaining == null) continue;
+        case DashboardSectionId.spentToday:
           sections.add(section);
           widgets.add(
-            DashboardBudgetLeftSection(
-              todayBudgetRemaining: todayBudgetRemaining,
-              todaySpending: todaySpending,
-              recommendedDailyBudgetWithBuffer:
-                  recommendedDailyBudgetWithBuffer,
-            ),
-          );
-        case DashboardSectionId.balance:
-          sections.add(section);
-          widgets.add(
-            DashboardBalanceSection(
+            DashboardSpendingSection(
+              todaySpending: todaySpending ?? 0.0,
               netBalance: netBalance,
-              projectedBalance: projectedBalance,
-              showProjected: showProjected,
             ),
           );
-        case DashboardSectionId.incomeSpent:
+        case DashboardSectionId.dueNow:
           sections.add(section);
-          widgets.add(DashboardIncomeSpentRow(income: income, spent: spent));
-        case DashboardSectionId.monthEndSufficiency:
-          if (sufficiencyBreakdown == null) continue;
-          sections.add(section);
-          widgets.add(
-            DashboardMonthEndSufficiencyCard(
-              sufficiencyBreakdown: sufficiencyBreakdown,
-            ),
-          );
-        case DashboardSectionId.scheduledThisMonth:
-          if (scheduledThisMonth.isEmpty) continue;
+          widgets.add(DashboardDueNowSection(items: dueNow));
+        case DashboardSectionId.upcoming:
           sections.add(section);
           widgets.add(
             DashboardScheduleSection(
@@ -200,11 +166,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               selectedMonth: selectedMonth,
             ),
           );
-        case DashboardSectionId.dueNow:
-          if (dueNow.isEmpty) continue;
-          sections.add(section);
-          widgets.add(DashboardDueNowSection(items: dueNow));
-        case DashboardSectionId.recentActivity:
+        case DashboardSectionId.transactions:
           sections.add(section);
           widgets.add(
             DashboardRecentLogsSection(
@@ -212,14 +174,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               itemsLabel: itemsLabel,
               monthYearLabel: monthYearLabel,
               onRetry: () => refreshExpenseLogs(ref),
-            ),
-          );
-        case DashboardSectionId.spending:
-          sections.add(section);
-          widgets.add(
-            DashboardSpendingSection(
-              todaySpending: todaySpending ?? 0.0,
-              netBalance: netBalance,
             ),
           );
       }
@@ -263,7 +217,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
     final vmAsync = ref.watch(dashboardControllerProvider(selectedMonth));
-    final layoutAsync = ref.watch(dashboardLayoutControllerProvider);
     final isMasked = ref.watch(amountMaskControllerProvider);
 
     // Sync budget to widget when dashboard data is ready
@@ -281,7 +234,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         bottom: false,
         child: vmAsync.when(
           data: (vm) {
-            final layout = layoutAsync.value ?? DashboardLayout.defaults();
             return DashboardMonthPager(
               selectedMonth: selectedMonth,
               onRefresh: _refreshDashboard,
@@ -304,9 +256,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         onPressed:
                             () =>
                                 ref
-                                    .read(
-                                      amountMaskControllerProvider.notifier,
-                                    )
+                                    .read(amountMaskControllerProvider.notifier)
                                     .toggle(),
                         icon: HeroIcon(
                           isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
@@ -350,23 +300,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 ],
               ),
               monthContent: _buildMonthContent(
-                layout: layout,
                 netBalance: vm.netBalance,
-                projectedBalance: vm.projectedBalance,
-                showProjected: vm.showProjected,
-                income: vm.income,
-                spent: vm.spent,
                 scopedLogs: vm.logs,
                 selectedMonth: vm.selectedMonth,
                 itemsLabel: vm.itemsLabel,
                 monthYearLabel: vm.monthYearLabel,
                 scheduledThisMonth: vm.scheduledThisMonth,
                 dueNow: vm.dueNow,
-                sufficiencyBreakdown: vm.sufficiencyBreakdown,
-                todayBudgetRemaining: vm.todayBudgetRemaining,
                 todaySpending: vm.todaySpending,
-                recommendedDailyBudgetWithBuffer:
-                    vm.sufficiencyBreakdown?.recommendedDailyBudgetWithBuffer,
               ),
               onSwipeToPreviousMonth:
                   () =>

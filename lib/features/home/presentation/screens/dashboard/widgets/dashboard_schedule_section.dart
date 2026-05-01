@@ -47,17 +47,21 @@ class _DashboardScheduleSectionState
     });
   }
 
+  Widget _emptyHint() {
+    return Text(
+      'Open Scheduled to add payments you want to track each month.',
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        height: 1.35,
+        color: Colors.grey[600],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (widget.items.isEmpty) return const SizedBox.shrink();
-
-    final total = _calculateTotal(widget.items);
-    final isMasked = ref.watch(amountMaskControllerProvider);
-    final totalLabel = formatCurrencySignedMasked(total, isMasked: isMasked);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    final header =
         widget.isExpandable
             ? InkWell(
               borderRadius: BorderRadius.circular(8),
@@ -66,7 +70,7 @@ class _DashboardScheduleSectionState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'UPCOMING',
+                    'Upcoming',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -88,14 +92,49 @@ class _DashboardScheduleSectionState
               ),
             )
             : const Text(
-              'UPCOMING',
+              'Upcoming',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.4,
                 color: Colors.black,
               ),
-            ),
+            );
+
+    if (widget.items.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          header,
+          if (widget.isExpandable)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child:
+                  _isExpanded
+                      ? Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _emptyHint(),
+                      )
+                      : const SizedBox.shrink(),
+            )
+          else ...[
+            const SizedBox(height: 12),
+            _emptyHint(),
+          ],
+        ],
+      );
+    }
+
+    final total = _calculateTotal(widget.items);
+    final isMasked = ref.watch(amountMaskControllerProvider);
+    final totalLabel = formatCurrencySignedMasked(total, isMasked: isMasked);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        header,
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

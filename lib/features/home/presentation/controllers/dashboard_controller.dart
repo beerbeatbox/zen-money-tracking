@@ -89,16 +89,16 @@ class DashboardMonth {
 
 /// Derived dashboard values for the given month.
 ///
-/// Loading/error states are driven solely by `expenseLogsProvider` (same as the
-/// previous implementation in `DashboardScreen`). Scheduled transactions and
-/// carry-balance setting are treated as optional values while loading.
+/// Loading/error states follow `expenseLogsProvider` and
+/// `scheduledTransactionsProvider`. Carry-balance and budget settings use
+/// synchronous fallbacks while loading.
 @riverpod
 class DashboardController extends _$DashboardController {
   @override
   FutureOr<DashboardMonth> build(DateTime selectedMonth) async {
     ref.watch(expenseLogsProvider);
     ref.watch(balanceSnapshotListControllerProvider);
-    final scheduledAsync = ref.watch(scheduledTransactionsProvider);
+    ref.watch(scheduledTransactionsProvider);
     final carryAsync = ref.watch(carryBalanceSettingControllerProvider);
     final budgetAsync = ref.watch(budgetSettingControllerProvider);
 
@@ -107,8 +107,9 @@ class DashboardController extends _$DashboardController {
       balanceSnapshotListControllerProvider.future,
     );
     final latestSnapshot = pickLatestSnapshot(balanceSnapshots);
-    final scheduledTransactions =
-        scheduledAsync.value ?? const <ScheduledTransaction>[];
+    final scheduledTransactions = await ref.read(
+      scheduledTransactionsProvider.future,
+    );
     final carryEnabled = carryAsync.value ?? false;
     final budgetSetting = budgetAsync.value;
 
