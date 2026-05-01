@@ -6,6 +6,7 @@ import 'package:baht/features/categories/domain/entities/category.dart';
 import 'package:baht/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:baht/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_doodle_divider.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
 import 'package:baht/features/home/presentation/widgets/transaction_list_item.dart';
 import 'package:flutter/material.dart';
@@ -111,6 +112,8 @@ class _DatedLogsList extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 4),
+              const DashboardDoodleDivider.zigzag(color: Colors.black26),
               const SizedBox(height: 10),
               ...List.generate(group.logs.length, (logIndex) {
                 final log = group.logs[logIndex];

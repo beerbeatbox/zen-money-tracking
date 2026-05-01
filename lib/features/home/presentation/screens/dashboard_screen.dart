@@ -240,7 +240,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final spaced = <Widget>[];
 
     for (var index = 0; index < widgets.length; index++) {
-      spaced.add(SectionCard(child: widgets[index]));
+      final bg = sections[index] == DashboardSectionId.dueNow
+          ? const Color(0xFFFFF0EC)
+          : Colors.white;
+      final card = SectionCard(backgroundColor: bg, child: widgets[index]);
+      spaced.add(
+        sections[index] == DashboardSectionId.dueNow
+            ? ClipRRect(borderRadius: BorderRadius.circular(24), child: card)
+            : card,
+      );
       if (index == widgets.length - 1) continue;
       spaced.add(SizedBox(height: _spacingAfterSection(sections[index])));
     }
