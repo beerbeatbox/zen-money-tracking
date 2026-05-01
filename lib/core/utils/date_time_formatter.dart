@@ -37,7 +37,7 @@ String formatDateLabel(DateTime date) {
 }
 
 String formatMonthYearLabel(DateTime date) {
-  return DateFormat('MMMM yyyy').format(date).toUpperCase();
+  return DateFormat('MMMM yyyy').format(date);
 }
 
 String formatWithPattern(DateTime date, SystemDateFormat format) {
