@@ -171,6 +171,10 @@ class _DashboardDueNowSectionState
           padding: EdgeInsets.only(bottom: isLast ? 0 : 32),
           child: ScheduledTransactionTile(
             item: item,
+            iconBackgroundColor:
+                DashboardSectionHeaderStyles.dueNowTitleColor.withValues(
+                  alpha: 0.12,
+                ),
             onEdit:
                 () => context.push(
                   '${AppRouter.scheduledTransactionDetail.path.replaceFirst(':id', item.id)}?dueNow=1',

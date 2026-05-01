@@ -4,6 +4,7 @@ class DashboardTopBar extends StatelessWidget {
   const DashboardTopBar({
     super.key,
     required this.monthYearLabel,
+    required this.isCurrentMonth,
     required this.onPreviousMonth,
     required this.onNextMonth,
     this.onTapMonthLabel,
@@ -11,6 +12,7 @@ class DashboardTopBar extends StatelessWidget {
   });
 
   final String monthYearLabel;
+  final bool isCurrentMonth;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final Future<void> Function()? onTapMonthLabel;
@@ -62,6 +64,28 @@ class DashboardTopBar extends StatelessWidget {
                         color: Color(0xFF1A5C52),
                       ),
                     ),
+                    if (isCurrentMonth) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A5C52),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'Now',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ],
                     if (onTapMonthLabel != null) ...[
                       const SizedBox(width: 4),
                       Icon(

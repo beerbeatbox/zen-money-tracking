@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 abstract final class DashboardSectionHeaderStyles {
   static const Color dueNowTitleColor = Color(0xFFCC5533);
   static const Color upcomingTitleColor = Color(0xFF2B5FA8);
+  static const Color transactionsTitleColor = Color(0xFF1A5C52);
 
   static TextStyle titleStyle({required Color color}) {
     return TextStyle(

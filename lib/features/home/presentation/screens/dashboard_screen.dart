@@ -228,6 +228,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     final selectedMonth = ref.watch(dashboardSelectedMonthProvider);
+    final now = DateTime.now();
+    final isCurrentMonth =
+        selectedMonth.year == now.year && selectedMonth.month == now.month;
     final monthYearLabel = formatMonthYearLabel(selectedMonth);
     final vmAsync = ref.watch(dashboardControllerProvider(selectedMonth));
     final isMasked = ref.watch(amountMaskControllerProvider);
@@ -290,6 +293,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   const SizedBox(height: 12),
                   DashboardTopBar(
                     monthYearLabel: vm.monthYearLabel,
+                    isCurrentMonth: isCurrentMonth,
                     onPreviousMonth:
                         () =>
                             ref
@@ -345,6 +349,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           loading:
               () => _DashboardStateWrapper(
                 monthYearLabel: monthYearLabel,
+                isCurrentMonth: isCurrentMonth,
                 onPreviousMonth:
                     () =>
                         ref
@@ -382,6 +387,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           error:
               (_, __) => _DashboardStateWrapper(
                 monthYearLabel: monthYearLabel,
+                isCurrentMonth: isCurrentMonth,
                 onPreviousMonth:
                     () =>
                         ref
@@ -428,6 +434,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 class _DashboardStateWrapper extends ConsumerStatefulWidget {
   const _DashboardStateWrapper({
     required this.monthYearLabel,
+    required this.isCurrentMonth,
     required this.onPreviousMonth,
     required this.onNextMonth,
     this.onTapMonthLabel,
@@ -439,6 +446,7 @@ class _DashboardStateWrapper extends ConsumerStatefulWidget {
   });
 
   final String monthYearLabel;
+  final bool isCurrentMonth;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final Future<void> Function()? onTapMonthLabel;
@@ -535,6 +543,7 @@ class _DashboardStateWrapperState
             const SizedBox(height: 12),
             DashboardTopBar(
               monthYearLabel: widget.monthYearLabel,
+              isCurrentMonth: widget.isCurrentMonth,
               onPreviousMonth: widget.onPreviousMonth,
               onNextMonth: widget.onNextMonth,
               onTapMonthLabel: widget.onTapMonthLabel,

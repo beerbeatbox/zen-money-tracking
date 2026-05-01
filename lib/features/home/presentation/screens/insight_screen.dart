@@ -160,6 +160,10 @@ class _HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final isCurrentMonth =
+        selectedMonth.year == now.year && selectedMonth.month == now.month;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -175,6 +179,7 @@ class _HeaderSection extends StatelessWidget {
         const SizedBox(height: 12),
         DashboardTopBar(
           monthYearLabel: monthYearLabel,
+          isCurrentMonth: isCurrentMonth,
           onPreviousMonth: onPreviousMonth,
           onNextMonth: onNextMonth,
           onTapMonthLabel: () async {

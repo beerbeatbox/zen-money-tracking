@@ -19,6 +19,7 @@ class ScheduledTransactionTile extends ConsumerWidget {
     this.showStatusLabel = false,
     this.showRecurrenceBadges = false,
     this.now,
+    this.iconBackgroundColor,
   });
 
   final ScheduledTransaction item;
@@ -37,6 +38,9 @@ class ScheduledTransactionTile extends ConsumerWidget {
 
   /// Optional injection point for testing.
   final DateTime? now;
+
+  /// Optional tint for the leading icon circle (e.g. section title color).
+  final Color? iconBackgroundColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,19 +75,52 @@ class ScheduledTransactionTile extends ConsumerWidget {
             );
 
     final shouldShowBadges = showRecurrenceBadges;
+    final catParts = _parseCategoryParts(item.category);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TransactionListItem(
-          title: item.category,
+          title:
+              catParts.parentCategory == null
+                  ? item.category
+                  : '${catParts.sub} (${catParts.parentCategory})',
+          titleWidget:
+              catParts.parentCategory == null
+                  ? null
+                  : Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: catParts.sub,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' (${catParts.parentCategory})',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
           subtitle: subtitle,
           amount: amountValue,
           emoji: emoji,
+          titleSubtitleSpacing:
+              (showStatusLabel || showRecurrenceBadges) ? 0 : 4,
           onTap: onEdit,
+          iconBackgroundColor: iconBackgroundColor,
         ),
         if (shouldShowBadges) ...[
-          const SizedBox(height: 6),
           Padding(
             padding: const EdgeInsets.only(left: 60),
             child: Text(
@@ -157,6 +194,17 @@ class ScheduledTransactionTile extends ConsumerWidget {
 
     return badges.join(' • ');
   }
+}
+
+({String sub, String? parentCategory}) _parseCategoryParts(String category) {
+  final idx = category.indexOf(' - ');
+  if (idx == -1) {
+    return (sub: category, parentCategory: null);
+  }
+  return (
+    sub: category.substring(idx + 3),
+    parentCategory: category.substring(0, idx),
+  );
 }
 
 String _recurrenceLabel(

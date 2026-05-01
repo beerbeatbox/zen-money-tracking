@@ -46,7 +46,7 @@ class DashboardRecentLogsSection extends ConsumerWidget {
             Text(
               'Transactions',
               style: DashboardSectionHeaderStyles.titleStyle(
-                color: const Color(0xFF1A5C52),
+                color: DashboardSectionHeaderStyles.transactionsTitleColor,
               ),
             ),
             Text(
@@ -211,6 +211,10 @@ class _LogTile extends ConsumerWidget {
       subtitle: log.timeLabel,
       amount: log.amount,
       emoji: emoji,
+      iconBackgroundColor:
+          DashboardSectionHeaderStyles.transactionsTitleColor.withValues(
+            alpha: 0.12,
+          ),
       onTap: () => _openLogDetail(context),
     );
   }

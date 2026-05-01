@@ -187,6 +187,10 @@ class _DashboardScheduleSectionState
         ),
         child: ScheduledTransactionTile(
           item: item,
+          iconBackgroundColor:
+              DashboardSectionHeaderStyles.upcomingTitleColor.withValues(
+                alpha: 0.12,
+              ),
           onEdit:
               () => context.push(
                 AppRouter.scheduledTransactionDetail.path.replaceFirst(
