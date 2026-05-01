@@ -157,13 +157,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           );
         case DashboardSectionId.dueNow:
           sections.add(section);
-          widgets.add(DashboardDueNowSection(items: dueNow));
+          widgets.add(
+            DashboardDueNowSection(items: dueNow),
+          );
         case DashboardSectionId.upcoming:
           sections.add(section);
           widgets.add(
             DashboardScheduleSection(
               items: scheduledThisMonth,
               selectedMonth: selectedMonth,
+              isExpandable: true,
             ),
           );
         case DashboardSectionId.transactions:

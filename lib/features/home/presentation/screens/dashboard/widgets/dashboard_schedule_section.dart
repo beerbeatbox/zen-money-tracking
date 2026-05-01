@@ -134,6 +134,55 @@ class _DashboardScheduleSectionState
     return _buildHeaderTitleRow();
   }
 
+  Widget _buildTotalRow(String totalLabel) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Total',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.6,
+            color: Colors.grey[700],
+          ),
+        ),
+        Text(
+          totalLabel,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildItems(BuildContext context) {
+    return List.generate(widget.items.length, (index) {
+      final item = widget.items[index];
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: index == widget.items.length - 1 ? 0 : 32,
+        ),
+        child: ScheduledTransactionTile(
+          item: item,
+          onEdit:
+              () => context.push(
+                AppRouter.scheduledTransactionDetail.path.replaceFirst(
+                  ':id',
+                  item.id,
+                ),
+                extra: item,
+              ),
+          showStatusLabel: true,
+        ),
+      );
+    });
+  }
+
   Widget _emptyHint() {
     return Text(
       'Open Scheduled to add payments you want to track each month.',
@@ -192,100 +241,36 @@ class _DashboardScheduleSectionState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           header,
-          const SizedBox(
-            height: DashboardSectionHeaderStyles.spacingBelowTitle + 4,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.6,
-                  color: Colors.grey[700],
-                ),
-              ),
-              Text(
-                totalLabel,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
-            ClipRect(
-            clipBehavior: Clip.none,
-            child:
-                widget.isExpandable
-                    ? AnimatedSize(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeInOut,
-                      alignment: Alignment.topCenter,
-                      child:
-                          _isExpanded
-                              ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 12),
-                                  ...List.generate(widget.items.length, (
-                                    index,
-                                  ) {
-                                    final item = widget.items[index];
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom:
-                                            index == widget.items.length - 1
-                                                ? 0
-                                                : 32,
-                                      ),
-                                      child: ScheduledTransactionTile(
-                                        item: item,
-                                        onEdit:
-                                            () => context.push(
-                                              AppRouter
-                                                  .scheduledTransactionDetail
-                                                  .path
-                                                  .replaceFirst(':id', item.id),
-                                              extra: item,
-                                            ),
-                                        showStatusLabel: true,
-                                      ),
-                                    );
-                                  }),
-                                ],
-                              )
-                              : const SizedBox.shrink(),
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 12),
-                        ...List.generate(widget.items.length, (index) {
-                          final item = widget.items[index];
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: index == widget.items.length - 1 ? 0 : 32,
-                            ),
-                            child: ScheduledTransactionTile(
-                              item: item,
-                              onEdit:
-                                  () => context.push(
-                                    AppRouter.scheduledTransactionDetail.path
-                                        .replaceFirst(':id', item.id),
-                                    extra: item,
-                                  ),
-                              showStatusLabel: true,
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-          ),
+          if (widget.isExpandable)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child:
+                  _isExpanded
+                      ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            height:
+                                DashboardSectionHeaderStyles.spacingBelowTitle +
+                                4,
+                          ),
+                          _buildTotalRow(totalLabel),
+                          const SizedBox(height: 12),
+                          ..._buildItems(context),
+                        ],
+                      )
+                      : const SizedBox.shrink(),
+            )
+          else ...[
+            const SizedBox(
+              height: DashboardSectionHeaderStyles.spacingBelowTitle + 4,
+            ),
+            _buildTotalRow(totalLabel),
+            const SizedBox(height: 12),
+            ..._buildItems(context),
+          ],
       ],
     ),
     );

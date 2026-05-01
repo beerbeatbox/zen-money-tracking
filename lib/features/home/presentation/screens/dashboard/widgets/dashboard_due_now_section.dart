@@ -7,13 +7,115 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardDueNowSection extends ConsumerWidget {
-  const DashboardDueNowSection({super.key, required this.items});
+class DashboardDueNowSection extends ConsumerStatefulWidget {
+  const DashboardDueNowSection({
+    super.key,
+    required this.items,
+    this.isExpandable = false,
+  });
 
   final List<ScheduledTransaction> items;
+  final bool isExpandable;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardDueNowSection> createState() =>
+      _DashboardDueNowSectionState();
+}
+
+class _DashboardDueNowSectionState
+    extends ConsumerState<DashboardDueNowSection> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.items.isNotEmpty;
+  }
+
+  void _toggleExpanded() {
+    setState(() => _isExpanded = !_isExpanded);
+  }
+
+  Widget _buildHeader() {
+    if (widget.isExpandable) {
+      return InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: _toggleExpanded,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Text(
+                    'Due now',
+                    style: DashboardSectionHeaderStyles.titleStyle(
+                      color: DashboardSectionHeaderStyles.dueNowTitleColor,
+                    ),
+                  ),
+                  const Positioned(
+                    right: 28,
+                    top: 0,
+                    child: DashboardDoodleDivider.swirl(
+                      color: Color(0xFFE08B78),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedRotation(
+              turns: _isExpanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                size: 20,
+                color: DashboardSectionHeaderStyles.dueNowTitleColor,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Due now',
+              style: DashboardSectionHeaderStyles.titleStyle(
+                color: DashboardSectionHeaderStyles.dueNowTitleColor,
+              ),
+            ),
+            const Spacer(),
+          ],
+        ),
+        const Positioned(
+          right: 0,
+          top: 0,
+          child: DashboardDoodleDivider.swirl(color: Color(0xFFE08B78)),
+        ),
+      ],
+    );
+  }
+
+  Widget _emptyHint() {
+    return Text(
+      'You are all caught up — nothing needs attention today.',
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        height: 1.35,
+        color: Colors.grey[600],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -25,60 +127,59 @@ class DashboardDueNowSection extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Due now',
-                      style: DashboardSectionHeaderStyles.titleStyle(
-                        color: DashboardSectionHeaderStyles.dueNowTitleColor,
-                      ),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-                const Positioned(
-                  right: 0,
-                  top: 0,
-                  child: DashboardDoodleDivider.swirl(color: Color(0xFFE08B78)),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: DashboardSectionHeaderStyles.spacingBelowTitle,
-            ),
-            if (items.isEmpty)
-              Text(
-                'You are all caught up — nothing needs attention today.',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  height: 1.35,
-                  color: Colors.grey[600],
-                ),
+            _buildHeader(),
+            if (widget.isExpandable)
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child:
+                    _isExpanded
+                        ? Padding(
+                          padding: const EdgeInsets.only(
+                            top: DashboardSectionHeaderStyles.spacingBelowTitle,
+                          ),
+                          child:
+                              widget.items.isEmpty
+                                  ? _emptyHint()
+                                  : _buildItems(context),
+                        )
+                        : const SizedBox.shrink(),
               )
-            else
-              ...List.generate(items.length, (index) {
-                final item = items[index];
-                final isLast = index == items.length - 1;
-                return Padding(
-                  padding: EdgeInsets.only(bottom: isLast ? 0 : 32),
-                  child: ScheduledTransactionTile(
-                    item: item,
-                    onEdit:
-                        () => context.push(
-                          '${AppRouter.scheduledTransactionDetail.path.replaceFirst(':id', item.id)}?dueNow=1',
-                          extra: item,
-                        ),
-                    showStatusLabel: true,
-                  ),
-                );
-              }),
+            else ...[
+              const SizedBox(
+                height: DashboardSectionHeaderStyles.spacingBelowTitle,
+              ),
+              if (widget.items.isEmpty)
+                _emptyHint()
+              else
+                _buildItems(context),
+            ],
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildItems(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(widget.items.length, (index) {
+        final item = widget.items[index];
+        final isLast = index == widget.items.length - 1;
+        return Padding(
+          padding: EdgeInsets.only(bottom: isLast ? 0 : 32),
+          child: ScheduledTransactionTile(
+            item: item,
+            onEdit:
+                () => context.push(
+                  '${AppRouter.scheduledTransactionDetail.path.replaceFirst(':id', item.id)}?dueNow=1',
+                  extra: item,
+                ),
+            showStatusLabel: true,
+          ),
+        );
+      }),
     );
   }
 }
