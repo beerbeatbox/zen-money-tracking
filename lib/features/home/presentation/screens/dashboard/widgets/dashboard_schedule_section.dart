@@ -1,4 +1,5 @@
 import 'package:baht/core/controllers/amount_mask_controller.dart';
+import 'package:baht/core/utils/date_time_formatter.dart';
 import 'package:baht/core/router/app_router.dart';
 import 'package:baht/core/utils/formatters.dart';
 import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
@@ -34,7 +35,7 @@ class _DashboardScheduleSectionState
   @override
   void initState() {
     super.initState();
-    _isExpanded = !widget.isExpandable;
+    _isExpanded = false;
   }
 
   void _toggleExpanded() {
@@ -117,6 +118,23 @@ class _DashboardScheduleSectionState
                 ],
               ),
             ),
+            if (!_isExpanded && widget.items.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _upcomingAccentBlue.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${widget.items.length}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: _upcomingAccentBlue,
+                  ),
+                ),
+              ),
             AnimatedRotation(
               turns: _isExpanded ? 0.5 : 0,
               duration: const Duration(milliseconds: 220),
@@ -184,8 +202,9 @@ class _DashboardScheduleSectionState
   }
 
   Widget _emptyHint() {
+    final monthLabel = formatMonthYearLabel(widget.selectedMonth);
     return Text(
-      'Open Scheduled to add payments you want to track each month.',
+      'No payments scheduled for $monthLabel. Open Scheduled to add some.',
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,

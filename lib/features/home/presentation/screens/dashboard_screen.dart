@@ -156,10 +156,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             ),
           );
         case DashboardSectionId.dueNow:
-          sections.add(section);
-          widgets.add(
-            DashboardDueNowSection(items: dueNow),
-          );
+          if (dueNow.isNotEmpty) {
+            sections.add(section);
+            widgets.add(
+              DashboardDueNowSection(items: dueNow),
+            );
+          }
         case DashboardSectionId.upcoming:
           sections.add(section);
           widgets.add(
