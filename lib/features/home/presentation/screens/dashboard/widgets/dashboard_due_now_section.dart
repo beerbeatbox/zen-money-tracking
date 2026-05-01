@@ -1,6 +1,7 @@
 import 'package:baht/core/router/app_router.dart';
 import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_doodle_divider.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_section_header_styles.dart';
 import 'package:baht/features/home/presentation/widgets/scheduled_transaction_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,23 +27,28 @@ class DashboardDueNowSection extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                const Text(
-                  'DUE NOW',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                    color: Color(0xFFCC5533),
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Due now',
+                      style: DashboardSectionHeaderStyles.titleStyle(
+                        color: DashboardSectionHeaderStyles.dueNowTitleColor,
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
                 ),
-                const Spacer(),
-                const DashboardDoodleDivider.swirl(color: Color(0xFFE08B78)),
+                const Positioned(
+                  right: 0,
+                  top: 0,
+                  child: DashboardDoodleDivider.swirl(color: Color(0xFFE08B78)),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DashboardSectionHeaderStyles.spacingBelowTitle),
             ...List.generate(items.length, (index) {
               final item = items[index];
               final isLast = index == items.length - 1;

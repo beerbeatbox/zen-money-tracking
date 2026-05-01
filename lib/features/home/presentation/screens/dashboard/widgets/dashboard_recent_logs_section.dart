@@ -7,6 +7,7 @@ import 'package:baht/features/categories/presentation/controllers/categories_con
 import 'package:baht/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:baht/features/home/domain/entities/expense_log.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_doodle_divider.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_section_header_styles.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_logs_states.dart';
 import 'package:baht/features/home/presentation/widgets/transaction_list_item.dart';
 import 'package:flutter/material.dart';
@@ -38,30 +39,21 @@ class DashboardRecentLogsSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'TRANSACTIONS',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: Colors.black,
-              ),
+            Text(
+              'Transactions',
+              style: DashboardSectionHeaderStyles.titleStyle(color: Colors.black),
             ),
             Text(
               itemsLabel,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.4,
-                color: Colors.grey[600],
-              ),
+              style: DashboardSectionHeaderStyles.subtitleStyle(),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        const SizedBox(height: 12),
+        const SizedBox(height: DashboardSectionHeaderStyles.spacingBelowTitle),
         _DatedLogsList(logs: logs, isMasked: isMasked),
       ],
     );
