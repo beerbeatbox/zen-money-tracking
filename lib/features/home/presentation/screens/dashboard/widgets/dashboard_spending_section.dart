@@ -21,11 +21,7 @@ class DashboardSpendingSection extends ConsumerWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        const Positioned(
-          right: -8,
-          top: -8,
-          child: _SpendingBlob(),
-        ),
+        const Positioned(right: -8, top: -8, child: _SpendingBlob()),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -35,7 +31,9 @@ class DashboardSpendingSection extends ConsumerWidget {
                 color: Colors.grey[700]!,
               ),
             ),
-            const SizedBox(height: DashboardSectionHeaderStyles.spacingBelowTitle),
+            const SizedBox(
+              height: DashboardSectionHeaderStyles.spacingBelowTitle,
+            ),
             Text(
               formatCurrencySignedMasked(-todaySpending, isMasked: isMasked),
               style: const TextStyle(
@@ -114,35 +112,46 @@ class _SpendingBlob extends StatelessWidget {
 class _SpendingBlobPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final blobPaint = Paint()
-      ..color = const Color(0xFFD4EDE8)
-      ..style = PaintingStyle.fill;
+    final blobPaint =
+        Paint()
+          ..color = const Color(0xFFD4EDE8)
+          ..style = PaintingStyle.fill;
 
     // Organic blob shape in upper-right
     final path = Path();
     path.moveTo(size.width * 0.55, size.height * 0.05);
     path.cubicTo(
-      size.width * 0.80, -size.height * 0.10,
-      size.width * 1.10, size.height * 0.10,
-      size.width * 1.00, size.height * 0.45,
+      size.width * 0.80,
+      -size.height * 0.10,
+      size.width * 1.10,
+      size.height * 0.10,
+      size.width * 1.00,
+      size.height * 0.45,
     );
     path.cubicTo(
-      size.width * 0.95, size.height * 0.70,
-      size.width * 0.75, size.height * 0.80,
-      size.width * 0.55, size.height * 0.70,
+      size.width * 0.95,
+      size.height * 0.70,
+      size.width * 0.75,
+      size.height * 0.80,
+      size.width * 0.55,
+      size.height * 0.70,
     );
     path.cubicTo(
-      size.width * 0.30, size.height * 0.58,
-      size.width * 0.28, size.height * 0.30,
-      size.width * 0.55, size.height * 0.05,
+      size.width * 0.30,
+      size.height * 0.58,
+      size.width * 0.28,
+      size.height * 0.30,
+      size.width * 0.55,
+      size.height * 0.05,
     );
     path.close();
     canvas.drawPath(path, blobPaint);
 
     // Small scattered dots
-    final dotPaint = Paint()
-      ..color = const Color(0xFF6BADA0).withValues(alpha: 0.55)
-      ..style = PaintingStyle.fill;
+    final dotPaint =
+        Paint()
+          ..color = const Color(0xFF6BADA0).withValues(alpha: 0.55)
+          ..style = PaintingStyle.fill;
 
     final dots = [
       Offset(size.width * 0.18, size.height * 0.22),
