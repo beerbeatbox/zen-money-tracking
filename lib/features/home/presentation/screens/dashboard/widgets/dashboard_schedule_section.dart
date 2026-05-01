@@ -118,7 +118,7 @@ class _DashboardScheduleSectionState
                 ],
               ),
             ),
-            if (!_isExpanded && widget.items.isNotEmpty)
+            if (widget.items.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(right: 6),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
