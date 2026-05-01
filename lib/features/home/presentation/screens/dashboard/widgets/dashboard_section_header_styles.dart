@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 /// Typography for dashboard cards wrapped in [SectionCard] so titles align.
 abstract final class DashboardSectionHeaderStyles {
   static const Color dueNowTitleColor = Color(0xFFCC5533);
+  static const Color upcomingTitleColor = Color(0xFF2B5FA8);
 
   static TextStyle titleStyle({required Color color}) {
     return TextStyle(

@@ -193,13 +193,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final spaced = <Widget>[];
 
     for (var index = 0; index < widgets.length; index++) {
-      final bg =
-          sections[index] == DashboardSectionId.dueNow
-              ? const Color(0xFFFFF0EC)
-              : Colors.white;
+      final bg = switch (sections[index]) {
+        DashboardSectionId.dueNow => const Color(0xFFFFF0EC),
+        DashboardSectionId.upcoming => const Color(0xFFEFF6FF),
+        _ => Colors.white,
+      };
+      final needsClip =
+          sections[index] == DashboardSectionId.dueNow ||
+          sections[index] == DashboardSectionId.upcoming;
       final card = SectionCard(backgroundColor: bg, child: widgets[index]);
       spaced.add(
-        sections[index] == DashboardSectionId.dueNow
+        needsClip
             ? ClipRRect(borderRadius: BorderRadius.circular(24), child: card)
             : card,
       );
