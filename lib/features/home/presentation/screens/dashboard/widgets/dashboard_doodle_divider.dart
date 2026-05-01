@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
-enum _DoodleStyle { curl, wave, zigzag, swirl }
+enum _DoodleStyle { curl, wave, zigzag, swirl, lightning }
 
 /// A hand-drawn style decorative line widget.
 ///
 /// - [DashboardDoodleDivider.curl] — looping script squiggle for the
 ///   spending card (below the amount).
-/// - [DashboardDoodleDivider.wave] — wide flowing S-curve (generic accent).
+/// - [DashboardDoodleDivider.wave] — wide flowing S-curve with uneven crests
+///   (hand-sketched, not a perfect sine).
 /// - [DashboardDoodleDivider.zigzag] — tight hand-drawn underline with small
 ///   peaks for transaction date group headers.
 /// - [DashboardDoodleDivider.swirl] — loose coil / loop-de-loop for the DUE NOW
 ///   card bottom-right corner.
+/// - [DashboardDoodleDivider.lightning] — jagged hand-drawn bolt accent.
 class DashboardDoodleDivider extends StatelessWidget {
   /// Looping script curl — spending card, below the amount.
   const DashboardDoodleDivider.curl({
@@ -36,6 +38,12 @@ class DashboardDoodleDivider extends StatelessWidget {
     this.color = Colors.black26,
   }) : _style = _DoodleStyle.swirl;
 
+  /// Irregular zigzag bolt — Upcoming card header accent.
+  const DashboardDoodleDivider.lightning({
+    super.key,
+    this.color = Colors.black26,
+  }) : _style = _DoodleStyle.lightning;
+
   final Color color;
   final _DoodleStyle _style;
 
@@ -43,9 +51,10 @@ class DashboardDoodleDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = switch (_style) {
       _DoodleStyle.curl => const Size(72, 20),
-      _DoodleStyle.wave => const Size(130, 32),
+      _DoodleStyle.wave => const Size(88, 22),
       _DoodleStyle.zigzag => const Size(80, 12),
       _DoodleStyle.swirl => const Size(52, 48),
+      _DoodleStyle.lightning => const Size(130, 32),
     };
 
     return CustomPaint(
@@ -63,9 +72,13 @@ class _DoodlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final strokeWidth = switch (style) {
+      _DoodleStyle.wave => 1.6,
+      _ => 2.0,
+    };
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 2.0
+      ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
@@ -79,6 +92,8 @@ class _DoodlePainter extends CustomPainter {
         _drawZigzag(canvas, size, paint);
       case _DoodleStyle.swirl:
         _drawSwirl(canvas, size, paint);
+      case _DoodleStyle.lightning:
+        _drawLightning(canvas, size, paint);
     }
   }
 
@@ -102,16 +117,38 @@ class _DoodlePainter extends CustomPainter {
     canvas.drawPath(path, paint);
   }
 
-  /// Smooth sine-like wave — three S-curve segments flowing left to right.
+  /// Flowing wave — three cubic segments with uneven span and crest depth so it
+  /// reads like a quick pen sketch, not a repeating pattern.
   void _drawWave(Canvas canvas, Size size, Paint paint) {
     final w = size.width;
     final h = size.height;
 
     final path = Path();
-    path.moveTo(0, h * 0.50);
-    path.cubicTo(w * 0.10, h * 0.0,  w * 0.23, h * 0.0,  w * 0.33, h * 0.50);
-    path.cubicTo(w * 0.43, h * 1.0,  w * 0.57, h * 1.0,  w * 0.67, h * 0.50);
-    path.cubicTo(w * 0.77, h * 0.0,  w * 0.90, h * 0.0,  w * 1.00, h * 0.50);
+    path.moveTo(0, h * 0.53);
+    path.cubicTo(
+      w * 0.11,
+      h * 0.02,
+      w * 0.21,
+      -h * 0.04,
+      w * 0.31,
+      h * 0.47,
+    );
+    path.cubicTo(
+      w * 0.41,
+      h * 1.04,
+      w * 0.54,
+      h * 0.92,
+      w * 0.62,
+      h * 0.51,
+    );
+    path.cubicTo(
+      w * 0.72,
+      h * 0.08,
+      w * 0.88,
+      h * 0.05,
+      w * 1.00,
+      h * 0.46,
+    );
 
     canvas.drawPath(path, paint);
   }
@@ -144,6 +181,34 @@ class _DoodlePainter extends CustomPainter {
     }
 
     canvas.drawPath(path, paint);
+  }
+
+  /// Jagged lightning sketch — uneven segment lengths and angles (not symmetric).
+  void _drawLightning(Canvas canvas, Size size, Paint paint) {
+    final w = size.width;
+    final h = size.height;
+
+    final boltPaint =
+        Paint()
+          ..color = paint.color
+          ..strokeWidth = paint.strokeWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.miter
+          ..strokeMiterLimit = 4;
+
+    final path = Path()..moveTo(w * 0.02, h * 0.22);
+    path.lineTo(w * 0.15, h * 0.82);
+    path.lineTo(w * 0.24, h * 0.40);
+    path.lineTo(w * 0.33, h * 0.92);
+    path.lineTo(w * 0.48, h * 0.48);
+    path.lineTo(w * 0.56, h * 0.78);
+    path.lineTo(w * 0.66, h * 0.34);
+    path.lineTo(w * 0.78, h * 0.86);
+    path.lineTo(w * 0.88, h * 0.38);
+    path.quadraticBezierTo(w * 0.96, h * 0.58, w * 0.99, h * 0.52);
+
+    canvas.drawPath(path, boltPaint);
   }
 
   /// Loose inward coil scribble — anchored toward bottom-right of the box.
