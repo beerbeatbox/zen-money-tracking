@@ -5,7 +5,7 @@ import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashbo
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardSpendingSection extends ConsumerWidget {
+class DashboardSpendingSection extends ConsumerStatefulWidget {
   const DashboardSpendingSection({
     super.key,
     required this.todaySpending,
@@ -18,17 +18,43 @@ class DashboardSpendingSection extends ConsumerWidget {
   final double? todayBudgetRemaining;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardSpendingSection> createState() =>
+      _DashboardSpendingSectionState();
+}
+
+class _DashboardSpendingSectionState
+    extends ConsumerState<DashboardSpendingSection> {
+  static const _spendCounterDuration = Duration(milliseconds: 720);
+  static const Curve _spendCounterCurve = Curves.easeOutCubic;
+
+  double _previousTodaySpending = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousTodaySpending = widget.todaySpending;
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardSpendingSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.todaySpending != widget.todaySpending) {
+      _previousTodaySpending = oldWidget.todaySpending;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isMasked = ref.watch(amountMaskControllerProvider);
 
-    final remaining = todayBudgetRemaining;
+    final remaining = widget.todayBudgetRemaining;
     final bool isOverBudget = (remaining ?? 0) < 0;
 
     final double? budgetProgress = () {
       if (remaining == null) return null;
-      final total = todaySpending + remaining;
+      final total = widget.todaySpending + remaining;
       if (total <= 0) return null;
-      return (todaySpending / total).clamp(0.0, 1.0);
+      return (widget.todaySpending / total).clamp(0.0, 1.0);
     }();
 
     return Stack(
@@ -47,14 +73,31 @@ class DashboardSpendingSection extends ConsumerWidget {
             const SizedBox(
               height: DashboardSectionHeaderStyles.spacingBelowTitle,
             ),
-            Text(
-              formatCurrencySignedMasked(-todaySpending, isMasked: isMasked),
-              style: const TextStyle(
-                fontSize: 42,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: Colors.white,
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(
+                begin: _previousTodaySpending,
+                end: widget.todaySpending,
               ),
+              duration: _spendCounterDuration,
+              curve: _spendCounterCurve,
+              onEnd: () {
+                if (!mounted) return;
+                if (_previousTodaySpending == widget.todaySpending) return;
+                setState(() {
+                  _previousTodaySpending = widget.todaySpending;
+                });
+              },
+              builder: (context, animatedSpend, _) {
+                return Text(
+                  formatCurrencySignedMasked(-animatedSpend, isMasked: isMasked),
+                  style: const TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                    color: Colors.white,
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 4),
             const DashboardDoodleDivider.curl(
@@ -63,7 +106,7 @@ class DashboardSpendingSection extends ConsumerWidget {
             if (budgetProgress != null) ...[
               const SizedBox(height: 14),
               _BudgetProgressBar(
-                dailyBudgetAmount: todaySpending + remaining!,
+                dailyBudgetAmount: widget.todaySpending + remaining!,
                 progress: budgetProgress,
                 remaining: remaining,
                 isOverBudget: isOverBudget,
@@ -84,7 +127,10 @@ class DashboardSpendingSection extends ConsumerWidget {
                   ),
                 ),
                 _BalanceBadge(
-                  label: formatNetBalanceMasked(netBalance, isMasked: isMasked),
+                  label: formatNetBalanceMasked(
+                    widget.netBalance,
+                    isMasked: isMasked,
+                  ),
                 ),
               ],
             ),

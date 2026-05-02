@@ -5,6 +5,7 @@ import 'package:baht/core/widgets/section_card.dart';
 import 'package:baht/features/home/domain/entities/dashboard_sections.dart';
 import 'package:baht/features/home/domain/entities/expense_log.dart';
 import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:baht/features/home/domain/usecases/expense_log_service.dart';
 import 'package:baht/features/home/presentation/controllers/dashboard_controller.dart';
 import 'package:baht/features/home/presentation/controllers/dashboard_selected_month_controller.dart';
 import 'package:baht/features/home/presentation/controllers/expense_log_actions_controller.dart';
@@ -35,6 +36,8 @@ class DashboardScreen extends ConsumerStatefulWidget with DashboardEvents {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen>
     with DashboardEvents {
+  static const _postQuickLogSheetCloseDelay = Duration(milliseconds: 280);
+
   final _quickAddHandler = DashboardQuickAddHandler();
 
   @override
@@ -81,6 +84,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Future<void> _openQuickLogKeyboard({required bool initialIsExpense}) async {
+    var addedExpenseLog = false;
+
     await showNumberKeyboardBottomSheet(
       context,
       initialIsExpense: initialIsExpense,
@@ -121,7 +126,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         );
 
         try {
-          await ref.read(addExpenseLogActionProvider(log).future);
+          await ref.read(expenseLogServiceProvider).addExpenseLog(log);
+          addedExpenseLog = true;
           return true;
         } catch (_) {
           if (!sheetContext.mounted) return false;
@@ -130,6 +136,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         }
       },
     );
+
+    if (!mounted || !addedExpenseLog) return;
+
+    await Future<void>.delayed(_postQuickLogSheetCloseDelay);
+    if (!mounted) return;
+
+    ref.invalidate(expenseLogsProvider);
+    await ref.read(expenseLogsProvider.future);
   }
 
   Widget _buildMonthContent({
@@ -152,6 +166,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           sections.add(section);
           widgets.add(
             DashboardSpendingSection(
+              key: const ValueKey('spending-section'),
               todaySpending: todaySpending ?? 0.0,
               netBalance: netBalance,
               todayBudgetRemaining: todayBudgetRemaining,
@@ -160,9 +175,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         case DashboardSectionId.dueNow:
           if (dueNow.isNotEmpty) {
             sections.add(section);
-            widgets.add(
-              DashboardDueNowSection(items: dueNow),
-            );
+            widgets.add(DashboardDueNowSection(items: dueNow));
           }
         case DashboardSectionId.upcoming:
           sections.add(section);
@@ -256,174 +269,180 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         child: SafeArea(
           bottom: false,
           child: vmAsync.when(
-          data: (vm) {
-            return DashboardMonthPager(
-              selectedMonth: selectedMonth,
-              onRefresh: _refreshDashboard,
-              header: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Dashboard',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          color: Colors.black,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed:
-                            () =>
-                                ref
-                                    .read(amountMaskControllerProvider.notifier)
-                                    .toggle(),
-                        icon: HeroIcon(
-                          isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
-                          style: HeroIconStyle.outline,
-                          color: const Color(0xFF1A5C52),
-                        ),
-                        tooltip: isMasked ? 'Show amounts' : 'Hide amounts',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  DashboardTopBar(
-                    monthYearLabel: vm.monthYearLabel,
-                    isCurrentMonth: isCurrentMonth,
-                    onPreviousMonth:
-                        () =>
-                            ref
-                                .read(dashboardSelectedMonthProvider.notifier)
-                                .goToPreviousMonth(),
-                    onNextMonth:
-                        () =>
-                            ref
-                                .read(dashboardSelectedMonthProvider.notifier)
-                                .goToNextMonth(),
-                    onTapMonthLabel: () async {
-                      final picked = await showMonthPickerDialog(
-                        context,
-                        initialMonth: selectedMonth,
-                      );
-                      if (picked == null) return;
-                      ref
-                          .read(dashboardSelectedMonthProvider.notifier)
-                          .setMonth(picked);
-                    },
-                    onLongPressMonthLabel: () {
-                      ref
-                          .read(dashboardSelectedMonthProvider.notifier)
-                          .setMonth(DateTime.now());
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-              monthContent: _buildMonthContent(
-                netBalance: vm.netBalance,
-                scopedLogs: vm.logs,
-                selectedMonth: vm.selectedMonth,
-                itemsLabel: vm.itemsLabel,
-                monthYearLabel: vm.monthYearLabel,
-                scheduledThisMonth: vm.scheduledThisMonth,
-                dueNow: vm.dueNow,
-                todaySpending: vm.todaySpending,
-                todayBudgetRemaining: vm.todayBudgetRemaining,
-              ),
-              onSwipeToPreviousMonth:
-                  () =>
-                      ref
-                          .read(dashboardSelectedMonthProvider.notifier)
-                          .goToPreviousMonth(),
-              onSwipeToNextMonth:
-                  () =>
-                      ref
-                          .read(dashboardSelectedMonthProvider.notifier)
-                          .goToNextMonth(),
-            );
-          },
-          loading:
-              () => _DashboardStateWrapper(
-                monthYearLabel: monthYearLabel,
-                isCurrentMonth: isCurrentMonth,
-                onPreviousMonth:
-                    () =>
-                        ref
-                            .read(dashboardSelectedMonthProvider.notifier)
-                            .goToPreviousMonth(),
-                onNextMonth:
-                    () =>
-                        ref
-                            .read(dashboardSelectedMonthProvider.notifier)
-                            .goToNextMonth(),
-                onTapMonthLabel: () async {
-                  final picked = await showMonthPickerDialog(
-                    context,
-                    initialMonth: selectedMonth,
-                  );
-                  if (picked == null) return;
-                  ref
-                      .read(dashboardSelectedMonthProvider.notifier)
-                      .setMonth(picked);
-                },
-                isMasked: isMasked,
-                onToggleMask:
-                    () =>
-                        ref
-                            .read(amountMaskControllerProvider.notifier)
-                            .toggle(),
+            // Dependency invalidation (e.g. new expense log) reloads this async
+            // provider; keep showing the last dashboard so section state (spending
+            // counter animation) is not torn down and replaced by the loading UI.
+            skipLoadingOnReload: true,
+            data: (vm) {
+              return DashboardMonthPager(
+                selectedMonth: selectedMonth,
                 onRefresh: _refreshDashboard,
-                onLongPressMonthLabel: () {
-                  ref
-                      .read(dashboardSelectedMonthProvider.notifier)
-                      .setMonth(DateTime.now());
-                },
-                child: const DashboardLogsLoading(),
-              ),
-          error:
-              (_, __) => _DashboardStateWrapper(
-                monthYearLabel: monthYearLabel,
-                isCurrentMonth: isCurrentMonth,
-                onPreviousMonth:
-                    () =>
+                header: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Dashboard',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            color: Colors.black,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed:
+                              () =>
+                                  ref
+                                      .read(
+                                        amountMaskControllerProvider.notifier,
+                                      )
+                                      .toggle(),
+                          icon: HeroIcon(
+                            isMasked ? HeroIcons.eyeSlash : HeroIcons.eye,
+                            style: HeroIconStyle.outline,
+                            color: const Color(0xFF1A5C52),
+                          ),
+                          tooltip: isMasked ? 'Show amounts' : 'Hide amounts',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    DashboardTopBar(
+                      monthYearLabel: vm.monthYearLabel,
+                      isCurrentMonth: isCurrentMonth,
+                      onPreviousMonth:
+                          () =>
+                              ref
+                                  .read(dashboardSelectedMonthProvider.notifier)
+                                  .goToPreviousMonth(),
+                      onNextMonth:
+                          () =>
+                              ref
+                                  .read(dashboardSelectedMonthProvider.notifier)
+                                  .goToNextMonth(),
+                      onTapMonthLabel: () async {
+                        final picked = await showMonthPickerDialog(
+                          context,
+                          initialMonth: selectedMonth,
+                        );
+                        if (picked == null) return;
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
-                            .goToPreviousMonth(),
-                onNextMonth:
-                    () =>
+                            .setMonth(picked);
+                      },
+                      onLongPressMonthLabel: () {
                         ref
                             .read(dashboardSelectedMonthProvider.notifier)
-                            .goToNextMonth(),
-                onTapMonthLabel: () async {
-                  final picked = await showMonthPickerDialog(
-                    context,
-                    initialMonth: selectedMonth,
-                  );
-                  if (picked == null) return;
-                  ref
-                      .read(dashboardSelectedMonthProvider.notifier)
-                      .setMonth(picked);
-                },
-                isMasked: isMasked,
-                onToggleMask:
-                    () =>
-                        ref
-                            .read(amountMaskControllerProvider.notifier)
-                            .toggle(),
-                onRefresh: _refreshDashboard,
-                onLongPressMonthLabel: () {
-                  ref
-                      .read(dashboardSelectedMonthProvider.notifier)
-                      .setMonth(DateTime.now());
-                },
-                child: DashboardLogsError(
-                  onRetry: () => refreshExpenseLogs(ref),
+                            .setMonth(DateTime.now());
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-              ),
+                monthContent: _buildMonthContent(
+                  netBalance: vm.netBalance,
+                  scopedLogs: vm.logs,
+                  selectedMonth: vm.selectedMonth,
+                  itemsLabel: vm.itemsLabel,
+                  monthYearLabel: vm.monthYearLabel,
+                  scheduledThisMonth: vm.scheduledThisMonth,
+                  dueNow: vm.dueNow,
+                  todaySpending: vm.todaySpending,
+                  todayBudgetRemaining: vm.todayBudgetRemaining,
+                ),
+                onSwipeToPreviousMonth:
+                    () =>
+                        ref
+                            .read(dashboardSelectedMonthProvider.notifier)
+                            .goToPreviousMonth(),
+                onSwipeToNextMonth:
+                    () =>
+                        ref
+                            .read(dashboardSelectedMonthProvider.notifier)
+                            .goToNextMonth(),
+              );
+            },
+            loading:
+                () => _DashboardStateWrapper(
+                  monthYearLabel: monthYearLabel,
+                  isCurrentMonth: isCurrentMonth,
+                  onPreviousMonth:
+                      () =>
+                          ref
+                              .read(dashboardSelectedMonthProvider.notifier)
+                              .goToPreviousMonth(),
+                  onNextMonth:
+                      () =>
+                          ref
+                              .read(dashboardSelectedMonthProvider.notifier)
+                              .goToNextMonth(),
+                  onTapMonthLabel: () async {
+                    final picked = await showMonthPickerDialog(
+                      context,
+                      initialMonth: selectedMonth,
+                    );
+                    if (picked == null) return;
+                    ref
+                        .read(dashboardSelectedMonthProvider.notifier)
+                        .setMonth(picked);
+                  },
+                  isMasked: isMasked,
+                  onToggleMask:
+                      () =>
+                          ref
+                              .read(amountMaskControllerProvider.notifier)
+                              .toggle(),
+                  onRefresh: _refreshDashboard,
+                  onLongPressMonthLabel: () {
+                    ref
+                        .read(dashboardSelectedMonthProvider.notifier)
+                        .setMonth(DateTime.now());
+                  },
+                  child: const DashboardLogsLoading(),
+                ),
+            error:
+                (_, __) => _DashboardStateWrapper(
+                  monthYearLabel: monthYearLabel,
+                  isCurrentMonth: isCurrentMonth,
+                  onPreviousMonth:
+                      () =>
+                          ref
+                              .read(dashboardSelectedMonthProvider.notifier)
+                              .goToPreviousMonth(),
+                  onNextMonth:
+                      () =>
+                          ref
+                              .read(dashboardSelectedMonthProvider.notifier)
+                              .goToNextMonth(),
+                  onTapMonthLabel: () async {
+                    final picked = await showMonthPickerDialog(
+                      context,
+                      initialMonth: selectedMonth,
+                    );
+                    if (picked == null) return;
+                    ref
+                        .read(dashboardSelectedMonthProvider.notifier)
+                        .setMonth(picked);
+                  },
+                  isMasked: isMasked,
+                  onToggleMask:
+                      () =>
+                          ref
+                              .read(amountMaskControllerProvider.notifier)
+                              .toggle(),
+                  onRefresh: _refreshDashboard,
+                  onLongPressMonthLabel: () {
+                    ref
+                        .read(dashboardSelectedMonthProvider.notifier)
+                        .setMonth(DateTime.now());
+                  },
+                  child: DashboardLogsError(
+                    onRetry: () => refreshExpenseLogs(ref),
+                  ),
+                ),
           ),
         ),
       ),
