@@ -27,19 +27,24 @@ class WeeklyRecapCard extends StatelessWidget {
             () => context.push(
               '${AppRouter.weeklyRecap.path}?week=${formatWeeklyRecapQueryDate(summary.weekStart)}',
             ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         child: Ink(
           width: 220,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.08),
-                blurRadius: 10,
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 16,
                 offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -48,7 +53,7 @@ class WeeklyRecapCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.auto_stories_rounded, color: Colors.grey[800]),
+                  const Icon(Icons.auto_stories_rounded, color: Color(0xFF1A5C52)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -85,7 +90,7 @@ class WeeklyRecapCard extends StatelessWidget {
                 '${summary.transactionCount} ${summary.transactionCount == 1 ? 'log' : 'logs'}',
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: Colors.grey[600],
                 ),
               ),

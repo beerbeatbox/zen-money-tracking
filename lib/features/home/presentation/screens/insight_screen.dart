@@ -9,6 +9,7 @@ import 'package:baht/features/home/presentation/controllers/expense_log_actions_
 import 'package:baht/features/home/presentation/controllers/weekly_recap_controller.dart';
 import 'package:baht/features/home/presentation/controllers/insight_month_controller.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_month_pager.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_section_header_styles.dart';
 import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_top_bar.dart';
 import 'package:baht/features/home/presentation/widgets/category_ranking_section.dart';
 import 'package:baht/features/home/presentation/widgets/month_picker_dialog.dart';
@@ -33,10 +34,17 @@ class InsightScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: SafeArea(
-        bottom: false,
-        child: vmAsync.when(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEEF2F1), Color(0xFFE5E9E8)],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: vmAsync.when(
           data: (vm) {
             return DashboardMonthPager(
               selectedMonth: selectedMonth,
@@ -135,6 +143,7 @@ class InsightScreen extends ConsumerWidget {
                 onRefresh: refreshLogs,
                 child: const _ErrorState(),
               ),
+          ),
         ),
       ),
     );
@@ -170,9 +179,9 @@ class _HeaderSection extends StatelessWidget {
         const Text(
           'Insight',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 28,
             fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
+            letterSpacing: 0.8,
             color: Colors.black,
           ),
         ),
@@ -193,7 +202,6 @@ class _HeaderSection extends StatelessWidget {
           onLongPressMonthLabel: onLongPressMonthLabel,
         ),
         const SizedBox(height: 16),
-        const SizedBox(height: 24),
       ],
     );
   }
@@ -342,7 +350,10 @@ class _LoadingState extends StatelessWidget {
     return const Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 32),
-        child: CircularProgressIndicator(color: Colors.black),
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5,
+          color: Colors.black,
+        ),
       ),
     );
   }
@@ -380,12 +391,10 @@ class _WeeklyRecapSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Weekly Money Review',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
+              style: DashboardSectionHeaderStyles.titleStyle(
+                color: const Color(0xFF1A5C52),
               ),
             ),
             const SizedBox(height: 12),

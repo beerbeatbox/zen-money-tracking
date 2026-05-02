@@ -8,6 +8,8 @@ import 'package:baht/features/categories/domain/usecases/category_service.dart';
 import 'package:baht/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:baht/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_doodle_divider.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_section_header_styles.dart';
 class CategoryRankingSection extends ConsumerWidget {
   const CategoryRankingSection({
     super.key,
@@ -111,14 +113,18 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'Ranking',
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.4,
-        color: Colors.black,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Ranking',
+          style: DashboardSectionHeaderStyles.titleStyle(
+            color: const Color(0xFF1A5C52),
+          ),
+        ),
+        const SizedBox(height: 4),
+        const DashboardDoodleDivider.zigzag(color: Colors.black38),
+      ],
     );
   }
 }
@@ -177,8 +183,8 @@ class _RankingItem extends ConsumerWidget {
               isMasked: ref.watch(amountMaskControllerProvider),
             ),
             style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: Colors.black,
             ),
           ),
@@ -196,16 +202,15 @@ class _EmptyState extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Ranking',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
-            color: Colors.black,
+          style: DashboardSectionHeaderStyles.titleStyle(
+            color: const Color(0xFF1A5C52),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
+        const DashboardDoodleDivider.zigzag(color: Colors.black38),
+        const SizedBox(height: DashboardSectionHeaderStyles.spacingBelowTitle),
         Text(
           'Start tracking your expenses to see category rankings.',
           style: TextStyle(

@@ -10,6 +10,7 @@ import 'package:baht/features/categories/domain/usecases/category_service.dart';
 import 'package:baht/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:baht/features/categories/presentation/widgets/category_name_with_emoji.dart';
 import 'package:baht/features/home/domain/entities/scheduled_transaction.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_doodle_divider.dart';
 import 'package:baht/features/home/presentation/widgets/expense_type_toggle.dart';
 import 'package:baht/features/home/presentation/widgets/log_time_picker_dialog.dart';
 import 'package:flutter/material.dart';
@@ -515,30 +516,31 @@ class _NumberKeyboardBottomSheetState
       child: SizedBox(
         height: sheetHeight,
         width: double.infinity,
-        child: Container(
-          height: sheetHeight,
-          padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(28),
-              topRight: Radius.circular(28),
-            ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
           ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Center(
-                  child: _LogTimeSection(
-                    label: _logTimeLabel,
-                    onTap: _onLogTimeTap,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Center(child: _AmountHeader(value: _displayValue)),
-                const SizedBox(height: 12),
+          child: Stack(
+            children: [
+              Container(
+                height: sheetHeight,
+                padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + bottomPadding),
+                color: Colors.white,
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Center(
+                        child: _LogTimeSection(
+                          label: _logTimeLabel,
+                          onTap: _onLogTimeTap,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(child: _AmountHeader(value: _displayValue)),
+                      const SizedBox(height: 12),
                 Expanded(
                   child: PageView(
                     controller: _pageController,
@@ -622,8 +624,12 @@ class _NumberKeyboardBottomSheetState
                         height: 56,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: const Color(0xFF1A5C52).withValues(
+                              alpha: 0.4,
+                            ),
+                          ),
                         ),
                         child: Center(
                           child: Text(
@@ -631,7 +637,7 @@ class _NumberKeyboardBottomSheetState
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: Colors.black,
+                              color: Color(0xFF1A5C52),
                             ),
                           ),
                         ),
@@ -654,9 +660,9 @@ class _NumberKeyboardBottomSheetState
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.black),
+                          color: const Color(0xFF1A5C52),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: const Color(0xFF1A5C52)),
                         ),
                         child: Center(
                           child: Text(
@@ -686,6 +692,19 @@ class _NumberKeyboardBottomSheetState
                 ),
               ],
             ),
+          ),
+              ),
+              Positioned(
+                right: -20,
+                top: -20,
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    size: const Size(160, 120),
+                    painter: _SheetBlobPainter(),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -760,7 +779,7 @@ class _AmountTypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = selected ? Colors.black : Colors.white;
+    final bg = selected ? const Color(0xFF1A5C52) : Colors.white;
     final fg = selected ? Colors.white : Colors.black;
 
     return Container(
@@ -999,7 +1018,7 @@ class _FrequencyChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: selected ? Colors.black : Colors.white,
+        color: selected ? const Color(0xFF1A5C52) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.grey[300]!),
       ),
@@ -1037,9 +1056,9 @@ class _AmountHeader extends StatelessWidget {
                 const Text(
                   '฿',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: FontWeight.w700,
-                    color: Colors.grey,
+                    color: Color(0xFF1A5C52),
                     letterSpacing: 0.2,
                   ),
                 ),
@@ -1051,7 +1070,7 @@ class _AmountHeader extends StatelessWidget {
                     minFontSize: 28,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 28,
+                      fontSize: 42,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                       letterSpacing: 0.4,
@@ -1061,6 +1080,10 @@ class _AmountHeader extends StatelessWidget {
               ],
             ),
           ),
+        ),
+        const SizedBox(height: 6),
+        DashboardDoodleDivider.curl(
+          color: Color(0xFF1A5C52).withValues(alpha: 0.25),
         ),
       ],
     );
@@ -1262,7 +1285,7 @@ class _CategoryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: selected ? Colors.black : Colors.white,
+        color: selected ? const Color(0xFF1A5C52) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.grey[300]!),
       ),
@@ -1340,14 +1363,14 @@ class _LogTimeSection extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: Color(0xFF1A5C52),
               ),
             ),
             const SizedBox(width: 6),
             const Icon(
               Icons.keyboard_arrow_down,
               size: 22,
-              color: Colors.black,
+              color: Color(0xFF1A5C52),
             ),
           ],
         ),
@@ -1468,7 +1491,7 @@ class _KeyButtonState extends State<_KeyButton> {
       right: 0,
       child: Center(
         child: PhysicalShape(
-          color: const Color(0xFFE8F2FF),
+          color: const Color(0xFFEAF4F2),
           shadowColor: Colors.black.withValues(alpha: 0.18),
           elevation: 8,
           clipper: _BubbleDropClipper(),
@@ -1481,7 +1504,7 @@ class _KeyButtonState extends State<_KeyButton> {
                   isBackspace
                       ? const Icon(
                         Icons.backspace_outlined,
-                        color: Color(0xFF0D47A1),
+                        color: Color(0xFF1A5C52),
                         size: 24,
                       )
                       : Text(
@@ -1489,7 +1512,7 @@ class _KeyButtonState extends State<_KeyButton> {
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF0D47A1),
+                          color: Color(0xFF1A5C52),
                         ),
                       ),
             ),
@@ -1518,9 +1541,9 @@ class _KeyButtonState extends State<_KeyButton> {
               color:
                   _pressed
                       ? (isBackspace
-                          ? const Color(0xFFF5D9D9)
+                          ? const Color(0xFFD0EAE6)
                           : const Color(0xFFF7F7F7))
-                      : (isBackspace ? const Color(0xFFFDEBEB) : Colors.white),
+                      : (isBackspace ? const Color(0xFFEAF4F2) : Colors.white),
               borderRadius: const BorderRadius.all(Radius.circular(12)),
             ),
             child: Center(
@@ -1626,4 +1649,46 @@ class _BubbleDropClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _SheetBlobPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = const Color(0xFF1A5C52).withValues(alpha: 0.06)
+          ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(size.width * 0.55, size.height * 0.05);
+    path.cubicTo(
+      size.width * 0.80,
+      -size.height * 0.10,
+      size.width * 1.10,
+      size.height * 0.10,
+      size.width * 1.00,
+      size.height * 0.45,
+    );
+    path.cubicTo(
+      size.width * 0.95,
+      size.height * 0.70,
+      size.width * 0.75,
+      size.height * 0.80,
+      size.width * 0.55,
+      size.height * 0.70,
+    );
+    path.cubicTo(
+      size.width * 0.30,
+      size.height * 0.58,
+      size.width * 0.28,
+      size.height * 0.30,
+      size.width * 0.55,
+      size.height * 0.05,
+    );
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_SheetBlobPainter _) => false;
 }

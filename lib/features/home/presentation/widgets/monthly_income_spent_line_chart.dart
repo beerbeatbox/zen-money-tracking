@@ -4,6 +4,8 @@ import 'package:baht/core/controllers/amount_mask_controller.dart';
 import 'package:baht/core/utils/date_time_formatter.dart';
 import 'package:baht/core/utils/formatters.dart';
 import 'package:baht/features/home/domain/entities/expense_log.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_doodle_divider.dart';
+import 'package:baht/features/home/presentation/screens/dashboard/widgets/dashboard_section_header_styles.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,14 +100,7 @@ class _MonthlyIncomeSpentLineChartState
   Widget build(BuildContext context) {
     final isMasked = ref.watch(amountMaskControllerProvider);
     if (widget.logs.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const _EmptyChart(),
-      );
+      return const _EmptyChart();
     }
 
     final daysInMonth =
@@ -133,17 +128,11 @@ class _MonthlyIncomeSpentLineChartState
       _scrollToCurrentDate();
     });
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _Header(),
-          const SizedBox(height: 12),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _Header(),
+        const SizedBox(height: 12),
           SizedBox(
             height: 200,
             child: SingleChildScrollView(
@@ -174,8 +163,8 @@ class _MonthlyIncomeSpentLineChartState
                         spentByDay: spentByDay,
                         daysInMonth: daysInMonth,
                         maxY: maxY,
-                        incomeColor: Colors.green[700] ?? Colors.green,
-                        spentColor: Colors.red[700] ?? Colors.red,
+                        incomeColor: const Color(0xFF1A5C52),
+                        spentColor: const Color(0xFFE05C4B),
                         isMasked: isMasked,
                       ),
                     ],
@@ -187,8 +176,7 @@ class _MonthlyIncomeSpentLineChartState
           const SizedBox(height: 16),
           _Legend(),
         ],
-      ),
-    );
+      );
   }
 
   (List<double> incomeByDay, List<double> spentByDay) _aggregateDailyTotals({
@@ -226,8 +214,8 @@ class _MonthlyIncomeSpentLineChartState
     required List<double> spentByDay,
     required bool isMasked,
   }) {
-    final incomeColor = Colors.green[700] ?? Colors.green;
-    final spentColor = Colors.red[700] ?? Colors.red;
+    const incomeColor = Color(0xFF1A5C52);
+    const spentColor = Color(0xFFE05C4B);
 
     return LineChartData(
       minX: 1,
@@ -432,14 +420,18 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'Monthly Trend',
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.4,
-        color: Colors.black,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Monthly Trend',
+          style: DashboardSectionHeaderStyles.titleStyle(
+            color: const Color(0xFF1A5C52),
+          ),
+        ),
+        const SizedBox(height: 4),
+        const DashboardDoodleDivider.zigzag(color: Colors.black38),
+      ],
     );
   }
 }
@@ -449,7 +441,7 @@ class _Legend extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _LegendDot(color: Colors.green[700] ?? Colors.green),
+        const _LegendDot(color: Color(0xFF1A5C52)),
         const SizedBox(width: 6),
         Text(
           'Income',
@@ -460,7 +452,7 @@ class _Legend extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 16),
-        _LegendDot(color: Colors.red[700] ?? Colors.red),
+        const _LegendDot(color: Color(0xFFE05C4B)),
         const SizedBox(width: 6),
         Text(
           'Spent',
@@ -498,16 +490,15 @@ class _EmptyChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Monthly Trend',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
-            color: Colors.black,
+          style: DashboardSectionHeaderStyles.titleStyle(
+            color: const Color(0xFF1A5C52),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
+        const DashboardDoodleDivider.zigzag(color: Colors.black38),
+        const SizedBox(height: DashboardSectionHeaderStyles.spacingBelowTitle),
         Text(
           'Add your first log to see your income and spending trend.',
           style: TextStyle(
