@@ -29,12 +29,42 @@ This doc consolidates all `.cursor/rules/*.mdc` guidance for widgets, screens, n
 - Prefer composition helpers (`_buildHeader()`, `_ContentSection()`) over deep inline trees.
 - Checklist: nesting ≤4, reusable parts extracted, clear visual intent, readability improved.
 
+## Brand Identity (always apply — see `.cursor/rules/brand-identity.mdc`)
+
+The dashboard is the canonical visual reference. Key rules:
+
+**Font**: DM Sans (inherited from `ThemeData`). Do not specify `fontFamily` in `TextStyle`.
+
+**Colors** — use exact hex values, not generic Material colors:
+- Primary teal: `Color(0xFF1A5C52)` — icons, income, nav active, section titles
+- Page background: `LinearGradient` top `Color(0xFFEEF2F1)` → bottom `Color(0xFFE5E9E8)` on primary screens
+- Due Now section: bg `Color(0xFFFFF0EC)`, title `Color(0xFFCC5533)`
+- Upcoming section: bg `Color(0xFFEFF6FF)`, title `Color(0xFF2B5FA8)`
+- CTA / add button: `Color(0xFFE05C4B)`
+- Neutrals: text `Colors.black`, secondary `Colors.grey[700]`/`[600]`, muted `Colors.grey[500]`
+- Use `.withValues(alpha: x)` not `.withOpacity(x)`
+
+**Typography** — actual scale from the dashboard:
+- Screen title: 28 / w800 / letterSpacing 0.8
+- Hero financial figure: 42 / w800 / letterSpacing 0.4
+- List item title/amount: 16 / w600
+- Section eyebrow header: 13 / w800 / letterSpacing 0.4 (via `DashboardSectionHeaderStyles.titleStyle`)
+- Secondary label/stat: 13 / w700 / letterSpacing 0.6
+- Section subtitle/counter: 12 / w700 / letterSpacing 0.4
+- Never go below w600 for financial or interactive labels
+
+**Cards**: Always use `SectionCard` (`lib/core/widgets/section_card.dart`) for section groupings — radius 24, 16 padding, dual-layer shadow, border matches bg color.
+
+**Decorative elements**: Colored section cards get an organic `CustomPaint` blob (top-right, `IgnorePointer`) and a `DashboardDoodleDivider` accent. Match blob + doodle color to the section palette.
+
+**Spacing rhythm**: screen padding 24; after screen title 12; after top bar 16; between sections 16 (24 after spending hero); between list tiles 32; between date groups 40; section title → content 12.
+
 ## Styling & Spacing
-- Colors: `Colors.white` backgrounds; `Colors.black` primary text; `Colors.grey[400/500]` secondary; `Colors.blue`/`Colors.red` for accents; use `.withValues(alpha: 0.1)` for soft fills.
-- Typography: headers 24/bold; titles 16–18/w600; body 14–16/w500; subtitles 14 with grey.
+- Colors: use brand palette (see Brand Identity above), not generic `Colors.blue`/`Colors.red`; use `.withValues(alpha: x)` for soft fills.
+- Typography: see Brand Identity scale above; screen titles 28/w800; section headers 13/w800; list items 16/w600; subtitles 12/w700.
 - Spacing: 4, 8, 16, 24, 32; prefer extension padding (`.paddingAll`, `.paddingSymmetric`, `.paddingOnly`) to reduce nesting; constants in `lib/core/constants/app_sizes.dart` (e.g., `Sizes.kP16`).
-- Shapes & shadow: cards radius 24, buttons radius 30, subtle shadows via low-opacity greys.
-- Patterns: use card/icon/button patterns from `.cursor/rules/widget-styling.mdc`; extract repeated decoration (≥3 uses) into helpers or reusable widgets.
+- Shapes & shadow: cards radius 24 (`SectionCard`), CTA buttons radius 30, floating nav radius 40; use dual-layer `SectionCard` shadow pattern.
+- Patterns: use card/icon/button patterns from `.cursor/rules/brand-identity.mdc`; extract repeated decoration (≥3 uses) into helpers or reusable widgets.
 
 ## Widget Extensions (padding + onTap)
 - Extensions live in `lib/core/extensions/widget_extension.dart` (`.padding*`, `.onTap`, `.withBackButtonListener`).
@@ -84,7 +114,7 @@ This doc consolidates all `.cursor/rules/*.mdc` guidance for widgets, screens, n
 - [ ] Class uses PascalCase; private widgets prefixed with `_`.
 - [ ] `const` constructor where possible; includes `super.key`; required params marked.
 - [ ] Widget tree ≤4 levels; sections extracted; reusable pieces moved to `widgets/` when shared or large.
-- [ ] Styling follows color/typography/spacing rules; reuse patterns or extracted decorations.
+- [ ] Styling follows brand identity (palette, typography, spacing from `.cursor/rules/brand-identity.mdc`); reuse `SectionCard` and `DashboardSectionHeaderStyles` patterns.
 - [ ] Extensions used to reduce nesting; `.onTap` chosen appropriately (no duplicate haptics).
 - [ ] Copy follows UX writing (positive, action-led, personalized); labels and empty states guide users.
 - [ ] Screens use `Scaffold` + `SafeArea` + standard padding; navigation via `go_router` enum.
